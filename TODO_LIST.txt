@@ -1,0 +1,24 @@
+What To Do:
+1) Work on the timestamp of the boxes, some of them have trouble getting other candle sticks to change box size. 
+    - Go to filter() function in data_acquisition.py and look for this:
+        # Keep data within market hours
+        market_open_time = pd.Timestamp('14:30:00').time()#09:30:00 this is what the time should be
+        market_close_time = pd.Timestamp('21:00:00').time()#16:00:00 this is what the time should be
+        # The time should be 9:30-16 but when i do that the candles are completely incorrect, and look totally diffent than what i see is on tradingviews charts
+        # It's like polygon.io is using incorrect times or maybe I'm missing something in my settings. 
+
+    - Another thing i notice is that the wicks on the 15 min chart, when loaded, some of the wicks are so big that it messes with the true high and low of day calculations
+        # What i do to check if the data i have is correct is i load up tradingview, click 15 min chart, and check if SPY 15m is the same looks-wise.
+        # Obviously thats not the most accurate way of doing it but if i can see that, then theres an issue
+2) Fix the websocket timming, it waits for 2 minutes (await asyncio.sleep(some number)) to make a new candle and i don't want it to do that anymore.
+    - the time gets a litle laggy as time goes on, check the 'SPY_2M_Testing_data.log' for examples
+    - make it check the time of day CONSTANTLY, if its a even number make a new candle and save the time where you added/created a new candle so that it doesn't keep on createing a new candle when that time is the same time for a full minute.
+
+
+
+
+
+What I Want To Add Later On
+1) I want to add markers to the chart. The buy and sell(s) of every trade.
+2) when a trade is done, it sends the order log file when the trade is done so that I can delete the file afterward and save file space. It sends it right after the order calculations
+3) At the end of the day, it sends today's performance (It's currently doing it), and afterward, it sends a screenshot of the 2-minute chart to the Discord channel.

@@ -1,0 +1,19 @@
+{
+    "REAL_MONEY_ACTIVATED": false,
+    "ACCOUNT_BALANCES": [
+        5786.0,
+        0
+    ],
+    "SYMBOL": "SPY",
+    "TIMEFRAMES": [
+        "2M"
+    ],
+    "STOP_LOSS_PERCENTAGE": -20,
+    "PAST_DAYS": 8,
+    "NUM_OUT_OF_MONEY": 5,
+    "BOX_SIZE_THRESHOLDS": [
+        0.2,
+        0.5
+    ],
+    "BOX_SPACING": 0.5
+}
