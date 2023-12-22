@@ -1,7 +1,7 @@
 {
     "REAL_MONEY_ACTIVATED": false,
     "ACCOUNT_BALANCES": [
-        5993.0,
+        6643.0,
         0
     ],
     "SYMBOL": "SPY",
@@ -15,5 +15,6 @@
         0.2,
         0.5
     ],
-    "BOX_SPACING": 0.5
+    "BOX_SPACING": 0.5,
+    "CANDLE_BUFFER": 1
 }

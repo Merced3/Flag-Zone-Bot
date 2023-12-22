@@ -36,7 +36,9 @@ DAYS = config["PAST_DAYS"]
 TIMEFRAMES = config["TIMEFRAMES"]
 IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
+CANDLE_BUFFER = config["CANDLE_BUFFER"]
 CANDLE_DURATION = {}
+
 
 timeframe_mapping = {
     "1M": 1 * ONE_MINUTE,
@@ -94,17 +96,28 @@ def generate_candlestick_times(start_time, end_time, interval):
         start += interval
     return times
 
+def add_seconds_to_time(time_str, seconds):
+    time_obj = datetime.strptime(time_str, '%H:%M:%S')
+    new_time_obj = time_obj + timedelta(seconds=seconds)
+    return new_time_obj.strftime('%H:%M:%S')
+
 async def process_data(queue):
     print("Starting process_data()...")
-    global start_times, current_candles, candle_counts
-
+    global current_candles, candle_counts
+    timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(MARKET_OPEN_TIME, MARKET_CLOSE_TIME, timedelta(seconds=CANDLE_DURATION[tf]))] for tf in TIMEFRAMES}
+    buffer_timestamps = {tf: [add_seconds_to_time(t, CANDLE_BUFFER) for t in timestamps[tf]] for tf in timestamps}
+    
     try:
         while True:
-            # Check if the current time is past the (30 seconds before) market close time
-            if datetime.now(new_york_tz) >= MARKET_CLOSE_TIME:
+            now = datetime.now(new_york_tz)
+            f_now = now.strftime('%H:%M:%S')
+            if now >= MARKET_CLOSE_TIME:
                 print("Ending process_data()...")
-                #clear log, so next day has clean data to start with.
-                #don't clear the data yet, we need to figure out some stuff before hand. keep these comments hear as a reminder until we reach that point. 
+                #take a screenshot of the chart and then send it to the discord chat after day-calculations.
+                # Clear log, so next day has clean data to start with.
+                #clear_log(symbol, timeframe)
+                # Don't clear the data yet, we need to figure out some stuff before hand.
+                # Keep these comments hear as a reminder until we reach that point. 
                 break
 
             message = await queue.get()
@@ -112,7 +125,7 @@ async def process_data(queue):
 
             if 'type' in data and data['type'] == 'trade':
                 price = float(data.get("price", 0))
-                
+            
                 for timeframe in TIMEFRAMES:
                     current_candle = current_candles[timeframe]
                     if current_candle["open"] is None:
@@ -124,10 +137,7 @@ async def process_data(queue):
                     current_candle["low"] = min(current_candle["low"], price)
                     current_candle["close"] = price
 
-                    end_time = datetime.now()
-                    elapsed_time = (end_time - start_times[timeframe]).seconds
-
-                    if elapsed_time >= CANDLE_DURATION[timeframe]:
+                    if (f_now in timestamps[timeframe]) or (f_now in buffer_timestamps[timeframe]):
                         current_candle["timestamp"] = datetime.now().isoformat()
                         write_to_log(current_candle, SYMBOL, timeframe)
 
@@ -138,15 +148,20 @@ async def process_data(queue):
                             "low": None,
                             "close": None
                         }
-                        start_times[timeframe] = datetime.now()
-
+                        
                         f_current_time = datetime.now().strftime("%H:%M:%S")
-
-                        # Increment and print the candle count
                         candle_counts[timeframe] += 1
                         print(f"[{f_current_time}] Candle count for {timeframe}: {candle_counts[timeframe]}")
+                        
+                        #remove the timestamp from the list so we don't write to the log again.
+                        if f_now in timestamps[timeframe]:
+                            timestamps[timeframe].remove(f_now)
+                            buffer_timestamps[timeframe].remove(add_seconds_to_time(f_now, CANDLE_BUFFER)) #add CANDLE_BUFFER to f_now and remove it from the buffer_timestamps list.
+                        else: #f_now in buffer_timestamps[timeframe]
+                            buffer_timestamps[timeframe].remove(f_now)
+                            timestamps[timeframe].remove(add_seconds_to_time(f_now, -CANDLE_BUFFER)) #subtract CANDLE_BUFFER from f_now and remove it from the timestamps list.
 
-            queue.task_done()
+        queue.task_done()
 
     except Exception as e:
         await error_log_and_discord_message(e, "main", "process_data")
@@ -278,7 +293,7 @@ async def main():
 
             # 2 mins before market opens, havent implemented this but will soon. its not the highest on the priority list.
             #i want this to run before the wesocket connection starts so that we have the boxes first
-            if ((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
+            if True:#((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
                 start_date, end_date = get_dates(DAYS)
                 print(f"15m) Start and End days: \n{start_date}, {end_date}\n")
 
