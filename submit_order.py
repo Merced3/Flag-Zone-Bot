@@ -1,3 +1,4 @@
+#submit_order.py
 import cred
 from datetime import datetime, timedelta
 import requests
@@ -9,6 +10,7 @@ import json
 import sys
 
 config_path = Path(__file__).resolve().parent / 'config.json'
+MESSAGE_IDS_FILE_PATH = Path(__file__).resolve().parent / 'message_ids.json'
 
 def read_config():
     with config_path.open('r') as f:
@@ -19,6 +21,24 @@ config = read_config()
 SYMBOL = config["SYMBOL"]
 IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"][0]
+
+def save_message_ids(order_id, message_id):
+    # Load existing data
+    if MESSAGE_IDS_FILE_PATH.exists():
+        with open(MESSAGE_IDS_FILE_PATH, 'r') as f:
+            try:
+                existing_data = json.load(f)
+            except json.JSONDecodeError:
+                existing_data = {}
+    else:
+        existing_data = {}
+
+    # Update existing data with new data
+    existing_data[order_id] = message_id
+
+    # Write updated data back to file
+    with open(MESSAGE_IDS_FILE_PATH, 'w') as f:
+        json.dump(existing_data, f, indent=4)
 
 async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_date, session, headers):
     # Replace with actual URL to fetch option chain data
@@ -61,7 +81,6 @@ async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_dat
             await error_log_and_discord_message(e, "submit_order", "find_what_to_buy", "Error parsing JSON or processing data")
             return None
 
-
 async def get_current_price(symbol, session, headers):
     quote_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}markets/quotes?symbols={symbol}"
 
@@ -77,7 +96,6 @@ async def get_current_price(symbol, session, headers):
         except Exception as e:
             await error_log_and_discord_message(e, "submit_order", "get_current_price", "Error parsing JSON")
             return None
-
 
 async def submit_option_order_v2(strategy_name, symbol, strike, option_type,  expiration_date, session, headers, message_ids_dict, buying_power):
 
@@ -127,6 +145,7 @@ async def submit_option_order_v2(strategy_name, symbol, strike, option_type,  ex
             _message_ = f"**{strategy_name}**\n-----\n**Ticker Symbol:** {symbol}\n**Strike Price:** {strike}\n**Option Type:** {option_type}\n**Quantity:** {quantity} contracts\n**Price:** ${ask:.2f}\n**Total Investment:** ${total_investment:.2f}\n-----"
             message_obj = await print_discord(_message_)
             message_ids_dict[unique_order_ID] = message_obj.id # Save message ID for this specific order
+            save_message_ids(unique_order_ID, message_ids_dict[unique_order_ID])
             #print(f"    Saved Message ID {message_obj.id} for {unique_order_ID}. Current dictionary state: {message_ids_dict}") #this dictionary holds all the trades message ID's, those Message ID holds all the info to that specific trade.
                         
             
@@ -157,7 +176,6 @@ def get_strikes_to_consider(current_price, num_out_of_the_money, options):
             strikes_to_consider[strike] = ask
 
     return strikes_to_consider
-
 
 # real_money_activated dictates if were paper trading or real money trading. 
 async def submit_option_order(real_money_activated, symbol, strike, option_type, bid, expiration_date, quantity, side, order_type):
@@ -233,7 +251,6 @@ async def submit_option_order(real_money_activated, symbol, strike, option_type,
         await print_discord(f"\nOrder submission failed. Response status code: {response.status_code}", error_message)
         return None
     
-
 async def get_order_status(strategy_name, real_money_activated, order_id, b_s, ticker_symbol, cp, strike, expiration_date, order_timestamp, message_ids_dict):
     if real_money_activated:
         order_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}accounts/{cred.TRADIER_BROKERAGE_ACCOUNT_NUMBER}/orders/{order_id}"
@@ -277,6 +294,7 @@ async def get_order_status(strategy_name, real_money_activated, order_id, b_s, t
                         
                         message_obj = await print_discord(_message_, delete_last_message=True)
                         message_ids_dict[unique_order_key] = message_obj.id # Save message ID for this specific order
+                        save_message_ids(unique_order_key, message_ids_dict[unique_order_key])
                         #print(f"    Saved Message ID {message_obj.id} for {unique_order_key}. Current dictionary state: {message_ids_dict}") #this dictionary holds all the trades message ID's, those Message ID holds all the info to that specific trade.
                         
                     else: #sell
@@ -308,7 +326,6 @@ async def get_order_status(strategy_name, real_money_activated, order_id, b_s, t
                     return status
             i += 1
 
-
 def get_expiration(expiration_date):
     current_datetime = datetime.now()
     if expiration_date == "not specified":  # default expiration is whenever the script is run
@@ -328,7 +345,6 @@ def get_expiration(expiration_date):
         print(f"Canceled the buy, Invalid expiration date: {expiration_date}")
         return
         
-
 def calculate_quantity(cost_per_contract, order_size_for_account):
     # 'order_size_for_account' represents the percentage of the account you want to spend on each order.
     order_threshold = ACCOUNT_BALANCE * order_size_for_account

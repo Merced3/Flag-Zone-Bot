@@ -5,6 +5,7 @@ import asyncio
 import os
 import json
 from datetime import datetime
+from pathlib import Path
 from print_discord_messages import bot, print_discord, edit_discord_message, get_message_content
 from submit_order import submit_option_order, get_order_status
 from error_handler import error_log_and_discord_message
@@ -395,7 +396,8 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                             if _message_ is not None:
                                 trade_info = calculate_profit_percentage(_message_)
                                 new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content
-                                await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content, None, order_log_name)
+                                order_log_file_path = Path(__file__).resolve().parent / f"{order_log_name}"
+                                await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content, None, order_log_file_path)
                                 # Verify if the file was sent and then delete the log file
                                 if os.path.exists(order_log_name):
                                     os.remove(order_log_name)
@@ -551,7 +553,13 @@ async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_
                 if _message_ is not None:
                     trade_info = calculate_profit_percentage(_message_)
                     new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content
-                    await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content)
+                    order_log_file_path = Path(__file__).resolve().parent / f"{order_log_name}"
+                    await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content, None, order_log_file_path)  
+                    
+                    if os.path.exists(order_log_name):
+                        os.remove(order_log_name)
+                        print(f"Order log file {order_log_name} deleted.")
+    
                     current_order_active = False
                     unique_order_id = None
                 else:
@@ -631,12 +639,16 @@ async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_
                 if _message_ is not None:
                     trade_info = calculate_profit_percentage(_message_)
                     new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content
-                    await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content)
-
+                    order_log_file_path = Path(__file__).resolve().parent / f"{order_log_name}"
+                    await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content, None, order_log_file_path)
+                    
+                    if os.path.exists(order_log_name):
+                        os.remove(order_log_name)
+                        print(f"Order log file {order_log_name} deleted.")
+                
                 current_order_active = False
                 unique_order_id = None
             
             except Exception as e:
                 await error_log_and_discord_message(e, "order_handler", "sell_rest_of_active_order", f"Error processing order log file")
                 return
-            

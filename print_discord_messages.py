@@ -1,5 +1,7 @@
+#print_discord_messages.py
 from error_handler import error_log_and_discord_message
 import asyncio
+import os
 import cred
 import discord
 from discord.ext import commands
@@ -16,7 +18,6 @@ class MyView(View):
         for data in button_data:
             self.add_item(Button(style=data["style"], label=data["label"], custom_id=data["custom_id"]))
 
-
 async def create_view(button_data):
     view = MyView(button_data)
     return view
@@ -27,6 +28,8 @@ async def edit_discord_message(message_id, new_content, delete_last_message=None
         try:
             message = await channel.fetch_message(message_id)
             await message.edit(content=new_content)
+            if file_path:
+                await send_file_discord(file_path)
         except Exception as e:
             await error_log_and_discord_message(e, "print_discord_messages", "edit_discord_message", "An error occurred when trying to edit the message")
         if delete_last_message:
@@ -87,3 +90,15 @@ async def print_discord(message1, message2=None, button_data=None, delete_last_m
     
     return sent_message  # return the sent message
 
+async def send_file_discord(file_path_to_image):
+    channel = bot.get_channel(cred.DISCORD_CHANNEL_ID)
+    if channel:
+        with open(file_path_to_image, 'rb') as f:
+            # Extract just the file name from the file path
+            file_name = os.path.basename(file_path_to_image)
+            # Create a discord.File object with only the file name
+            image_file = discord.File(f, filename=file_name)
+            # Send the file to the Discord channel
+            await channel.send(file=image_file)
+    else:
+        print(f"Could not find channel with ID {cred.DISCORD_CHANNEL_ID}")

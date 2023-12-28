@@ -1,14 +1,95 @@
 # chart_visualization.py
 import tkinter as tk
+from PIL import ImageGrab
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 import mplfinance as mpf
 import pandas as pd
 from matplotlib.patches import Rectangle
+from pathlib import Path
+import json
+import threading
+import time
 
 df_15_min = None
 df_2_min = None
 boxes = None
+LOGS_DIR = Path(__file__).resolve().parent / 'logs'
+should_close = False
+
+def update_chart_periodically(root, canvas, boxes, symbol, log_file_path):
+    global df_2_min, should_close
+    last_timestamp = None  # Initialize with None
+    is_waiting_for_data = True # Flag to check if waiting for initial data
+
+    while True:
+        if should_close:
+            root.quit()  # This will stop the mainloop
+            root.destroy()  # This will destroy all widgets, effectively closing the window
+            break
+        # Read the latest data from the log file
+        new_df = read_log_to_df(log_file_path)
+
+        # Check if DataFrame is empty (no data)
+        if new_df.empty:
+            if is_waiting_for_data:
+                print("[chart_visualization.py] Waiting for live candles...")
+                is_waiting_for_data = False  # Reset flag after first announcement
+        else:
+            # Reset flag as data is now available
+            is_waiting_for_data = True
+
+            # Check if there is new data based on the timestamp
+            if last_timestamp is None or new_df.index[-1] > last_timestamp:
+                df_2_min = new_df
+                last_timestamp = new_df.index[-1]
+                # Schedule the update_plot function to run on the main thread
+                root.after(0, lambda: update_plot(canvas, df_2_min, boxes, symbol, "2-min"))
+
+        # Short sleep to prevent excessive CPU usage
+        time.sleep(0.5)  # Sleep for half a second, adjust as needed
+
+def read_log_to_df(log_file_path):
+    # Convert string path to Path object for easy handling
+    log_file_path = Path(log_file_path)
+
+    # Ensure the directory exists
+    log_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # If the file does not exist, create an empty file
+    if not log_file_path.exists():
+        log_file_path.touch()
+        print(f"Created new log file: {log_file_path}")
+        return pd.DataFrame()
+    # Read the log file and return a DataFrame
+    try:
+        with log_file_path.open('r') as file:
+            lines = file.readlines()
+            if not lines:  # Check if the file is empty
+                return pd.DataFrame()
+
+            data = []
+            for line in lines:
+                try:
+                    json_data = json.loads(line)
+                    if 'timestamp' in json_data:
+                        data.append(json_data)
+                    else:
+                        print("Line in log file missing 'timestamp':", line)
+                except json.JSONDecodeError as e:
+                    print("Error decoding line in log file:", line, "\nError:", e)
+
+            if not data:  # Check if no valid data was found
+                return pd.DataFrame()
+
+            df = pd.DataFrame(data)
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            df.set_index('timestamp', inplace=True)
+            return df
+    except Exception as e:
+        print(f"Error reading log file: {e}")
+        return pd.DataFrame()
 
 def update_plot(canvas, df, boxes, symbol, timescale_type):
     # Ensure the DataFrame index is a DatetimeIndex
@@ -20,19 +101,9 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
     canvas.figure.clf()
     ax = canvas.figure.add_subplot(111)
 
-    # Define the style for mplfinance
-    s = mpf.make_mpf_style(base_mpf_style='charles', rc={'figure.facecolor': 'lightgray'})
-
-    # Prepare the 13-EMA plot if it's a 2-minute chart
-    apds = []
-    #if timescale_type == "2-min":
-        #df['13_ema'] = df['close'].ewm(span=13, adjust=False).mean()
-        #ema_plot = mpf.make_addplot(df['13_ema'], color='yellow', width=1)
-        #apds.append(ema_plot)
-
     # Generate the mplfinance plot
-    mpf.plot(df, ax=ax, type='candle', style=s, datetime_format='%Y-%m-%d', addplot=apds, volume=False)
-
+    mpf.plot(df, ax=ax, type='candle', style='charles', datetime_format='%Y-%m-%d', volume=False)
+        
     # Add boxes to the plot using the previous working method
     for box_name, box_details in boxes.items():
         left_idx, top, bottom = box_details
@@ -42,22 +113,48 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
             last_index_position = df.index.get_loc(df.index[-1])  # Get the index position of the last timestamp
             width = last_index_position - left_idx + 1 
             rect = Rectangle((left_idx, bottom), width, top - bottom, edgecolor=box_color, facecolor=box_color, alpha=0.5, fill=True)
-        else:  # 2-min
+        elif timescale_type == "2-min":
             # Full width for 2-min data
             width = len(df.index)
             rect = Rectangle((0, bottom), width, top - bottom, edgecolor=box_color, facecolor=box_color, alpha=0.5, fill=True)
+            
         ax.add_patch(rect)
+
+
+
+    # Check and plot markers
+    markers_file_path = Path(__file__).resolve().parent / 'markers.json'
+    try:
+        with open(markers_file_path, 'r') as f:
+            markers = json.load(f)
+
+        for marker in markers:
+            # Convert the x-coordinate (index) to a timestamp
+            if 0 <= marker['x'] < len(df.index):
+                timestamp = df.index[marker['x']]
+                ax.scatter(timestamp, marker['y'], **marker['style'])
+    except FileNotFoundError:
+        print("No markers.json file found.")
+
+
+
 
     # Redraw the canvas
     canvas.draw()
+    canvas.figure.savefig(f"{symbol}_{timescale_type}_chart.png")
+
+def check_for_new_markers():
+    #something
+    pass
 
 def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
-    global df_15_min, df_2_min, boxes
+    global df_15_min, df_2_min, should_close
     df_15_min, df_2_min, boxes = df_15, df_2, box_data
 
     # Create the main Tkinter window
     root = tk.Tk()
     root.wm_title(f"Candlestick chart for {symbol}")
+    should_close = False
 
     # Create a Figure for Matplotlib
     fig = Figure(figsize=(12, 6), dpi=100)
@@ -77,6 +174,12 @@ def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
     button_2_min = tk.Button(root, text="2 min", 
                              command=lambda: update_plot(canvas, df_2_min, boxes, symbol, "2-min"))
     button_2_min.pack(side=tk.LEFT)
+
+    # Start the background task for updating the chart
+    log_file_path = LOGS_DIR / f"{symbol}_2M.log"  # Replace with your actual log file path
+    #how do we say wait until this file exists if it doesn't exists?
+    update_thread = threading.Thread(target=update_chart_periodically, args=(root, canvas, boxes, symbol, log_file_path), daemon=True)
+    update_thread.start()
 
     # Start the Tkinter event loop
     tk.mainloop()

@@ -41,7 +41,20 @@ active_order = {
 }
 
 last_processed_candle = None 
+
+
+
+MESSAGE_IDS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'message_ids.json')
 message_ids_dict = {}
+def load_message_ids():
+    if os.path.exists(MESSAGE_IDS_FILE_PATH):
+        with open(MESSAGE_IDS_FILE_PATH, 'r') as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return {}
+    else:
+        return {}
 
 def read_last_n_lines(file_path, n): #code from a previous ema tradegy, thought it may help. pls edit if need be.
     # Ensure the logs directory exists
@@ -77,6 +90,10 @@ def get_papertrade_BP():
 async def execute_trading_strategy(zones):
     print("Starting execute_trading_strategy()...")
     global last_processed_candle
+
+    message_ids_dict = load_message_ids()
+    print("message_ids_dict: ", message_ids_dict)
+
     async with aiohttp.ClientSession() as session:  # Initialize HTTP session
         headers = {"Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", "Accept": "application/json"}
         try:

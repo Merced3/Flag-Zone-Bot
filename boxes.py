@@ -71,11 +71,10 @@ def get(candle_data, num_boxes=5):
     boxes = {f'resistance_{i+1}': box for i, box in enumerate(resistances)}
     boxes.update({f'support_{i+1}': box for i, box in enumerate(supports)})
     print(f"\nBasic Boxes: {boxes}")
-
-
+    #for _ in range(2):
     boxes = correct_too_big_small_boxes(candle_data, boxes)
     boxes = remove_zones_that_are_too_close(boxes)
-    #boxes = remove_obsolete_zones(boxes)
+    
     boxes = correct_bleeding_boxes(boxes)
     boxes = old_resistance_becomes_new_support(boxes)
     return boxes
@@ -235,6 +234,8 @@ def old_resistance_becomes_new_support(boxes):
 
 def correct_too_big_small_boxes(candle_data, boxes):
     print(f"\n---------------------\nResizing Boxes that are too Small or Big:")
+
+    print(f"Boxes Before Processing: {boxes}\n")
     if not isinstance(candle_data.index, pd.DatetimeIndex):
         candle_data['timestamp'] = pd.to_datetime(candle_data['timestamp'])
         candle_data.set_index('timestamp', inplace=True)

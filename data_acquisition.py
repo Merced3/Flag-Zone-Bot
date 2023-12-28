@@ -7,7 +7,9 @@ import websockets
 from websockets.exceptions import InvalidStatusCode, ConnectionClosedError
 import asyncio
 import cred
+import aiohttp
 import json
+from typing import Optional
 import pytz
 from datetime import datetime
 
@@ -36,7 +38,7 @@ async def ws_connect(queue, symbol):
                 })
                 await websocket.send(payload)
                 print(f">>> {payload}, {datetime.now().isoformat()}")
-                print("[Hr:Min:Sec]")
+                print("[Hr:Mn:Sc]")
 
                 async for message in websocket:
                     if should_close:
@@ -45,6 +47,13 @@ async def ws_connect(queue, symbol):
                         return
 
                     await queue.put(message)
+
+        except InvalidStatusCode as e:
+            if e.status_code == 502:
+                print("Encountered a server-side error (HTTP 502). There's nothing we can do about it at this moment.")
+            else:
+                print(f"Encountered a server-side error (HTTP {e.status_code}).")
+            await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
 
         except websockets.ConnectionClosed:
             print("WebSocket connection closed. Re-establishing connection...")
@@ -109,8 +118,9 @@ async def get_candle_data(api_key, symbol, interval, timescale, start_date, end_
         response.raise_for_status()  # This will raise an HTTPError if the HTTP request returned an unsuccessful status code
         
         data = response.json()
-        print(url)
-        #print(f"{interval} {timescale} Raw JSON Response:", data)
+        print(f"({interval}m) url: {url}")
+    
+        print(f"response: {response}\n") # i want to print conditions somehow
 
         # Check if 'results' key is in the data
         if 'results' in data:
@@ -205,4 +215,44 @@ async def get_account_balance(is_real_money, bp=None):
         await error_log_and_discord_message(err, "data_acquisition","get_account_balance")
         return None
 
+def get_current_candle_index(log_file_path):
+    with open(log_file_path, 'r') as file:
+        lines = file.readlines()
 
+    if not lines:
+        return None  # Return None if the log file is empty
+
+    # The index of the last candle is the length of the lines list minus 1
+    return len(lines) - 1
+
+async def get_current_price(symbol: str) -> float:
+    url = "wss://ws.tradier.com/v1/markets/events"  # Replace with your actual WebSocket URL
+    try:
+        session_id = get_session_id()  # Call the get_session_id function
+        if session_id is None:
+            print("Failed to get a new session ID for get_current_price(), data_acquisition.py.")
+            return 0.0
+
+        async with websockets.connect(url, ssl=True, compression=None) as websocket:
+            # Send payload to subscribe to the symbol's trades
+            payload = json.dumps({
+                "symbols": [symbol],
+                "sessionid": session_id,  # Include the session ID in the payload
+                # Add other fields as required by your API
+            })
+            await websocket.send(payload)
+
+            # Wait for the first trade message
+            while True:
+                message = await websocket.recv()
+                data = json.loads(message)
+
+                if 'type' in data and data['type'] == 'trade':
+                    return float(data.get("price", 0))
+
+    except InvalidStatusCode as e:
+        print(f"WebSocket connection error: {e}")
+    except Exception as e:
+        print(f"Error in get_current_price: {e}")
+
+    return 0.0  # Return a default value or handle this case as required
