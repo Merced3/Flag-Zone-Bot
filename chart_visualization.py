@@ -122,7 +122,7 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
 
 
 
-    # Check and plot markers
+    """# Check and plot markers
     markers_file_path = Path(__file__).resolve().parent / 'markers.json'
     try:
         with open(markers_file_path, 'r') as f:
@@ -134,7 +134,7 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
                 timestamp = df.index[marker['x']]
                 ax.scatter(timestamp, marker['y'], **marker['style'])
     except FileNotFoundError:
-        print("No markers.json file found.")
+        print("No markers.json file found.")"""
 
 
 
