@@ -18,6 +18,16 @@ boxes = None
 LOGS_DIR = Path(__file__).resolve().parent / 'logs'
 should_close = False
 
+config_path = Path(__file__).resolve().parent / 'config.json'#
+def read_config():
+    with config_path.open('r') as f:
+        config = json.load(f)
+    return config
+config = read_config()
+SYMBOL = config["SYMBOL"]
+IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
+BOX_SIZE_THRESHOLDS = config["BOX_SIZE_THRESHOLDS"]
+
 def update_chart_periodically(root, canvas, boxes, symbol, log_file_path):
     global df_2_min, should_close
     last_timestamp = None  # Initialize with None
@@ -103,7 +113,12 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
 
     # Generate the mplfinance plot
     mpf.plot(df, ax=ax, type='candle', style='charles', datetime_format='%Y-%m-%d', volume=False)
-        
+
+    # After plotting the candlesticks, set y-axis limits to match the candlestick range 
+    y_min = df[['low']].min().min() - BOX_SIZE_THRESHOLDS[0] # Find the minimum low price in the DataFrame
+    y_max = df[['high']].max().max() + BOX_SIZE_THRESHOLDS[0] # Find the maximum high price in the DataFrame
+    ax.set_ylim(y_min, y_max)  # Set the y-axis limits
+
     # Add boxes to the plot using the previous working method
     for box_name, box_details in boxes.items():
         left_idx, top, bottom = box_details
@@ -120,24 +135,23 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
             
         ax.add_patch(rect)
 
+    # if i take out this block of code, the chart works as it should, but with this block of code, it condenses the 
+    # candle sticks to the top of the chart because the candle stick values being higher than most of the boxes, its
+    # plotting everthing correctly, but it only needs to show the boxes that are in the in the 2 min charts facinity.
+    # Not everysingle box that has to be shown on the 2-min chart.
+    if timescale_type == "2-min":
+        # Check and plot markers
+        markers_file_path = Path(__file__).resolve().parent / 'markers.json'
+        try:
+            with open(markers_file_path, 'r') as f:
+                markers = json.load(f)
 
+            for marker in markers:
+                ax.scatter(marker['x'], marker['y'], **marker['style'])
+        except FileNotFoundError:
+            print("No markers.json file found.")
 
-    """# Check and plot markers
-    markers_file_path = Path(__file__).resolve().parent / 'markers.json'
-    try:
-        with open(markers_file_path, 'r') as f:
-            markers = json.load(f)
-
-        for marker in markers:
-            # Convert the x-coordinate (index) to a timestamp
-            if 0 <= marker['x'] < len(df.index):
-                timestamp = df.index[marker['x']]
-                ax.scatter(timestamp, marker['y'], **marker['style'])
-    except FileNotFoundError:
-        print("No markers.json file found.")"""
-
-
-
+    
 
     # Redraw the canvas
     canvas.draw()

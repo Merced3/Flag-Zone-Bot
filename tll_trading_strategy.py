@@ -7,7 +7,7 @@ from submit_order import find_what_to_buy, submit_option_order, submit_option_or
 from order_handler import get_profit_loss_orders_list, get_unique_order_id_and_is_active, manage_active_order, sell_rest_of_active_order, manage_active_fake_order
 from print_discord_messages import print_discord
 from error_handler import error_log_and_discord_message
-import data_acquisition as da
+from data_acquisition import get_account_balance, add_markers
 import pytz
 import cred
 import aiohttp
@@ -176,7 +176,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, header
         quantity = calculate_quantity(strike_ask_bid, 0.1)    
         #order math, making sure we have enough buying power to fulfill order
         if real_money_activated:
-            buying_power = await da.get_account_balance(real_money_activated, bp=True)
+            buying_power = await get_account_balance(real_money_activated, bp=True)
         else:
             buying_power = get_papertrade_BP()
         commission_fee = 0.35
@@ -219,6 +219,7 @@ Order Cost Buffer exceded BP
             #stuff...
             order_result = await submit_option_order(real_money_activated, ticker_symbol, strike_price, cp, bid, expiration_date, quantity, side, order_type)
             if order_result:
+                await add_markers("buy")
                 timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')
                 unique_order_ID, order_bid_entry_price, order_quantity = await get_order_status(STRATEGY_NAME, real_money_activated, order_result['order_id'], "buy", ticker_symbol, cp, strike_price, expiration_date, timestamp, message_ids_dict)
 
@@ -239,6 +240,7 @@ Order Cost Buffer exceded BP
         else:
             active_order = await submit_option_order_v2(STRATEGY_NAME, ticker_symbol, strike_price, cp, expiration_date, session, headers, message_ids_dict, buying_power)
             if active_order is not None:
+                await add_markers("buy")
                 order_cost = (active_order["entry_price"] * 100) * active_order["quantity"]
                 used_buying_power[active_order['order_id']] = order_cost
                 loop = asyncio.get_event_loop()

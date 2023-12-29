@@ -9,6 +9,7 @@ from pathlib import Path
 from print_discord_messages import bot, print_discord, edit_discord_message, get_message_content
 from submit_order import submit_option_order, get_order_status
 from error_handler import error_log_and_discord_message
+from data_acquisition import add_markers
 import re
 
 config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
@@ -244,6 +245,11 @@ async def manage_active_order(active_order_details, message_ids_dict):
                         partial_exits.append(sale_info)
                         remaining_quantity -= sold_quantity
                         print(f"Sold {sold_quantity} at {sold_bid_price} target, {remaining_quantity} remaining.")
+
+                        if remaining_quantity <= 0:
+                            await add_markers("sell")
+                        else:
+                            await add_markers("trim")
                         
                         #have 'already_sold' some how afftected right here, i think that will help with selling issue
                         
@@ -367,7 +373,12 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                         remaining_quantity -= sell_quantity
                         sold_order_cost = (current_bid_price * 100) * sell_quantity
                         print(f"Sold {sell_quantity} at {current_bid_price} target, {remaining_quantity} remaining. Order Cost: ${sold_order_cost:.2f}")
-                            
+
+                        if remaining_quantity <= 0:
+                            await add_markers("sell")
+                        else:
+                            await add_markers("trim")
+
                         with open(order_log_name, "a") as log_file:
                             log_file.write(f"Sold {sell_quantity} at {current_bid_price}\n")
                             log_file.flush()
@@ -527,8 +538,9 @@ async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_
 
             #sell/Unpack the returned values from the sell function
             sold_bid_price, sold_quantity, success = await sell(sell_quantity, unique_order_id, message_ids_dict, reason_for_selling)
-
+            
             if success and sold_quantity is not None and sold_bid_price is not None:
+                await add_markers("sell")
                 parts = unique_order_id.split('-')
                 if len(parts) >= 5:
                     symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
@@ -599,6 +611,7 @@ async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_
                     "quantity": sell_quantity,  # Using actual sold quantity
                     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 }
+                await add_markers("sell")
                 partial_exits.append(sale_info)
                 
 

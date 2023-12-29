@@ -12,9 +12,22 @@ import json
 from typing import Optional
 import pytz
 from datetime import datetime
+import os
+from pathlib import Path
 
 RETRY_INTERVAL = 1  # Seconds between reconnection attempts
 should_close = False  # Global variable to signal if the WebSocket should close
+
+config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+
+def read_config():
+    with open(config_path, 'r') as f:
+        config = json.load(f)
+    return config
+
+config = read_config()
+IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
+SYMBOL = config["SYMBOL"]
 
 async def ws_connect(queue, symbol):
     global should_close
@@ -256,3 +269,43 @@ async def get_current_price(symbol: str) -> float:
         print(f"Error in get_current_price: {e}")
 
     return 0.0  # Return a default value or handle this case as required
+
+async def add_markers(event_type):
+    
+    log_file_path = Path(__file__).resolve().parent / 'logs/SPY_2M.log'
+    x_coord = get_current_candle_index(log_file_path)
+    y_coord = await get_current_price(SYMBOL)
+    print(f"Marker: {x_coord}, {y_coord}, {event_type}")
+
+    marker_styles = {
+        'buy': {'marker': '^', 'color': 'blue'},
+        'trim': {'marker': 'o', 'color': 'red'},
+        'sell': {'marker': 'v', 'color': 'red'}
+    }
+    
+    marker = {
+        'event_type': event_type,
+        'x': x_coord,
+        'y': y_coord,
+        'style': marker_styles[event_type]
+    }
+
+    # Path to markers.json file
+    markers_file_path = Path(__file__).resolve().parent / 'markers.json'
+
+    # Ensure the file exists and contains an empty list if it's new
+    if not markers_file_path.exists():
+        with open(markers_file_path, 'w') as f:
+            json.dump([], f)
+
+    # Read existing markers from the file, or initialize an empty list if there's a JSON decode error
+    try:
+        with open(markers_file_path, 'r') as f:
+            markers = json.load(f)
+    except json.decoder.JSONDecodeError:
+        markers = []
+
+    # Append the new marker and write back to the file
+    markers.append(marker)
+    with open(markers_file_path, 'w') as f:
+        json.dump(markers, f, indent=4)
