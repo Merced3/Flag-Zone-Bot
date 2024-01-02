@@ -277,6 +277,8 @@ async def add_markers(event_type):
     y_coord = await get_current_price(SYMBOL)
     print(f"Marker: {x_coord}, {y_coord}, {event_type}")
 
+    x_coord += 1
+
     marker_styles = {
         'buy': {'marker': '^', 'color': 'blue'},
         'trim': {'marker': 'o', 'color': 'red'},
@@ -298,14 +300,16 @@ async def add_markers(event_type):
         with open(markers_file_path, 'w') as f:
             json.dump([], f)
 
-    # Read existing markers from the file, or initialize an empty list if there's a JSON decode error
+    # Read existing markers
     try:
         with open(markers_file_path, 'r') as f:
             markers = json.load(f)
+        # Ensure markers is a list
+        if not isinstance(markers, list):
+            markers = []
     except json.decoder.JSONDecodeError:
         markers = []
 
-    # Append the new marker and write back to the file
     markers.append(marker)
     with open(markers_file_path, 'w') as f:
         json.dump(markers, f, indent=4)
