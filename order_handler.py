@@ -182,7 +182,7 @@ async def manage_active_order(active_order_details, message_ids_dict):
                     parts = unique_order_id.split('-')
                     if len(parts) >= 5:
                         symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-                        order_log_name = f"order_log({symbol}_{option_type}_{strike}_{_timestamp})"
+                        order_log_name = f"order_log({symbol}_{option_type}_{strike}_{_timestamp}).txt"
 
                         
                         expiration_date_obj = datetime.strptime(expiration_date, "%Y%m%d")# Convert the expiration date to 'YYYY-MM-DD' format
@@ -315,13 +315,16 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                     parts = unique_order_id.split('-')
                     if len(parts) >= 5:
                         symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-                        order_log_name = f"order_log({symbol}_{option_type}_{strike}_{_timestamp})"
+                        order_log_name = f"order_log({symbol}_{option_type}_{strike}_{_timestamp}).txt"
                         expiration_date_obj = datetime.strptime(expiration_date, "%Y%m%d")# Convert the expiration date to 'YYYY-MM-DD' format
                         formatted_expiration_date = expiration_date_obj.strftime("%Y-%m-%d")
-                        with open(order_log_name, "a") as log_file:
-                            if buy_price_already_writen is None:
-                                log_file.write(f"Buy Entry Price: {buy_entry_price}\n")
-                                buy_price_already_writen = True
+                        try:
+                            with open(order_log_name, "a") as log_file:
+                                if buy_price_already_writen is None:
+                                    log_file.write(f"Buy Entry Price: {buy_entry_price}\n")
+                                    buy_price_already_writen = True
+                        except Exception as e:
+                            await error_log_and_discord_message(e, "order_handler", "manage_active_fake_order", f"Error writing to file {order_log_name}")
 
                         # Check if we should print the message
                         if print_once_flag:
@@ -544,7 +547,7 @@ async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_
                 parts = unique_order_id.split('-')
                 if len(parts) >= 5:
                     symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-                    order_log_name = f"order_log({symbol}_{option_type}_{strike}_{_timestamp})"
+                    order_log_name = f"order_log_{symbol}_{option_type}_{strike}_{_timestamp}.txt"
                     # Read the buy entry price from the log file
                     try:
                         with open(order_log_name, "r") as log_file:
@@ -593,7 +596,7 @@ async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_
         parts = unique_order_id.split('-')
         if len(parts) >= 5:
             symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-            order_log_name = f"order_log({symbol}_{option_type}_{strike}_{_timestamp})"
+            order_log_name = f"order_log({symbol}_{option_type}_{strike}_{_timestamp}).txt"
             # Read the buy entry price from the log file
             try:
                 with open(order_log_name, "r") as log_file:
