@@ -152,7 +152,7 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
             print("No markers.json file found.")
 
         lines_file_path = Path(__file__).resolve().parent / 'line_data.json'
-
+ 
         try:
             with open(lines_file_path, 'r') as f:
                 lines = json.load(f)
