@@ -151,8 +151,27 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
         except FileNotFoundError:
             print("No markers.json file found.")
 
-    
+        lines_file_path = Path(__file__).resolve().parent / 'line_data.json'
 
+        try:
+            with open(lines_file_path, 'r') as f:
+                lines = json.load(f)
+
+            for line in lines:
+                # Determine the color based on the type of flag
+                color = 'blue' if line['type'] == 'Bull' else 'black'
+
+                # Extract the start and end points
+                start_x = line['point_1']['x']
+                start_y = line['point_1']['y']
+                end_x = line['point_2']['x']
+                end_y = line['point_2']['y']
+
+                # Draw the line on the chart
+                ax.plot([start_x, end_x], [start_y, end_y], color=color, linewidth=1)
+
+        except FileNotFoundError:
+            print("No line_data.json file found.")
     # Redraw the canvas
     canvas.draw()
     canvas.figure.savefig(f"{symbol}_{timescale_type}_chart.png")

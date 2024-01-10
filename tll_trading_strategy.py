@@ -7,7 +7,10 @@ from submit_order import find_what_to_buy, submit_option_order, submit_option_or
 from order_handler import get_profit_loss_orders_list, get_unique_order_id_and_is_active, manage_active_order, sell_rest_of_active_order, manage_active_fake_order
 from print_discord_messages import print_discord
 from error_handler import error_log_and_discord_message
-from data_acquisition import get_account_balance, add_markers
+from data_acquisition import get_account_balance, add_markers, get_current_candle_index
+from pathlib import Path
+import pandas as pd
+import math
 import pytz
 import cred
 import aiohttp
@@ -41,8 +44,6 @@ active_order = {
 }
 
 last_processed_candle = None 
-
-
 
 MESSAGE_IDS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'message_ids.json')
 message_ids_dict = {}
@@ -78,6 +79,13 @@ MARKET_CLOSE = time(16, 0)
 used_buying_power = {}
 
 ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
+MIN_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MIN_NUM_CANDLES"]
+MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
+
+def load_json_df(file_path):
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    return pd.DataFrame(data)
 
 def get_papertrade_BP():
     #get every orders cost that is in USED_BUYING_POWER, calculate how much all of it added togther costs
@@ -86,13 +94,17 @@ def get_papertrade_BP():
     current_bp_left = current_balance - all_order_costs
     return current_bp_left
 
-
 async def execute_trading_strategy(zones):
     print("Starting execute_trading_strategy()...")
     global last_processed_candle
 
     message_ids_dict = load_message_ids()
     print("message_ids_dict: ", message_ids_dict)
+
+    what_type_of_candle = None
+    havent_cleared = None
+
+    restart_state_json("state.json", True)
 
     async with aiohttp.ClientSession() as session:  # Initialize HTTP session
         headers = {"Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", "Accept": "application/json"}
@@ -125,31 +137,406 @@ async def execute_trading_strategy(zones):
                     for box_name, (count, high_low_of_day, buffer) in zones.items(): #checking every zone
                         if "support" in box_name:
                             PDL = high_low_of_day #Previous Day Low
-                            if candle['open'] <= buffer and candle['close'] >= buffer: #
-                                print("    buy CALL") #simulate buy
-                                await buy_option_cp(IS_REAL_MONEY, SYMBOL, "call", session, headers)
-                            elif candle['open'] >= PDL and candle['close'] <= PDL:
-                                print("    buy PUT") #simulate buy
-                                await buy_option_cp(IS_REAL_MONEY, SYMBOL, "put", session, headers)
-                            #else:
-                                #do nothing, wait for another candle to meet thses specifications
-                            
+                            # if price goes back into zone, then stop recording candles and delete the data in priority_candles.json
+                            if candle['open'] <= buffer and candle['close'] >= buffer: #print("    buy CALL"), await buy_option_cp(IS_REAL_MONEY, SYMBOL, "call", session, headers)
+                                what_type_of_candle = f"{box_name} Buffer"
+                                print(f"    START Recording SUPPORT Priority Candles; type = {what_type_of_candle}") #simulate recording data...
+                                havent_cleared = True
+                            elif candle['open'] >= buffer and candle['close'] <= buffer:
+                                print(f"    END Recording Priority Candles; type = {what_type_of_candle}")
+                                what_type_of_candle = None
+                                
+                                
+                                
+                            if candle['open'] >= PDL and candle['close'] <= PDL: #print("    buy PUT") #simulate buy, await buy_option_cp(IS_REAL_MONEY, SYMBOL, "put", session, headers)
+                                what_type_of_candle = f"{box_name} PDL"
+                                print(f"    Start Recording Priority Candles; type = {what_type_of_candle}")
+                                havent_cleared = True
+                            elif candle['open'] <= PDL and candle['close'] >= PDL:
+                                print(f"    END Recording Priority Candles; type = {what_type_of_candle}")
+                                what_type_of_candle = None
+                              
                         elif "resistance" in box_name:
                             PDH = high_low_of_day #Previous Day High
-                            if candle['open'] >= buffer and candle['close'] <= buffer: #fails to break pdh, instead it dreaks buffer
-                                print("    buy PUT") #simulate buy
-                                await buy_option_cp(IS_REAL_MONEY, SYMBOL, "put", session, headers)
-                            elif candle['open'] <= PDH and candle['close'] >= PDH: #breaks pdh
-                                print("    buy CALL") #simulate buy
-                                await buy_option_cp(IS_REAL_MONEY, SYMBOL, "call", session, headers)
-                            #else:
-                                #do nothing, wait for another candle to meet thses specifications
+                            if candle['open'] >= buffer and candle['close'] <= buffer: #dreaks buffer, print("    buy PUT"), await buy_option_cp(IS_REAL_MONEY, SYMBOL, "put", session, headers)
+                                what_type_of_candle = f"{box_name} Buffer"
+                                print(f"    START Recording RESISTANCE Priority Candles; type = {what_type_of_candle}") #simulate recording data...
+                                havent_cleared = True
+                            elif candle['open'] <= buffer and candle['close'] >= buffer:
+                                print(f"    END Recording Priority Candles; type = {what_type_of_candle}")
+                                what_type_of_candle = None
+                            
+                            if candle['open'] <= PDH and candle['close'] >= PDH: #breaks pdh, print("    buy CALL"), await buy_option_cp(IS_REAL_MONEY, SYMBOL, "call", session, headers)
+                                what_type_of_candle = f"{box_name} PDH"
+                                print(f"    START Recording RESISTANCE Priority Candles; type = {what_type_of_candle}")
+                                havent_cleared = True
+                            elif candle['open'] >= PDH and candle['close'] <= PDH:
+                                print(f"    END Recording Priority Candles; type = {what_type_of_candle}")
+                                what_type_of_candle = None
+                                
+
+                    if what_type_of_candle is not None:
+                        #record the candle data
+                        await record_priority_candle(candle, what_type_of_candle)
+                    else:
+                        clear_priority_candles(havent_cleared, what_type_of_candle)
+                        restart_state_json("state.json", havent_cleared)
+                    
+                    priority_candles  = load_json_df('priority_candles.json')
+                    for candle in priority_candles.itertuples(index=False):
+                        num_flags = count_flags_in_json()
+                        await identify_flag(candle._asdict(), num_flags, session, headers)
 
                 else:
                     await asyncio.sleep(1)  # Wait for new candle data
 
         except Exception as e:
             await error_log_and_discord_message(e, "tll_trading_strategy", "execute_trading_strategy")
+
+async def identify_flag(candle, num_flags, session, headers):
+    print(f"Candle {candle['candle_index']} OHLC: {candle['open']}, {candle['high']}, {candle['low']}, {candle['close']}")
+    state_file_path = "state.json" 
+    
+    # Read the current state from the JSON file
+    with open(state_file_path, 'r') as file:
+        state = json.load(file)
+    
+    current_high = state.get('current_high', None)
+    highest_point = state.get('highest_point', None)
+    lower_highs = state.get('lower_highs', [])
+    
+    current_low = state.get('current_low', None)
+    lowest_point = state.get('lowest_point', None)
+    higher_lows = state.get('higher_lows', [])
+
+    slope = state.get('slope', None)
+    intercept = state.get('intercept', None)
+
+
+    # Check if the 'type' key exists in the candle dictionary
+    if 'type' in candle and (('support' in candle['type']) and ('Buffer' in candle['type'])) or (('resistance' in candle['type']) and ('PDH' in candle['type'])):
+        line_name = f"flag_{num_flags}"
+        # Update the current high to the new candle's high if it's higher than the current high
+        if current_high is None or candle['high'] > current_high:
+            current_high = candle['high']
+            highest_point = (candle['candle_index'], current_high)
+            print(f"    New Highest Point: {highest_point}")
+            lower_highs = []
+        else: 
+            if candle['high'] == current_high and candle['candle_index'] > highest_point[0]:
+                highest_point = (candle['candle_index'], current_high)
+                print(f"    Updated Highest Point: {highest_point}")
+                lower_highs = []
+            else:
+                lower_highs.append((candle['candle_index'], candle['high']))
+
+        #please keep comments, helps me better understand whats going on
+        # This block calculates the slope and intercept for a potential flag, updating line data if valid points are found.
+        if len(lower_highs) >= MIN_NUM_CANDLES and (slope is None or intercept is None):
+            print(f"    Calculating Slope Line...")
+            slope, intercept = calculate_slope_intercept(lower_highs, highest_point)
+            if slope is not None:  # Add a check here
+                if is_angle_valid(slope, config) :
+                    print("    Angle within valid range.")
+                    
+                    print(f"    UPDATE LINE DATA 1: {line_name}")
+                    update_line_data(line_name, "Bull", "active", highest_point)
+                    #check if there are any points above the line
+                    for lh in lower_highs:
+                        if slope is not None and intercept is not None:
+                            slope, intercept, breakout_detected = await check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, session, headers)
+                            if breakout_detected:
+                                print("    [1] Breakout Detected [DO SOMETHING]")
+                else:
+                    print("    Invalid points for slope: First point is later than second point.")
+                    # You can choose to reset state, ignore these points, or handle as needed
+                    slope = None
+                    intercept = None
+                    # Optionally reset highest_point and lower_highs if needed
+                    #highest_point = None
+                    #lower_highs = []
+            else:
+                print("    Slope calculation failed or not applicable.")    
+        elif slope is not None and intercept is not None:
+            for lh in lower_highs:
+                slope, intercept, breakout_detected = await check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, session, headers)
+                if breakout_detected:
+                    print("    [2] Breakout Detected [DO SOMETHING]")
+
+        # Check for breakout
+        for lh in lower_highs:
+            if slope is not None and intercept is not None:
+                slope, intercept, breakout_detected = await check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, session, headers)
+                if breakout_detected:
+                    print("    [3] Breakout Detected [DO SOMETHING]")           
+                #lower_highs.clear()
+    elif (('support' in candle['type']) and ('PDL' in candle['type'])) or (('resistance' in candle['type']) and ('Buffer' in candle['type'])):
+        #now Lets work on Bear Candles, instead of Higher highs we will be looking at lower lows
+        line_name = f"flag_{num_flags}"
+        # Update the current high to the new candle's high if it's higher than the current high
+        if current_low is None or candle['low'] < current_low:
+            current_low = candle['low']
+            lowest_point = (candle['candle_index'], current_low)
+            print(f"    New Lowest Point: {lowest_point}")
+            higher_lows = []
+        else: 
+            if candle['low'] == current_low and candle['candle_index'] > lowest_point[0]:
+                lowest_point = (candle['candle_index'], current_low)
+                print(f"    Updated Lowest Point: {current_low}")
+                higher_lows = []
+            else:
+                higher_lows.append((candle['candle_index'], candle['low']))
+
+        # This block calculates the slope and intercept for a potential flag, updating line data if valid points are found.
+        if len(higher_lows) >= MIN_NUM_CANDLES and (slope is None or intercept is None):
+            print(f"    Calculating Slope Line...")
+            slope, intercept = calculate_slope_intercept(higher_lows, lowest_point)
+            if slope is not None:  # Add a check here
+                if is_angle_valid(slope, config, bearish=True):
+                    print("    Angle within valid range.")
+                    
+                    print(f"    UPDATE LINE DATA 2: {line_name}")
+                    update_line_data(line_name, "Bear", "active", lowest_point)
+                    #check if there are any points above the line
+                    for hl in higher_lows:
+                        if slope is not None and intercept is not None:
+                            slope, intercept, breakout_detected = await check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, session, headers)
+                            if breakout_detected:
+                                print("    [4] Breakout Detected [DO SOMETHING]")
+                else:
+                    print("    Invalid points for slope: First point is later than second point.")
+                    # You can choose to reset state, ignore these points, or handle as needed
+                    slope = None
+                    intercept = None
+                    # Optionally reset highest_point and lower_highs if needed
+                    #highest_point = None
+                    #lower_highs = []
+            else:
+                print("    Slope calculation failed or not applicable.")
+
+        elif slope is not None and intercept is not None:
+            for hl in higher_lows:
+                slope, intercept, breakout_detected = await check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, session, headers)
+                if breakout_detected:
+                    print("    [5] Breakout Detected [DO SOMETHING]")
+
+        # Check for breakout
+        for hl in higher_lows:
+            if slope is not None and intercept is not None:
+                slope, intercept, breakout_detected = await check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, session, headers)
+                if breakout_detected:
+                    print("    [6] Breakout Detected [DO SOMETHING]")           
+                #lower_highs.clear()
+    else:
+        print(f"    No Support Candle: type = {candle}")    
+    
+    # Write the updated state back to the JSON file
+    with open(state_file_path, 'w') as file:
+        json.dump(state, file, indent=4)
+
+    update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle)
+
+async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, session, headers):
+    # Check and resolve any active bull flags
+    resolve_opposite_flags('Bull')
+
+    trendline_y = slope * hl[0] + intercept
+
+    if hl[1] < trendline_y:
+        #more code...
+        print(f"    Potential Breakout Detected at {hl}")
+
+        # Check if the candle associated with this higher low completely closes below the trendline
+        if candle['close'] < trendline_y:
+            print(f"    UPDATE LINE DATA 3: {line_name}")
+            # Confirms a strong breakout signal, update line data as complete
+            update_line_data(line_name=line_name, line_type="Bear", status="complete", point_2=(hl[0], trendline_y))
+            print("    [1] Confirmed Breakout: Sell Signal")
+            await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'put', session, headers)
+            return None, None, True
+        else:
+            # Test new slope and intercept
+            new_slope = (hl[1] - lowest_point[1]) / (hl[0] - lowest_point[0])
+            new_intercept = lowest_point[1] - new_slope * lowest_point[0]
+
+            if new_slope is not None and is_angle_valid(new_slope, config, bearish=True):
+                valid_breakout = True
+                for test_point in higher_lows:
+                    if test_point[1] < new_slope * test_point[0] + new_intercept:
+                        valid_breakout = False
+                        break
+
+                if valid_breakout:
+                    print(f"    UPDATE LINE DATA 4: {line_name}")
+                    update_line_data(line_name, "Bear", "active", lowest_point, hl)
+                    return new_slope, new_intercept, True
+                else:
+                    print("    Invalid breakout on new slope.")
+                    return None, None, False
+            else:
+                return None, None, False
+    return slope, intercept, False
+
+async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, session, headers):
+    # Check and resolve any active bear flags
+    resolve_opposite_flags('Bear')
+    
+    trendline_y = slope * lh[0] + intercept
+
+    if lh[1] > trendline_y:
+        #more code thats not important for this question...
+        print(f"    Potential Breakout Detected at {lh}")
+
+        # Check if the candle associated with this lower high completely closes over the trendline
+        if candle['close'] > trendline_y:
+            print(f"    UPDATE LINE DATA 5: {line_name}")
+            # Confirms a strong breakout signal, update line data as complete
+            update_line_data(line_name=line_name, line_type="Bull", status="complete", point_2=(lh[0], trendline_y))
+            print("    [1] Confirmed Breakout: Buy Signal")
+            await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'call', session, headers)
+            return None, None, True
+        else:
+            # Test new slope and intercept
+            new_slope = (lh[1] - highest_point[1]) / (lh[0] - highest_point[0])
+            new_intercept = highest_point[1] - new_slope * highest_point[0]
+
+            if new_slope is not None and is_angle_valid(new_slope, config):
+                valid_breakout = True
+                for test_point in lower_highs:
+                    # Check if any point is above the new trendline
+                    if test_point[1] > new_slope * test_point[0] + new_intercept:
+                        valid_breakout = False
+                        #break
+
+                if valid_breakout: # and ((lh[0] - highest_point[0]) >= MIN_NUM_CANDLES):
+                    print(f"    UPDATE LINE DATA 6: {line_name}")
+                    update_line_data(line_name, "Bull", "active", highest_point, lh)
+                    return new_slope, new_intercept, True
+                else:
+                    print("    Invalid breakout on new slope.")
+                    return None, None, False
+            else:
+                return None, None, False
+    return slope, intercept, False
+
+def calculate_slope_intercept(lower_highs, highest_point):
+    # Calculate slope (m) and intercept (c)
+    # Get the latest in the list [1,0,-1] each one is a X,Y coordinate
+    latest_lower_high = lower_highs[-1]
+    # Ensure the first point's X value is less than the second point's X value
+    if highest_point[0] < latest_lower_high[0]:
+        #slope formula: m = (y2 - y1) / (x2 - x1)
+        slope = (latest_lower_high[1] - highest_point[1]) / (latest_lower_high[0] - highest_point[0])
+        #rearrangement of the slope-intercept form: c = y − mx 
+        intercept = highest_point[1] - slope * highest_point[0]
+        print(f"    Slope: {slope}, Intercept: {intercept}")
+        return slope, intercept
+    else:
+        print("    Invalid points for slope: First point is later than second point.")
+        return None, None
+
+def update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle):
+    with open(state_file_path, 'r') as file:
+        state = json.load(file)
+    
+    state['current_high'] = current_high
+    state['highest_point'] = highest_point
+
+    # Remove duplicates and keep only lower_highs with X-values greater than highest_point's X-value
+    unique_lower_highs = set(map(tuple, state['lower_highs']))
+    new_lower_highs = {tuple(lh) for lh in lower_highs if lh[0] > highest_point[0]}
+    state['lower_highs'] = list(unique_lower_highs.union(new_lower_highs))
+
+    state['current_low'] = current_low
+    state['lowest_point'] = lowest_point
+
+    # Remove duplicates and keep only higher_lows with X-values greater than lowest_point's X-value
+    unique_higher_lows = set(map(tuple, state['higher_lows']))
+    new_higher_lows = {tuple(hl) for hl in higher_lows if hl[0] > lowest_point[0]}
+    state['higher_lows'] = list(unique_higher_lows.union(new_higher_lows))
+
+    state['slope'] = slope
+    state['intercept'] = intercept
+
+    # Add the current candle to previous_candles, avoiding duplicates
+    if candle['candle_index'] not in [c['candle_index'] for c in state['previous_candles']]:
+        state['previous_candles'].append(candle)
+
+    with open(state_file_path, 'w') as file:
+        json.dump(state, file, indent=4)
+
+def restart_state_json(state_file_path, havent_cleared):
+    """
+    Initializes or resets the state.json file to default values.
+
+    Parameters:
+    state_file_path (str): The file path for the state.json file.
+    """
+    initial_state = {
+        'current_high': None,
+        'highest_point': None,
+        'lower_highs': [],
+        'current_low': None,
+        'lowest_point': None,
+        'higher_lows': [],
+        'slope': None,
+        'intercept': None,
+        'previous_candles': []
+    }
+    if havent_cleared:
+        with open(state_file_path, 'w') as file:
+            json.dump(initial_state, file, indent=4)
+        print("    State JSON file has been reset to initial state.")
+
+def is_angle_valid(slope, config, bearish=False):
+    """
+    Calculates the angle of the slope and checks if it is within the valid range specified in the config.
+    
+    Parameters:
+    slope (float): The slope of the line.
+    config (dict): Configuration dictionary containing angle criteria.
+
+    Returns:
+    bool: True if the angle is within the valid range, False otherwise.
+    """
+    angle = math.atan(slope) * (180 / math.pi)
+    
+    if bearish:
+        min_angle = config["FLAGPOLE_CRITERIA"]["BEAR_MIN_ANGLE"]
+        max_angle = config["FLAGPOLE_CRITERIA"]["BEAR_MAX_ANGLE"]
+    else:
+        min_angle = config["FLAGPOLE_CRITERIA"]["BULL_MIN_ANGLE"]
+        max_angle = config["FLAGPOLE_CRITERIA"]["BULL_MAX_ANGLE"]
+
+    print(f"    Slope Angle: {angle} degrees for {'Bear' if bearish else 'Bull'} flag")
+    return min_angle <= angle <= max_angle
+
+def resolve_opposite_flags(flag_type, json_file='line_data.json'):
+    # Determine the opposite flag type
+    opposite_flag_type = "Bear" if flag_type == "Bull" else "Bull"
+
+    # Load the flags from JSON file
+    line_data_path = Path(json_file)
+    if line_data_path.exists():
+        with open(line_data_path, 'r') as file:
+            line_data = json.load(file)
+    else:
+        print(f"File {json_file} not found.")
+        return
+
+    # Iterate through the flags and resolve opposite flags
+    updated_line_data = []
+    for flag in line_data:
+        if flag['type'] == opposite_flag_type and flag['status'] == 'active':
+            # Mark as complete or remove the flag based on your strategy
+            flag['status'] = 'complete'  # or you can choose to delete the flag
+        updated_line_data.append(flag)
+
+    # Save the updated data back to the JSON file
+    with open(line_data_path, 'w') as file:
+        json.dump(updated_line_data, file, indent=4)
+
+    print("Opposite flags resolved.")
 
 #right now i have real_money_activated == false
 async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, headers):
@@ -173,7 +560,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, header
         strike_price, strike_ask_bid = await find_what_to_buy(ticker_symbol, cp, NUM_OUT_MONEY, expiration_date, session, headers)
         #print(f"Strike, Price: {strike_price}, {strike_ask_bid}")
         
-        quantity = calculate_quantity(strike_ask_bid, 0.1)    
+        quantity = calculate_quantity(strike_ask_bid, 0.1, 30)    
         #order math, making sure we have enough buying power to fulfill order
         if real_money_activated:
             buying_power = await get_account_balance(real_money_activated, bp=True)
@@ -252,3 +639,74 @@ Order Cost Buffer exceded BP
 
     except Exception as e:
         await error_log_and_discord_message(e, "tll_trading_strategy", "buy_option_cp")
+
+def clear_priority_candles(havent_cleared, type_candle, json_file='priority_candles.json'):
+    if havent_cleared:
+        with open(json_file, 'w') as file:
+            json.dump([], file, indent=4)
+        print(f"    Deleting Priority Candles Data, what_type_of_candle = {type_candle}")
+        havent_cleared = False
+
+async def record_priority_candle(candle, type_candles, json_file='priority_candles.json'):
+    # Load existing data or initialize an empty list
+    try:
+        with open(json_file, 'r') as file:
+            candles_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        candles_data = []
+
+    log_file_path = Path(__file__).resolve().parent / 'logs/SPY_2M.log'
+    current_candle_index = get_current_candle_index(log_file_path)
+
+    # Append the new candle data along with its type
+    candle_with_type = candle.copy()
+    candle_with_type['type'] = type_candles
+    candle_with_type['candle_index'] = current_candle_index
+    candles_data.append(candle_with_type)
+
+    # Save updated data back to the file
+    with open(json_file, 'w') as file:
+        json.dump(candles_data, file, indent=4)
+
+def count_flags_in_json(json_file='line_data.json'):
+    try:
+        with open(json_file, 'r') as file:
+            lines = json.load(file)
+            # Count only those flags with a status of 'complete'
+            complete_flags = [line for line in lines if line.get('status') == 'complete']
+            return len(complete_flags)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return 0  # Return 0 if file doesn't exist or is empty
+    
+def update_line_data(line_name, line_type, status=None, point_1=None, point_2=None, json_file='line_data.json'):
+    try:
+        with open(json_file, 'r') as file:
+            lines = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        lines = []
+
+    # Find the line with the same name, if it exists
+    existing_line = next((line for line in lines if line['name'] == line_name), None)
+    
+    if existing_line:
+        # Update existing line with new values if provided, else keep old values
+        existing_line['type'] = line_type  # Assuming you always want to update the type
+        if status is not None:
+            existing_line['status'] = status
+        if point_1 is not None:
+            existing_line['point_1'] = {"x": point_1[0], "y": point_1[1]}
+        if point_2 is not None:
+            existing_line['point_2'] = {"x": point_2[0], "y": point_2[1]}
+    else:
+        # Create a new line data entry with provided values or defaults
+        new_line_data = {
+            "name": line_name,
+            "type": line_type,
+            "status": status if status is not None else "active",
+            "point_1": {"x": point_1[0], "y": point_1[1]} if point_1 else {"x": None, "y": None},
+            "point_2": {"x": point_2[0], "y": point_2[1]} if point_2 else {"x": None, "y": None}
+        }
+        lines.append(new_line_data)
+
+    with open(json_file, 'w') as file:
+        json.dump(lines, file, indent=4)

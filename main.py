@@ -403,17 +403,21 @@ async def reseting_values():
         json.dump(message_ids_dict, f, indent=4)
         print("[RESET] message_ids.json file cleared.")
 
-
-
-    #TODO: Clear the markers.json file
+    #Clear the markers.json file
     with open('markers.json', 'w') as f:
         json.dump({}, f, indent=4)
         print("[RESET] markers.json file cleared.")
 
+    #clear line_data_TEST.json
+    with open('line_data.json', 'w') as f:
+        json.dump([], f, indent=4)
+        print("[RESET] Cleared line_data.json")
 
-
-        
-                    
+    #clear line_data_TEST.json
+    with open('priority_candles.json', 'w') as f:
+        json.dump([], f, indent=4)
+        print("[RESET] Cleared priority_candles.json")
+              
     #edit, maybe we can fix this by doing 
     #since all the logging has been done and everything is recorded
     with open(config_path, 'r') as f:
@@ -453,7 +457,6 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.create_task(bot_start())
     loop.create_task(main())
-
 
     try:
         loop.run_forever()

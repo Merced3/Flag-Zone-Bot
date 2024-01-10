@@ -295,7 +295,7 @@ async def add_markers(event_type):
     # Path to markers.json file
     markers_file_path = Path(__file__).resolve().parent / 'markers.json'
 
-    # Ensure the file exists and contains an empty list if it's new
+    # Ensure the file exists
     if not markers_file_path.exists():
         with open(markers_file_path, 'w') as f:
             json.dump([], f)

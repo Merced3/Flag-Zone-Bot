@@ -1,7 +1,7 @@
 {
     "REAL_MONEY_ACTIVATED": false,
     "ACCOUNT_BALANCES": [
-        5463.0,
+        6000.0,
         0
     ],
     "SYMBOL": "SPY",
@@ -16,5 +16,13 @@
         0.5
     ],
     "BOX_SPACING": 0.5,
-    "CANDLE_BUFFER": 1
+    "CANDLE_BUFFER": 1,
+    "FLAGPOLE_CRITERIA": {
+        "MIN_NUM_CANDLES": 3,
+        "MAX_NUM_CANDLES": 150,
+        "BULL_MIN_ANGLE": -8,
+        "BULL_MAX_ANGLE": -1.5,
+        "BEAR_MIN_ANGLE": 1.5,
+        "BEAR_MAX_ANGLE": 8
+    }
 }
