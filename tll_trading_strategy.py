@@ -244,7 +244,7 @@ async def identify_flag(candle, num_flags, session, headers):
                 if is_angle_valid(slope, config) :
                     print("        Angle within valid range.")
                     
-                    print(f"        UPDATE LINE DATA 1: {line_name}")
+                    print(f"        [FLAG] UPDATE LINE DATA 1: {line_name}")
                     update_line_data(line_name, "Bull", "active", highest_point)
                     #check if there are any points above the line
                     for lh in lower_highs:
@@ -300,7 +300,7 @@ async def identify_flag(candle, num_flags, session, headers):
                 if is_angle_valid(slope, config, bearish=True):
                     print("        Angle within valid range.")
                     
-                    print(f"        UPDATE LINE DATA 2: {line_name}")
+                    print(f"        [FLAG] UPDATE LINE DATA 2: {line_name}")
                     update_line_data(line_name, "Bear", "active", lowest_point)
                     #check if there are any points above the line
                     for hl in higher_lows:
@@ -353,10 +353,10 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
 
         # Check if the candle associated with this higher low completely closes below the trendline
         if candle['close'] < trendline_y:
-            print(f"    UPDATE LINE DATA 3: {line_name}")
+            print(f"        [FLAG] UPDATE LINE DATA 3: {line_name}")
             # Confirms a strong breakout signal, update line data as complete
             update_line_data(line_name=line_name, line_type="Bear", status="complete", point_2=(hl[0], trendline_y))
-            print("    [1] Confirmed Breakout: Sell Signal")
+            print("    [1] Confirmed Breakout: Buy Signal (PUT)")
             await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'put', session, headers)
             return None, None, True
         else:
@@ -372,7 +372,7 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
                         break
 
                 if valid_breakout:
-                    print(f"    UPDATE LINE DATA 4: {line_name}")
+                    print(f"        [FLAG] UPDATE LINE DATA 4: {line_name}")
                     update_line_data(line_name, "Bear", "active", lowest_point, hl)
                     return new_slope, new_intercept, True
                 else:
@@ -394,10 +394,10 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
 
         # Check if the candle associated with this lower high completely closes over the trendline
         if candle['close'] > trendline_y:
-            print(f"    UPDATE LINE DATA 5: {line_name}")
+            print(f"        [FLAG] UPDATE LINE DATA 5: {line_name}")
             # Confirms a strong breakout signal, update line data as complete
             update_line_data(line_name=line_name, line_type="Bull", status="complete", point_2=(lh[0], trendline_y))
-            print("    [1] Confirmed Breakout: Buy Signal")
+            print("    [1] Confirmed Breakout: Buy Signal (CALL)")
             await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'call', session, headers)
             return None, None, True
         else:
@@ -414,7 +414,7 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
                         #break
 
                 if valid_breakout: # and ((lh[0] - highest_point[0]) >= MIN_NUM_CANDLES):
-                    print(f"    UPDATE LINE DATA 6: {line_name}")
+                    print(f"        [FLAG] UPDATE LINE DATA 6: {line_name}")
                     update_line_data(line_name, "Bull", "active", highest_point, lh)
                     return new_slope, new_intercept, True
                 else:
@@ -499,7 +499,7 @@ def restart_state_json(state_file_path, havent_cleared):
     if havent_cleared:
         with open(state_file_path, 'w') as file:
             json.dump(initial_state, file, indent=4)
-        print("[RESET] State JSON file has been reset to initial state.")
+        print("    [RESET] state.json reset to initial values.")
 
 def is_angle_valid(slope, config, bearish=False):
     """
@@ -541,15 +541,14 @@ def resolve_flags(json_file='line_data.json'):
         #edit this part to take into account null values
         if flag['type'] and flag['status'] == 'active':
             # Mark as complete or remove the flag based on your strategy
-            is_point_1_valid = flag['point_1'][0] is not None and flag['point_1'][1] is not None
-            is_point_2_valid = flag['point_2'][0] is not None and flag['point_2'][1] is not None
+            is_point_1_valid = flag['point_1']['x'] is not None and flag['point_1']['y'] is not None
+            is_point_2_valid = flag['point_2']['x'] is not None and flag['point_2']['y'] is not None
                 
             if is_point_1_valid and is_point_2_valid:
                 flag['status'] = 'complete' #mark complete so its no longer edited
                 updated_line_data.append(flag)
-            # we have to remove the active flag
-            # bc theres no point in saving the flag
-            #we don't use lines with only one point
+                print("    [FLAG] Active flags resolved.")
+            # Skip adding the flag to updated_line_data if it's active and has invalid points
         else:
             updated_line_data.append(flag)
 
@@ -557,7 +556,7 @@ def resolve_flags(json_file='line_data.json'):
     with open(line_data_path, 'w') as file:
         json.dump(updated_line_data, file, indent=4)
 
-    print("Opposite flags resolved.")
+    
 
 #right now i have real_money_activated == false
 async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, headers):
@@ -665,7 +664,7 @@ def clear_priority_candles(havent_cleared, type_candle, json_file='priority_cand
     if havent_cleared:
         with open(json_file, 'w') as file:
             json.dump([], file, indent=4)
-        print(f"    Deleting Priority Candles Data, what_type_of_candle = {type_candle}")
+        print(f"    [RESET] priority_candles.json; what_type_of_candle = {type_candle}")
         havent_cleared = False
 
 async def record_priority_candle(candle, type_candles, json_file='priority_candles.json'):

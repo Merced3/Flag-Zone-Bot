@@ -275,7 +275,7 @@ async def add_markers(event_type):
     log_file_path = Path(__file__).resolve().parent / 'logs/SPY_2M.log'
     x_coord = get_current_candle_index(log_file_path)
     y_coord = await get_current_price(SYMBOL)
-    print(f"Marker: {x_coord}, {y_coord}, {event_type}")
+    print(f"[MARKER] {x_coord}, {y_coord}, {event_type}")
 
     x_coord += 1
 
