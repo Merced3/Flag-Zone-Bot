@@ -126,7 +126,7 @@ async def submit_option_order_v2(strategy_name, symbol, strike, option_type,  ex
             if ask is not None:
                 percentage_of_balance = 0.1
                 while True:
-                    quantity = calculate_quantity(ask, percentage_of_balance)
+                    quantity = calculate_quantity(ask, percentage_of_balance, 30)
                     order_cost = (ask * 100) * quantity #order_cost = (ask * 100 + commission_fee) * quantity
                     if order_cost <= buying_power:
                         break  # If the cost fits within the buying power, proceed with this quantity
@@ -345,7 +345,7 @@ def get_expiration(expiration_date):
         print(f"Canceled the buy, Invalid expiration date: {expiration_date}")
         return
         
-def calculate_quantity(cost_per_contract, order_size_for_account):
+def calculate_quantity(cost_per_contract, order_size_for_account, quant_limit=30):
     # 'order_size_for_account' represents the percentage of the account you want to spend on each order.
     order_threshold = ACCOUNT_BALANCE * order_size_for_account
     order_cost = cost_per_contract * 100
@@ -366,9 +366,9 @@ def calculate_quantity(cost_per_contract, order_size_for_account):
         # One contract exceeds the order threshold, so use one contract
         quantity = 1
 
-    if quantity > 20:
-        # Limit to a maximum of 20 contracts
-        quantity = 20
+    if quantity > quant_limit:
+        # Limit to a maximum of 30 contracts
+        quantity = quant_limit
 
     new_order_cost = quantity * (order_cost)
     #print(f"Order Cost: ${new_order_cost:.2f}")

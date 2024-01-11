@@ -76,7 +76,7 @@ def get(candle_data, num_boxes=5):
     boxes = remove_zones_that_are_too_close(boxes)
     
     boxes = correct_bleeding_boxes(boxes)
-    boxes = old_resistance_becomes_new_support(boxes)
+    #boxes = old_resistance_becomes_new_support(boxes)
     return boxes
 
 def remove_zones_that_are_too_close(boxes):
