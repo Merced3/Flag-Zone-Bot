@@ -17,7 +17,7 @@
 ### Entry and Exit Points
 - **Leap Trigger:** Uses the 2-minute chart to pinpoint entry points based on price movements and flag patterns.
 - **Entry Signal:** Decisions to buy (calls) or sell (puts) are made on clear breakouts or flag confirmations.
-- **Profit/Exit Management:** Employs a tiered selling approach, starting with securing a 20% profit, followed by holding a runner for further gains. Has a stop loss of -20%
+- **Profit/Exit Management:** Employs a tiered selling approach, starting with securing a 20% profit, followed by holding a runner for further gains. Has a stop loss of -20%.
 
 ### Ideal User Profile
 - Suitable for traders skilled in chart pattern interpretation, swift decision-making, and understanding market dynamics.
