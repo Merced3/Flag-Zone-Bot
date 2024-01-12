@@ -1,978 +1,521 @@
 {
-    "current_high": 476.9759,
-    "highest_point": [
-        164,
-        476.9759
+    "current_high": null,
+    "highest_point": null,
+    "lower_highs": [],
+    "current_low": 475.76,
+    "lowest_point": [
+        176,
+        475.76
     ],
-    "lower_highs": [
+    "higher_lows": [
         [
-            170,
-            476.075
-        ],
-        [
-            175,
-            475.99
-        ],
-        [
-            177,
-            476.28
-        ],
-        [
-            180,
-            476.21
-        ],
-        [
-            181,
-            476.28
-        ],
-        [
-            190,
-            476.1797
-        ],
-        [
-            165,
-            476.89
-        ],
-        [
-            186,
-            475.92
-        ],
-        [
-            193,
-            476.43
-        ],
-        [
-            178,
-            476.325
-        ],
-        [
-            184,
-            475.92
-        ],
-        [
-            187,
-            476.05
-        ],
-        [
-            188,
-            475.92
-        ],
-        [
-            192,
-            476.34
-        ],
-        [
-            169,
-            476.2299
-        ],
-        [
-            173,
-            475.81
-        ],
-        [
-            191,
-            476.05
-        ],
-        [
-            174,
-            475.82
-        ],
-        [
-            166,
-            476.4601
-        ],
-        [
-            167,
-            476.355
+            189,
+            476.395
         ],
         [
             179,
-            476.16
-        ],
-        [
-            172,
-            476.16
-        ],
-        [
-            168,
-            476.365
-        ],
-        [
-            183,
-            475.96
+            476.08
         ],
         [
             182,
-            476.28
+            476.275
         ],
         [
-            189,
-            476.25
+            191,
+            476.53
+        ],
+        [
+            187,
+            476.45
+        ],
+        [
+            180,
+            476.2003
         ],
         [
             185,
-            475.94
+            476.29
         ],
         [
-            171,
-            476.19
+            190,
+            476.5
         ],
         [
-            176,
-            476.16
+            184,
+            476.09
+        ],
+        [
+            186,
+            476.4
+        ],
+        [
+            178,
+            476.005
+        ],
+        [
+            177,
+            475.96
+        ],
+        [
+            192,
+            476.6401
+        ],
+        [
+            188,
+            476.44
+        ],
+        [
+            181,
+            476.21
+        ],
+        [
+            183,
+            476.285
         ]
     ],
-    "current_low": null,
-    "lowest_point": null,
-    "higher_lows": [],
-    "slope": null,
-    "intercept": null,
+    "slope": 0.04124999999999801,
+    "intercept": 468.50000000000034,
     "previous_candles": [
         {
-            "open": 474.0,
-            "high": 474.355,
-            "low": 473.9901,
-            "close": 474.35,
-            "timestamp": "2024-01-11T11:52:00.105112",
-            "type": "support_1 Buffer",
-            "candle_index": 100
-        },
-        {
-            "open": 474.3405,
-            "high": 474.345,
-            "low": 474.12,
-            "close": 474.19,
-            "timestamp": "2024-01-11T11:54:00.302860",
-            "type": "support_1 Buffer",
-            "candle_index": 101
-        },
-        {
-            "open": 474.19,
-            "high": 474.24,
-            "low": 474.05,
-            "close": 474.17,
-            "timestamp": "2024-01-11T11:56:00.149599",
-            "type": "support_1 Buffer",
-            "candle_index": 102
-        },
-        {
-            "open": 474.15,
-            "high": 474.15,
-            "low": 473.78,
-            "close": 473.92,
-            "timestamp": "2024-01-11T11:58:00.142304",
-            "type": "support_1 Buffer",
-            "candle_index": 103
-        },
-        {
-            "open": 473.92,
-            "high": 474.015,
-            "low": 473.91,
-            "close": 473.945,
-            "timestamp": "2024-01-11T12:00:00.338798",
-            "type": "support_1 Buffer",
-            "candle_index": 104
-        },
-        {
-            "open": 473.93,
-            "high": 474.31,
-            "low": 473.88,
-            "close": 474.24,
-            "timestamp": "2024-01-11T12:02:00.111126",
-            "type": "support_1 Buffer",
-            "candle_index": 105
-        },
-        {
-            "open": 474.24,
-            "high": 474.5802,
-            "low": 474.18,
-            "close": 474.42,
-            "timestamp": "2024-01-11T12:04:00.007470",
-            "type": "support_1 Buffer",
-            "candle_index": 106
-        },
-        {
-            "open": 474.42,
-            "high": 474.67,
-            "low": 474.25,
-            "close": 474.64,
-            "timestamp": "2024-01-11T12:06:00.698851",
-            "type": "support_1 Buffer",
-            "candle_index": 107
-        },
-        {
-            "open": 474.645,
-            "high": 474.75,
-            "low": 474.34,
-            "close": 474.38,
-            "timestamp": "2024-01-11T12:08:00.507673",
-            "type": "support_1 Buffer",
-            "candle_index": 108
-        },
-        {
-            "open": 474.38,
-            "high": 474.54,
-            "low": 474.31,
-            "close": 474.52,
-            "timestamp": "2024-01-11T12:10:00.016450",
-            "type": "support_1 Buffer",
-            "candle_index": 109
-        },
-        {
-            "open": 474.52,
-            "high": 474.69,
-            "low": 474.475,
-            "close": 474.68,
-            "timestamp": "2024-01-11T12:12:00.400133",
-            "type": "support_1 Buffer",
-            "candle_index": 110
-        },
-        {
-            "open": 474.68,
-            "high": 474.82,
-            "low": 474.63,
-            "close": 474.79,
-            "timestamp": "2024-01-11T12:14:00.055139",
-            "type": "support_1 Buffer",
-            "candle_index": 111
-        },
-        {
-            "open": 474.78,
-            "high": 474.93,
-            "low": 474.69,
-            "close": 474.895,
-            "timestamp": "2024-01-11T12:16:00.054200",
-            "type": "support_1 Buffer",
-            "candle_index": 112
-        },
-        {
-            "open": 474.895,
-            "high": 475.04,
-            "low": 474.815,
-            "close": 475.01,
-            "timestamp": "2024-01-11T12:18:00.153262",
-            "type": "support_1 Buffer",
-            "candle_index": 113
-        },
-        {
-            "open": 475.02,
-            "high": 475.02,
-            "low": 474.62,
-            "close": 474.73,
-            "timestamp": "2024-01-11T12:20:00.149248",
-            "type": "support_1 Buffer",
-            "candle_index": 114
-        },
-        {
-            "open": 474.7395,
-            "high": 474.9,
-            "low": 474.64,
-            "close": 474.88,
-            "timestamp": "2024-01-11T12:22:00.451899",
-            "type": "support_1 Buffer",
-            "candle_index": 115
-        },
-        {
-            "open": 474.87,
-            "high": 474.87,
-            "low": 474.72,
-            "close": 474.8,
-            "timestamp": "2024-01-11T12:24:00.547078",
-            "type": "support_1 Buffer",
-            "candle_index": 116
-        },
-        {
-            "open": 474.8,
-            "high": 474.9499,
-            "low": 474.7701,
-            "close": 474.87,
-            "timestamp": "2024-01-11T12:26:00.050796",
-            "type": "support_1 Buffer",
-            "candle_index": 117
-        },
-        {
-            "open": 474.86,
-            "high": 474.96,
-            "low": 474.655,
-            "close": 474.82,
-            "timestamp": "2024-01-11T12:28:00.645594",
-            "type": "support_1 Buffer",
-            "candle_index": 118
-        },
-        {
-            "open": 474.8294,
-            "high": 474.99,
-            "low": 474.74,
-            "close": 474.805,
-            "timestamp": "2024-01-11T12:30:00.154762",
-            "type": "support_1 Buffer",
-            "candle_index": 119
-        },
-        {
-            "open": 474.805,
-            "high": 474.97,
-            "low": 474.8,
-            "close": 474.86,
-            "timestamp": "2024-01-11T12:32:00.318425",
-            "type": "support_1 Buffer",
-            "candle_index": 120
-        },
-        {
-            "open": 474.86,
-            "high": 474.86,
-            "low": 474.6101,
-            "close": 474.72,
-            "timestamp": "2024-01-11T12:34:00.314603",
-            "type": "support_1 Buffer",
-            "candle_index": 121
-        },
-        {
-            "open": 474.72,
-            "high": 474.97,
-            "low": 474.685,
-            "close": 474.945,
-            "timestamp": "2024-01-11T12:36:00.208823",
-            "type": "support_1 Buffer",
-            "candle_index": 122
-        },
-        {
-            "open": 474.945,
-            "high": 474.96,
-            "low": 474.81,
-            "close": 474.9299,
-            "timestamp": "2024-01-11T12:38:00.711600",
-            "type": "support_1 Buffer",
-            "candle_index": 123
-        },
-        {
-            "open": 474.92,
-            "high": 475.03,
-            "low": 474.91,
-            "close": 474.96,
-            "timestamp": "2024-01-11T12:40:00.020985",
-            "type": "support_1 Buffer",
-            "candle_index": 124
-        },
-        {
-            "open": 474.96,
-            "high": 475.04,
-            "low": 474.895,
-            "close": 474.99,
-            "timestamp": "2024-01-11T12:42:00.414735",
-            "type": "support_1 Buffer",
-            "candle_index": 125
-        },
-        {
-            "open": 474.9809,
-            "high": 475.07,
-            "low": 474.925,
-            "close": 475.02,
-            "timestamp": "2024-01-11T12:44:01.509715",
-            "type": "support_1 Buffer",
-            "candle_index": 126
-        },
-        {
-            "open": 475.02,
-            "high": 475.09,
-            "low": 474.96,
-            "close": 475.0186,
-            "timestamp": "2024-01-11T12:46:00.503704",
-            "type": "support_1 Buffer",
-            "candle_index": 127
-        },
-        {
-            "open": 475.0185,
-            "high": 475.0185,
-            "low": 474.79,
-            "close": 474.85,
-            "timestamp": "2024-01-11T12:48:00.004327",
-            "type": "support_1 Buffer",
-            "candle_index": 128
-        },
-        {
-            "open": 474.84,
-            "high": 474.96,
-            "low": 474.83,
-            "close": 474.96,
-            "timestamp": "2024-01-11T12:50:00.008107",
-            "type": "support_1 Buffer",
-            "candle_index": 129
-        },
-        {
-            "open": 474.9505,
-            "high": 475.05,
-            "low": 474.7906,
-            "close": 474.875,
-            "timestamp": "2024-01-11T12:52:00.007331",
-            "type": "support_1 Buffer",
-            "candle_index": 130
-        },
-        {
-            "open": 474.875,
-            "high": 475.39,
-            "low": 474.875,
-            "close": 475.36,
-            "timestamp": "2024-01-11T12:54:00.061650",
-            "type": "support_1 Buffer",
-            "candle_index": 131
-        },
-        {
-            "open": 475.36,
-            "high": 475.57,
-            "low": 475.1596,
-            "close": 475.53,
-            "timestamp": "2024-01-11T12:56:00.136791",
-            "type": "support_1 Buffer",
-            "candle_index": 132
-        },
-        {
-            "open": 475.5401,
-            "high": 475.79,
-            "low": 475.5,
-            "close": 475.74,
-            "timestamp": "2024-01-11T12:58:00.179562",
-            "type": "support_1 Buffer",
-            "candle_index": 133
-        },
-        {
-            "open": 475.72,
-            "high": 475.98,
-            "low": 475.69,
-            "close": 475.9304,
-            "timestamp": "2024-01-11T13:00:00.075316",
-            "type": "support_1 Buffer",
-            "candle_index": 134
-        },
-        {
-            "open": 475.9488,
-            "high": 476.1,
-            "low": 475.7,
-            "close": 475.83,
-            "timestamp": "2024-01-11T13:02:00.121908",
-            "type": "support_1 Buffer",
-            "candle_index": 135
-        },
-        {
-            "open": 475.8185,
-            "high": 476.04,
-            "low": 475.7884,
-            "close": 475.8804,
-            "timestamp": "2024-01-11T13:04:00.080652",
-            "type": "support_1 Buffer",
-            "candle_index": 136
-        },
-        {
-            "open": 475.885,
-            "high": 475.885,
-            "low": 475.69,
-            "close": 475.84,
-            "timestamp": "2024-01-11T13:06:00.176783",
-            "type": "support_1 Buffer",
-            "candle_index": 137
-        },
-        {
-            "open": 475.86,
-            "high": 475.87,
-            "low": 475.631,
-            "close": 475.7,
-            "timestamp": "2024-01-11T13:08:00.081899",
-            "type": "support_1 Buffer",
-            "candle_index": 138
-        },
-        {
-            "open": 475.71,
-            "high": 475.71,
-            "low": 475.35,
-            "close": 475.4,
-            "timestamp": "2024-01-11T13:10:00.378358",
-            "type": "support_1 Buffer",
-            "candle_index": 139
-        },
-        {
-            "open": 475.39,
-            "high": 475.689,
-            "low": 475.365,
-            "close": 475.68,
-            "timestamp": "2024-01-11T13:12:00.137486",
-            "type": "support_1 Buffer",
-            "candle_index": 140
-        },
-        {
-            "open": 475.68,
-            "high": 475.84,
-            "low": 475.63,
-            "close": 475.8357,
-            "timestamp": "2024-01-11T13:14:00.126020",
-            "type": "support_1 Buffer",
-            "candle_index": 141
-        },
-        {
-            "open": 475.8401,
-            "high": 476.0,
-            "low": 475.8,
-            "close": 475.98,
-            "timestamp": "2024-01-11T13:16:00.044178",
-            "type": "support_1 Buffer",
-            "candle_index": 142
-        },
-        {
-            "open": 475.985,
-            "high": 475.985,
-            "low": 475.8316,
-            "close": 475.94,
-            "timestamp": "2024-01-11T13:18:00.035997",
-            "type": "support_1 Buffer",
-            "candle_index": 143
-        },
-        {
-            "open": 475.94,
-            "high": 475.99,
-            "low": 475.61,
-            "close": 475.66,
-            "timestamp": "2024-01-11T13:20:00.192997",
-            "type": "support_1 Buffer",
+            "open": 477.185,
+            "high": 477.21,
+            "low": 477.0,
+            "close": 477.02,
+            "timestamp": "2024-01-12T13:22:00.017240",
+            "type": "resistance_1 Buffer",
             "candle_index": 144
         },
         {
-            "open": 475.66,
-            "high": 475.86,
-            "low": 475.63,
-            "close": 475.655,
-            "timestamp": "2024-01-11T13:22:00.072980",
-            "type": "support_1 Buffer",
+            "open": 477.03,
+            "high": 477.04,
+            "low": 476.6,
+            "close": 476.96,
+            "timestamp": "2024-01-12T13:24:00.011239",
+            "type": "resistance_1 Buffer",
             "candle_index": 145
         },
         {
-            "open": 475.655,
-            "high": 475.73,
-            "low": 475.43,
-            "close": 475.4899,
-            "timestamp": "2024-01-11T13:24:00.055837",
-            "type": "support_1 Buffer",
+            "open": 476.9685,
+            "high": 477.03,
+            "low": 476.84,
+            "close": 476.995,
+            "timestamp": "2024-01-12T13:26:00.114563",
+            "type": "resistance_1 Buffer",
             "candle_index": 146
         },
         {
-            "open": 475.49,
-            "high": 475.75,
-            "low": 475.43,
-            "close": 475.65,
-            "timestamp": "2024-01-11T13:26:00.186850",
-            "type": "support_1 Buffer",
+            "open": 476.985,
+            "high": 477.08,
+            "low": 476.88,
+            "close": 476.95,
+            "timestamp": "2024-01-12T13:28:00.222243",
+            "type": "resistance_1 Buffer",
             "candle_index": 147
         },
         {
-            "open": 475.65,
-            "high": 475.82,
-            "low": 475.61,
-            "close": 475.765,
-            "timestamp": "2024-01-11T13:28:00.286955",
-            "type": "support_1 Buffer",
+            "open": 476.95,
+            "high": 477.04,
+            "low": 476.9,
+            "close": 476.91,
+            "timestamp": "2024-01-12T13:30:00.428926",
+            "type": "resistance_1 Buffer",
             "candle_index": 148
         },
         {
-            "open": 475.765,
-            "high": 476.23,
-            "low": 475.755,
-            "close": 476.16,
-            "timestamp": "2024-01-11T13:30:00.024634",
-            "type": "support_1 Buffer",
+            "open": 476.91,
+            "high": 476.93,
+            "low": 476.65,
+            "close": 476.66,
+            "timestamp": "2024-01-12T13:32:00.019078",
+            "type": "resistance_1 Buffer",
             "candle_index": 149
         },
         {
-            "open": 476.16,
-            "high": 476.31,
-            "low": 476.14,
-            "close": 476.2,
-            "timestamp": "2024-01-11T13:32:00.083217",
-            "type": "support_1 Buffer",
+            "open": 476.67,
+            "high": 476.84,
+            "low": 476.3,
+            "close": 476.3999,
+            "timestamp": "2024-01-12T13:34:00.009038",
+            "type": "resistance_1 Buffer",
             "candle_index": 150
         },
         {
-            "open": 476.2,
-            "high": 476.2901,
-            "low": 475.99,
-            "close": 476.0101,
-            "timestamp": "2024-01-11T13:34:00.080256",
-            "type": "support_1 Buffer",
+            "open": 476.39,
+            "high": 476.5961,
+            "low": 476.3108,
+            "close": 476.5114,
+            "timestamp": "2024-01-12T13:36:00.114951",
+            "type": "resistance_1 Buffer",
             "candle_index": 151
         },
         {
-            "open": 476.0101,
-            "high": 476.24,
-            "low": 475.93,
-            "close": 476.21,
-            "timestamp": "2024-01-11T13:36:00.080957",
-            "type": "support_1 Buffer",
+            "open": 476.51,
+            "high": 476.515,
+            "low": 476.15,
+            "close": 476.5,
+            "timestamp": "2024-01-12T13:38:00.104205",
+            "type": "resistance_1 Buffer",
             "candle_index": 152
         },
         {
-            "open": 476.2,
-            "high": 476.21,
-            "low": 476.01,
-            "close": 476.095,
-            "timestamp": "2024-01-11T13:38:00.077664",
-            "type": "support_1 Buffer",
+            "open": 476.5,
+            "high": 476.56,
+            "low": 476.44,
+            "close": 476.53,
+            "timestamp": "2024-01-12T13:40:00.210983",
+            "type": "resistance_1 Buffer",
             "candle_index": 153
         },
         {
-            "open": 476.095,
-            "high": 476.21,
-            "low": 475.99,
-            "close": 476.17,
-            "timestamp": "2024-01-11T13:40:00.286768",
-            "type": "support_1 Buffer",
+            "open": 476.52,
+            "high": 476.6,
+            "low": 476.38,
+            "close": 476.405,
+            "timestamp": "2024-01-12T13:42:00.010865",
+            "type": "resistance_1 Buffer",
             "candle_index": 154
         },
         {
-            "open": 476.17,
-            "high": 476.43,
-            "low": 476.17,
-            "close": 476.295,
-            "timestamp": "2024-01-11T13:42:00.274872",
-            "type": "support_1 Buffer",
+            "open": 476.4001,
+            "high": 476.4812,
+            "low": 476.33,
+            "close": 476.47,
+            "timestamp": "2024-01-12T13:44:00.108845",
+            "type": "resistance_1 Buffer",
             "candle_index": 155
         },
         {
-            "open": 476.3,
-            "high": 476.3,
-            "low": 476.09,
-            "close": 476.19,
-            "timestamp": "2024-01-11T13:44:00.082259",
-            "type": "support_1 Buffer",
+            "open": 476.47,
+            "high": 476.5,
+            "low": 476.26,
+            "close": 476.31,
+            "timestamp": "2024-01-12T13:46:00.116059",
+            "type": "resistance_1 Buffer",
             "candle_index": 156
         },
         {
-            "open": 476.2,
-            "high": 476.265,
-            "low": 476.05,
-            "close": 476.19,
-            "timestamp": "2024-01-11T13:46:00.979395",
-            "type": "support_1 Buffer",
+            "open": 476.31,
+            "high": 476.364,
+            "low": 476.21,
+            "close": 476.3,
+            "timestamp": "2024-01-12T13:48:00.105132",
+            "type": "resistance_1 Buffer",
             "candle_index": 157
         },
         {
-            "open": 476.18,
-            "high": 476.38,
-            "low": 476.145,
-            "close": 476.1596,
-            "timestamp": "2024-01-11T13:48:00.281034",
-            "type": "support_1 Buffer",
+            "open": 476.3,
+            "high": 476.3788,
+            "low": 476.23,
+            "close": 476.37,
+            "timestamp": "2024-01-12T13:50:00.100267",
+            "type": "resistance_1 Buffer",
             "candle_index": 158
         },
         {
-            "open": 476.1594,
-            "high": 476.34,
-            "low": 476.055,
-            "close": 476.33,
-            "timestamp": "2024-01-11T13:50:00.175518",
-            "type": "support_1 Buffer",
+            "open": 476.35,
+            "high": 476.6,
+            "low": 476.32,
+            "close": 476.44,
+            "timestamp": "2024-01-12T13:52:00.022359",
+            "type": "resistance_1 Buffer",
             "candle_index": 159
         },
         {
-            "open": 476.33,
-            "high": 476.56,
-            "low": 476.33,
-            "close": 476.445,
-            "timestamp": "2024-01-11T13:52:00.175974",
-            "type": "support_1 Buffer",
+            "open": 476.44,
+            "high": 476.556,
+            "low": 476.43,
+            "close": 476.48,
+            "timestamp": "2024-01-12T13:54:00.199047",
+            "type": "resistance_1 Buffer",
             "candle_index": 160
         },
         {
-            "open": 476.465,
-            "high": 476.66,
-            "low": 476.45,
-            "close": 476.54,
-            "timestamp": "2024-01-11T13:54:00.374740",
-            "type": "support_1 Buffer",
+            "open": 476.48,
+            "high": 476.5,
+            "low": 476.16,
+            "close": 476.171,
+            "timestamp": "2024-01-12T13:56:00.373227",
+            "type": "resistance_1 Buffer",
             "candle_index": 161
         },
         {
-            "open": 476.54,
-            "high": 476.8899,
-            "low": 476.5201,
-            "close": 476.86,
-            "timestamp": "2024-01-11T13:56:00.272701",
-            "type": "support_1 Buffer",
+            "open": 476.176,
+            "high": 476.45,
+            "low": 476.176,
+            "close": 476.3,
+            "timestamp": "2024-01-12T13:58:00.105310",
+            "type": "resistance_1 Buffer",
             "candle_index": 162
         },
         {
-            "open": 476.85,
-            "high": 476.9,
-            "low": 476.75,
-            "close": 476.9,
-            "timestamp": "2024-01-11T13:58:00.575192",
-            "type": "support_1 Buffer",
+            "open": 476.3,
+            "high": 476.31,
+            "low": 476.205,
+            "close": 476.245,
+            "timestamp": "2024-01-12T14:00:00.103732",
+            "type": "resistance_1 Buffer",
             "candle_index": 163
         },
         {
-            "open": 476.8999,
-            "high": 476.9759,
-            "low": 476.765,
-            "close": 476.8988,
-            "timestamp": "2024-01-11T14:00:00.275749",
-            "type": "support_1 Buffer",
+            "open": 476.245,
+            "high": 476.275,
+            "low": 476.07,
+            "close": 476.125,
+            "timestamp": "2024-01-12T14:02:00.198105",
+            "type": "resistance_1 Buffer",
             "candle_index": 164
         },
         {
-            "open": 476.87,
-            "high": 476.89,
-            "low": 476.4,
-            "close": 476.47,
-            "timestamp": "2024-01-11T14:02:00.376549",
-            "type": "support_1 Buffer",
+            "open": 476.12,
+            "high": 476.225,
+            "low": 476.0899,
+            "close": 476.15,
+            "timestamp": "2024-01-12T14:04:00.304644",
+            "type": "resistance_1 Buffer",
             "candle_index": 165
         },
         {
-            "open": 476.4601,
-            "high": 476.4601,
-            "low": 476.26,
-            "close": 476.32,
-            "timestamp": "2024-01-11T14:04:00.171210",
-            "type": "support_1 Buffer",
+            "open": 476.15,
+            "high": 476.23,
+            "low": 476.08,
+            "close": 476.1,
+            "timestamp": "2024-01-12T14:06:00.005378",
+            "type": "resistance_1 Buffer",
             "candle_index": 166
         },
         {
-            "open": 476.32,
-            "high": 476.355,
-            "low": 476.16,
-            "close": 476.23,
-            "timestamp": "2024-01-11T14:06:00.098737",
-            "type": "support_1 Buffer",
+            "open": 476.1,
+            "high": 476.48,
+            "low": 476.07,
+            "close": 476.48,
+            "timestamp": "2024-01-12T14:08:00.075368",
+            "type": "resistance_1 Buffer",
             "candle_index": 167
         },
         {
-            "open": 476.2263,
-            "high": 476.365,
-            "low": 476.16,
-            "close": 476.2203,
-            "timestamp": "2024-01-11T14:08:00.402470",
-            "type": "support_1 Buffer",
+            "open": 476.4705,
+            "high": 476.4705,
+            "low": 476.1403,
+            "close": 476.16,
+            "timestamp": "2024-01-12T14:10:00.003196",
+            "type": "resistance_1 Buffer",
             "candle_index": 168
         },
         {
-            "open": 476.2203,
-            "high": 476.2299,
-            "low": 475.97,
-            "close": 476.05,
-            "timestamp": "2024-01-11T14:10:00.199022",
-            "type": "support_1 Buffer",
+            "open": 476.16,
+            "high": 476.27,
+            "low": 476.0596,
+            "close": 476.23,
+            "timestamp": "2024-01-12T14:12:00.095620",
+            "type": "resistance_1 Buffer",
             "candle_index": 169
         },
         {
-            "open": 476.0477,
-            "high": 476.075,
-            "low": 475.55,
-            "close": 475.87,
-            "timestamp": "2024-01-11T14:12:00.136909",
-            "type": "support_1 Buffer",
+            "open": 476.225,
+            "high": 476.265,
+            "low": 476.15,
+            "close": 476.16,
+            "timestamp": "2024-01-12T14:14:00.313617",
+            "type": "resistance_1 Buffer",
             "candle_index": 170
         },
         {
-            "open": 475.87,
-            "high": 476.19,
-            "low": 475.87,
-            "close": 476.09,
-            "timestamp": "2024-01-11T14:14:00.235288",
-            "type": "support_1 Buffer",
+            "open": 476.16,
+            "high": 476.22,
+            "low": 476.04,
+            "close": 476.14,
+            "timestamp": "2024-01-12T14:16:00.003092",
+            "type": "resistance_1 Buffer",
             "candle_index": 171
         },
         {
-            "open": 476.09,
-            "high": 476.16,
-            "low": 475.75,
-            "close": 475.7599,
-            "timestamp": "2024-01-11T14:16:00.133506",
-            "type": "support_1 Buffer",
+            "open": 476.17,
+            "high": 476.2913,
+            "low": 476.11,
+            "close": 476.19,
+            "timestamp": "2024-01-12T14:18:00.049865",
+            "type": "resistance_1 Buffer",
             "candle_index": 172
         },
         {
-            "open": 475.7599,
-            "high": 475.81,
-            "low": 475.555,
-            "close": 475.75,
-            "timestamp": "2024-01-11T14:18:00.133497",
-            "type": "support_1 Buffer",
+            "open": 476.19,
+            "high": 476.235,
+            "low": 476.01,
+            "close": 476.08,
+            "timestamp": "2024-01-12T14:20:00.194130",
+            "type": "resistance_1 Buffer",
             "candle_index": 173
         },
         {
-            "open": 475.75,
-            "high": 475.82,
-            "low": 475.47,
-            "close": 475.82,
-            "timestamp": "2024-01-11T14:20:00.130071",
-            "type": "support_1 Buffer",
+            "open": 476.075,
+            "high": 476.145,
+            "low": 476.04,
+            "close": 476.09,
+            "timestamp": "2024-01-12T14:22:00.105269",
+            "type": "resistance_1 Buffer",
             "candle_index": 174
         },
         {
-            "open": 475.82,
-            "high": 475.99,
-            "low": 475.725,
-            "close": 475.96,
-            "timestamp": "2024-01-11T14:22:00.020515",
-            "type": "support_1 Buffer",
+            "open": 476.09,
+            "high": 476.1,
+            "low": 475.7901,
+            "close": 475.8,
+            "timestamp": "2024-01-12T14:24:00.108681",
+            "type": "resistance_1 Buffer",
             "candle_index": 175
         },
         {
-            "open": 475.9612,
-            "high": 476.16,
-            "low": 475.9,
-            "close": 476.09,
-            "timestamp": "2024-01-11T14:24:00.317215",
-            "type": "support_1 Buffer",
+            "open": 475.79,
+            "high": 476.085,
+            "low": 475.76,
+            "close": 476.01,
+            "timestamp": "2024-01-12T14:26:00.291099",
+            "type": "resistance_1 Buffer",
             "candle_index": 176
         },
         {
-            "open": 476.09,
-            "high": 476.28,
-            "low": 475.9493,
-            "close": 476.24,
-            "timestamp": "2024-01-11T14:26:00.127918",
-            "type": "support_1 Buffer",
+            "open": 476.01,
+            "high": 476.095,
+            "low": 475.96,
+            "close": 476.09,
+            "timestamp": "2024-01-12T14:28:00.122585",
+            "type": "resistance_1 Buffer",
             "candle_index": 177
         },
         {
-            "open": 476.24,
-            "high": 476.325,
-            "low": 476.05,
-            "close": 476.12,
-            "timestamp": "2024-01-11T14:28:00.019564",
-            "type": "support_1 Buffer",
+            "open": 476.09,
+            "high": 476.32,
+            "low": 476.005,
+            "close": 476.19,
+            "timestamp": "2024-01-12T14:30:00.088041",
+            "type": "resistance_1 Buffer",
             "candle_index": 178
         },
         {
-            "open": 476.12,
-            "high": 476.16,
-            "low": 475.86,
-            "close": 475.905,
-            "timestamp": "2024-01-11T14:30:00.385842",
-            "type": "support_1 Buffer",
+            "open": 476.19,
+            "high": 476.38,
+            "low": 476.08,
+            "close": 476.37,
+            "timestamp": "2024-01-12T14:32:00.388450",
+            "type": "resistance_1 Buffer",
             "candle_index": 179
         },
         {
-            "open": 475.875,
-            "high": 476.21,
-            "low": 475.875,
+            "open": 476.37,
+            "high": 476.37,
+            "low": 476.2003,
             "close": 476.21,
-            "timestamp": "2024-01-11T14:32:00.045086",
-            "type": "support_1 Buffer",
+            "timestamp": "2024-01-12T14:34:00.160253",
+            "type": "resistance_1 Buffer",
             "candle_index": 180
         },
         {
-            "open": 476.2199,
-            "high": 476.28,
-            "low": 476.115,
-            "close": 476.14,
-            "timestamp": "2024-01-11T14:34:00.065411",
-            "type": "support_1 Buffer",
+            "open": 476.21,
+            "high": 476.465,
+            "low": 476.21,
+            "close": 476.4476,
+            "timestamp": "2024-01-12T14:36:00.147648",
+            "type": "resistance_1 Buffer",
             "candle_index": 181
         },
         {
-            "open": 476.12,
-            "high": 476.28,
-            "low": 475.89,
-            "close": 475.926,
-            "timestamp": "2024-01-11T14:36:00.564486",
-            "type": "support_1 Buffer",
+            "open": 476.4476,
+            "high": 476.51,
+            "low": 476.275,
+            "close": 476.395,
+            "timestamp": "2024-01-12T14:38:00.345344",
+            "type": "resistance_1 Buffer",
             "candle_index": 182
         },
         {
-            "open": 475.926,
-            "high": 475.96,
-            "low": 475.69,
-            "close": 475.88,
-            "timestamp": "2024-01-11T14:38:00.074336",
-            "type": "support_1 Buffer",
+            "open": 476.3999,
+            "high": 476.48,
+            "low": 476.285,
+            "close": 476.31,
+            "timestamp": "2024-01-12T14:40:00.354928",
+            "type": "resistance_1 Buffer",
             "candle_index": 183
         },
         {
-            "open": 475.88,
-            "high": 475.92,
-            "low": 475.755,
-            "close": 475.81,
-            "timestamp": "2024-01-11T14:40:00.174473",
-            "type": "support_1 Buffer",
+            "open": 476.33,
+            "high": 476.33,
+            "low": 476.09,
+            "close": 476.3,
+            "timestamp": "2024-01-12T14:42:00.048373",
+            "type": "resistance_1 Buffer",
             "candle_index": 184
         },
         {
-            "open": 475.81,
-            "high": 475.94,
-            "low": 475.7601,
-            "close": 475.86,
-            "timestamp": "2024-01-11T14:42:00.036669",
-            "type": "support_1 Buffer",
+            "open": 476.31,
+            "high": 476.47,
+            "low": 476.29,
+            "close": 476.41,
+            "timestamp": "2024-01-12T14:44:00.530486",
+            "type": "resistance_1 Buffer",
             "candle_index": 185
         },
         {
-            "open": 475.86,
-            "high": 475.92,
-            "low": 475.69,
-            "close": 475.92,
-            "timestamp": "2024-01-11T14:44:00.131382",
-            "type": "support_1 Buffer",
+            "open": 476.435,
+            "high": 476.53,
+            "low": 476.4,
+            "close": 476.49,
+            "timestamp": "2024-01-12T14:46:00.148660",
+            "type": "resistance_1 Buffer",
             "candle_index": 186
         },
         {
-            "open": 475.92,
-            "high": 476.05,
-            "low": 475.74,
-            "close": 475.86,
-            "timestamp": "2024-01-11T14:46:00.532162",
-            "type": "support_1 Buffer",
+            "open": 476.49,
+            "high": 476.66,
+            "low": 476.45,
+            "close": 476.5429,
+            "timestamp": "2024-01-12T14:48:00.054504",
+            "type": "resistance_1 Buffer",
             "candle_index": 187
         },
         {
-            "open": 475.87,
-            "high": 475.92,
-            "low": 475.71,
-            "close": 475.89,
-            "timestamp": "2024-01-11T14:48:00.224242",
-            "type": "support_1 Buffer",
+            "open": 476.55,
+            "high": 476.77,
+            "low": 476.44,
+            "close": 476.77,
+            "timestamp": "2024-01-12T14:50:00.628973",
+            "type": "resistance_1 Buffer",
             "candle_index": 188
         },
         {
-            "open": 475.89,
-            "high": 476.25,
-            "low": 475.865,
-            "close": 476.07,
-            "timestamp": "2024-01-11T14:50:00.063041",
-            "type": "support_1 Buffer",
+            "open": 476.73,
+            "high": 476.79,
+            "low": 476.395,
+            "close": 476.51,
+            "timestamp": "2024-01-12T14:52:00.058234",
+            "type": "resistance_1 Buffer",
             "candle_index": 189
         },
         {
-            "open": 476.07,
-            "high": 476.1797,
-            "low": 475.55,
-            "close": 475.795,
-            "timestamp": "2024-01-11T14:52:00.025518",
-            "type": "support_1 Buffer",
+            "open": 476.51,
+            "high": 476.7,
+            "low": 476.5,
+            "close": 476.575,
+            "timestamp": "2024-01-12T14:54:00.831207",
+            "type": "resistance_1 Buffer",
             "candle_index": 190
         },
         {
-            "open": 475.81,
-            "high": 476.05,
-            "low": 475.54,
-            "close": 475.9,
-            "timestamp": "2024-01-11T14:54:00.169899",
-            "type": "support_1 Buffer",
+            "open": 476.555,
+            "high": 476.9,
+            "low": 476.53,
+            "close": 476.786,
+            "timestamp": "2024-01-12T14:56:00.347197",
+            "type": "resistance_1 Buffer",
             "candle_index": 191
         },
         {
-            "open": 475.9,
-            "high": 476.34,
-            "low": 475.8099,
-            "close": 476.23,
-            "timestamp": "2024-01-11T14:56:00.291644",
-            "type": "support_1 Buffer",
+            "open": 476.79,
+            "high": 476.79,
+            "low": 476.6401,
+            "close": 476.7,
+            "timestamp": "2024-01-12T14:58:00.204415",
+            "type": "resistance_1 Buffer",
             "candle_index": 192
-        },
-        {
-            "open": 476.2223,
-            "high": 476.43,
-            "low": 476.16,
-            "close": 476.43,
-            "timestamp": "2024-01-11T14:58:00.086457",
-            "type": "support_1 Buffer",
-            "candle_index": 193
         }
     ]
 }

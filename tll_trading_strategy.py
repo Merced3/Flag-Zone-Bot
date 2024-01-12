@@ -238,11 +238,11 @@ async def identify_flag(candle, num_flags, session, headers):
         #please keep comments, helps me better understand whats going on
         # This block calculates the slope and intercept for a potential flag, updating line data if valid points are found.
         if len(lower_highs) >= MIN_NUM_CANDLES and (slope is None or intercept is None):
-            print(f"        Calculating Slope Line...")
+            print(f"        [SLOPE] Calculating Slope Line...")
             slope, intercept = calculate_slope_intercept(lower_highs, highest_point)
             if slope is not None:  # Add a check here
                 if is_angle_valid(slope, config) :
-                    print("        Angle within valid range.")
+                    print("        [VALID SLOPE] Angle within valid range.")
                     
                     print(f"        [FLAG] UPDATE LINE DATA 1: {line_name}")
                     update_line_data(line_name, "Bull", "active", highest_point)
@@ -294,11 +294,11 @@ async def identify_flag(candle, num_flags, session, headers):
 
         # This block calculates the slope and intercept for a potential flag, updating line data if valid points are found.
         if len(higher_lows) >= MIN_NUM_CANDLES and (slope is None or intercept is None):
-            print(f"        Calculating Slope Line...")
+            print(f"        [SLOPE] Calculating Slope Line...")
             slope, intercept = calculate_slope_intercept(higher_lows, lowest_point)
             if slope is not None:  # Add a check here
                 if is_angle_valid(slope, config, bearish=True):
-                    print("        Angle within valid range.")
+                    print("        [VALID SLOPE] Angle within valid range.")
                     
                     print(f"        [FLAG] UPDATE LINE DATA 2: {line_name}")
                     update_line_data(line_name, "Bear", "active", lowest_point)
@@ -349,7 +349,7 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
 
     if hl[1] < trendline_y:
         #more code...
-        print(f"    Potential Breakout Detected at {hl}")
+        print(f"        [BREAKOUT] Detected at {hl}")
 
         # Check if the candle associated with this higher low completely closes below the trendline
         if candle['close'] < trendline_y:
@@ -376,7 +376,7 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
                     update_line_data(line_name, "Bear", "active", lowest_point, hl)
                     return new_slope, new_intercept, True
                 else:
-                    print("    Invalid breakout on new slope.")
+                    print("        [INVALID BREAKOUT] on new slope.")
                     return None, None, False
             else:
                 return None, None, False
@@ -390,7 +390,7 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
 
     if lh[1] > trendline_y:
         #more code thats not important for this question...
-        print(f"    Potential Breakout Detected at {lh}")
+        print(f"        [BREAKOUT] Detected at {lh}")
 
         # Check if the candle associated with this lower high completely closes over the trendline
         if candle['close'] > trendline_y:
@@ -418,7 +418,7 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
                     update_line_data(line_name, "Bull", "active", highest_point, lh)
                     return new_slope, new_intercept, True
                 else:
-                    print("    Invalid breakout on new slope.")
+                    print("        [INVALID BREAKOUT] on new slope.")
                     return None, None, False
             else:
                 return None, None, False
@@ -434,10 +434,10 @@ def calculate_slope_intercept(lower_highs, highest_point):
         slope = (latest_lower_high[1] - highest_point[1]) / (latest_lower_high[0] - highest_point[0])
         #rearrangement of the slope-intercept form: c = y − mx 
         intercept = highest_point[1] - slope * highest_point[0]
-        print(f"        Slope: {slope}, Intercept: {intercept}")
+        print(f"        [VALID SLOPE] Slope: {slope}, Intercept: {intercept}")
         return slope, intercept
     else:
-        print("        Invalid points for slope: First point is later than second point.")
+        print("        [INVALID SLOPE] First point is later than second point.")
         return None, None
 
 def update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle):
@@ -521,7 +521,7 @@ def is_angle_valid(slope, config, bearish=False):
         min_angle = config["FLAGPOLE_CRITERIA"]["BULL_MIN_ANGLE"]
         max_angle = config["FLAGPOLE_CRITERIA"]["BULL_MAX_ANGLE"]
 
-    print(f"        [Slope Angle] {angle} degrees for {'Bear' if bearish else 'Bull'} flag")
+    print(f"        [Slope Angle] {angle} degrees; {'Bear' if bearish else 'Bull'} flag")
     return min_angle <= angle <= max_angle
 
 def resolve_flags(json_file='line_data.json'):

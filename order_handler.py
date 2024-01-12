@@ -56,9 +56,9 @@ sell_targets = {
     18: [20, 35, 55],
     19: [20, 35, 55],
     20: [20, 35, 55],
-    21: [20, 35, 55, 70],
-    22: [20, 35, 55, 70],
-    23: [20, 35, 55, 70],
+    21: [20, 35, 55],
+    22: [20, 35, 55],
+    23: [20, 35, 55],
     24: [20, 35, 55, 70],
     25: [20, 35, 55, 70],
     26: [20, 35, 55, 70],
@@ -90,16 +90,16 @@ sell_quantities = {
     18: [15, 2, 1],
     19: [16, 2, 1],
     20: [17, 2, 1],
-    21: [17, 2, 1, 1],
-    22: [17, 3, 1, 1],
-    23: [18, 3, 1, 1],
-    24: [19, 3, 1, 1],
-    25: [20, 3, 1, 1],
-    26: [20, 4, 1, 1],
-    27: [21, 4, 1, 1],
-    28: [22, 4, 1, 1],
-    29: [23, 4, 1, 1],
-    30: [24, 4, 1, 1]
+    21: [18, 2, 1],
+    22: [19, 2, 1],
+    23: [20, 2, 1],
+    24: [20, 2, 1, 1],
+    25: [21, 2, 1, 1],
+    26: [22, 2, 1, 1],
+    27: [23, 2, 1, 1],
+    28: [24, 2, 1, 1],
+    29: [25, 2, 1, 1],
+    30: [25, 3, 1, 1]
 }
 #sell_quantities = 10: [5, 3, 1, 1]
 #sell_targets = 10: [20, 35, 55, 70]
@@ -239,7 +239,7 @@ async def manage_active_order(active_order_details, message_ids_dict):
             if current_bid_price is not None and buy_entry_price is not None:
                 current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
                 if current_loss_percentage <= STOP_LOSS_PERCENTAGE:
-                    print(f"\nStop loss triggered at {current_loss_percentage}% loss.")
+                    print(f"    [ORDER STATUS] Stop loss triggered at {current_loss_percentage}% loss.")
                     await sell_rest_of_active_order(message_ids_dict, "Stop Loss Triggered")
                     break
 
@@ -350,7 +350,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                         if print_once_flag:
                             #print(f"    Starting get_option_bid_price({symbol}, {strike}, {formatted_expiration_date}, {option_type}, session)\n")
                             current_order_cost = order_quantity * (buy_entry_price * 100)
-                            print(f"\nBought {order_quantity} at {buy_entry_price} resulting in a cost of ${current_order_cost:.2f}")
+                            print(f"    [ORDER STATUS] Bought {order_quantity} at {buy_entry_price} resulting in a cost of ${current_order_cost:.2f}")
                             print_once_flag = False  # Set flag to False so it doesn't print again
                                         
                         current_bid_price = await get_option_bid_price(
@@ -395,7 +395,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                         partial_exits.append(sale_info)
                         remaining_quantity -= sell_quantity
                         sold_order_cost = (current_bid_price * 100) * sell_quantity
-                        print(f"Sold {sell_quantity} at {current_bid_price} target, {remaining_quantity} remaining. Order Cost: ${sold_order_cost:.2f}")
+                        print(f"    [ORDER STATUS] Sold {sell_quantity} at {current_bid_price} target, {remaining_quantity} remaining. Order Cost: ${sold_order_cost:.2f}")
 
                         if remaining_quantity <= 0:
                             await add_markers("sell")
@@ -435,7 +435,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                                 # Verify if the file was sent and then delete the log file
                                 if os.path.exists(order_log_name):
                                     os.remove(order_log_name)
-                                    print(f"Order log file {order_log_name} deleted.")
+                                    print(f"    [DELETE] {order_log_name}")
                             else:
                                 await print_discord("Could not fetch message content.")
                             current_order_active = False
@@ -448,7 +448,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                         all_sells = all_sells + sell_cost
 
                     profit_loss = all_sells - current_order_cost 
-                    print(f"(manage_active_fake_order) Profit/Loss: ${profit_loss:.2f}")
+                    print(f"    [ORDER_STATUS] Profit/Loss: ${profit_loss:.2f}")
                     todays_orders_profit_loss_list.append(profit_loss)
                     unique_order_id = None
                     break
@@ -593,7 +593,7 @@ async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_
                     
                     if os.path.exists(order_log_name):
                         os.remove(order_log_name)
-                        print(f"Order log file {order_log_name} deleted.")
+                        print(f"    [DELETE] {order_log_name}")
     
                     current_order_active = False
                     unique_order_id = None
@@ -680,7 +680,7 @@ async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_
                     
                     if os.path.exists(order_log_name):
                         os.remove(order_log_name)
-                        print(f"Order log file {order_log_name} deleted.")
+                        print(f"    [DELETE] {order_log_name}")
                 
                 current_order_active = False
                 unique_order_id = None
