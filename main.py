@@ -396,27 +396,27 @@ async def reseting_values():
     #reset all values
     message_ids_dict.clear()
     used_buying_power.clear()
-    print("[RESET] used_buying_power cleared.")
+    print("[RESET] Cleared 'used_buying_power' list.")
 
     #clear 'message_ids.json' file
     with open('message_ids.json', 'w') as f:
         json.dump(message_ids_dict, f, indent=4)
-        print("[RESET] message_ids.json file cleared.")
+        print("[RESET] Cleared file: message_ids.json")
 
     #Clear the markers.json file
     with open('markers.json', 'w') as f:
         json.dump({}, f, indent=4)
-        print("[RESET] markers.json file cleared.")
+        print("[RESET] Cleared file: markers.json")
 
     #clear line_data_TEST.json
     with open('line_data.json', 'w') as f:
         json.dump([], f, indent=4)
-        print("[RESET] Cleared line_data.json")
+        print("[RESET] Cleared file: line_data.json")
 
     #clear line_data_TEST.json
     with open('priority_candles.json', 'w') as f:
         json.dump([], f, indent=4)
-        print("[RESET] Cleared priority_candles.json")
+        print("[RESET] Cleared file: priority_candles.json")
               
     #edit, maybe we can fix this by doing 
     #since all the logging has been done and everything is recorded
@@ -426,6 +426,7 @@ async def reseting_values():
     config["ACCOUNT_BALANCES"][0] = end_of_day_account_balance 
     config["ACCOUNT_BALANCES"][1] = 0
     with open(config_path, 'w') as f:
+        print(f"[RESET] Updated file: config.json")
         json.dump(config, f, indent=4)  # Save the updated config
     start_of_day_account_balance = end_of_day_account_balance
     end_of_day_account_balance = 0
@@ -434,7 +435,7 @@ async def reseting_values():
     #find all CSV files in directory
     csv_files = Path(__file__).resolve().parent.glob('*.csv')
     for file in csv_files:
-        print(f"[RESET] Deleting File: {file}")
+        print(f"[RESET] Deleting File: {file.name}")
         file.unlink()  # Delete the file
 
     #clear the Logs, logs/[ticker_symbol]_2M.log file. Don't delete it just clear it.
