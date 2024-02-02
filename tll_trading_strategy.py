@@ -7,7 +7,7 @@ from submit_order import find_what_to_buy, submit_option_order, submit_option_or
 from order_handler import get_profit_loss_orders_list, get_unique_order_id_and_is_active, manage_active_order, sell_rest_of_active_order, manage_active_fake_order
 from print_discord_messages import print_discord
 from error_handler import error_log_and_discord_message
-from data_acquisition import get_account_balance, add_markers, get_current_candle_index
+from data_acquisition import get_account_balance, add_markers, get_current_candle_index, calculate_save_EMAs, get_current_price, get_candle_data_and_merge
 from pathlib import Path
 import pandas as pd
 import math
@@ -31,6 +31,9 @@ IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 NUM_OUT_MONEY = config["NUM_OUT_OF_MONEY"]
 SYMBOL = config["SYMBOL"]
 TIMEFRAMES = config["TIMEFRAMES"]
+ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
+MIN_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MIN_NUM_CANDLES"]
+MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
 
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
 LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{SYMBOL}_{TIMEFRAMES[0]}.log')  # Adjust the path accordingly
@@ -47,6 +50,7 @@ last_processed_candle = None
 
 MESSAGE_IDS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'message_ids.json')
 message_ids_dict = {}
+
 def load_message_ids():
     if os.path.exists(MESSAGE_IDS_FILE_PATH):
         with open(MESSAGE_IDS_FILE_PATH, 'r') as f:
@@ -75,12 +79,8 @@ def read_last_n_lines(file_path, n): #code from a previous ema tradegy, thought 
 new_york_tz = pytz.timezone('America/New_York')
 
 MARKET_CLOSE = time(16, 0)
-
+MARKET_OPEN = time(9, 30)
 used_buying_power = {}
-
-ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
-MIN_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MIN_NUM_CANDLES"]
-MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
 
 def load_json_df(file_path):
     with open(file_path, 'r') as file:
@@ -94,6 +94,22 @@ def get_papertrade_BP():
     current_bp_left = current_balance - all_order_costs
     return current_bp_left
 
+def get_market_open_time():
+    today = datetime.now(new_york_tz).date()
+    market_open_time = datetime.combine(today, time(9, 30))
+    return new_york_tz.localize(market_open_time)
+
+def initialize_ema_json(json_path):
+    """Ensure the EMA JSON file exists and is valid; initialize if not."""
+    if not os.path.exists(json_path) or os.stat(json_path).st_size == 0:
+        with open(json_path, 'w') as file:
+            json.dump([], file)  # Initialize with an empty list
+    try:
+        with open(json_path, 'r') as file:
+            return json.load(file) if isinstance(json.load(file), list) else []
+    except json.JSONDecodeError:
+        return []
+
 async def execute_trading_strategy(zones):
     print("Starting execute_trading_strategy()...")
     global last_processed_candle
@@ -104,7 +120,25 @@ async def execute_trading_strategy(zones):
     what_type_of_candle = None
     havent_cleared = None
 
+    candle_list = []  # Stores candles for the first 15 minutes
+    has_calculated = False # Flag to check if initial candles have been processed
+
+    MARKET_OPEN_TIME = get_market_open_time()  # Get today's market open time
+    market_open_plus_15 = MARKET_OPEN_TIME + timedelta(minutes=15)
+    market_open_plus_15 = market_open_plus_15.time()
+
     restart_state_json("state.json", True)
+
+    candle_interval = 2
+    candle_timescale = "minute"
+    AM = "AFTERMARKET"
+    PM = "PREMARKET"
+    aftermarket_file = f"{SYMBOL}_{candle_interval}_{candle_timescale}_{AM}.csv"
+    premarket_file = f"{SYMBOL}_{candle_interval}_{candle_timescale}_{PM}.csv"
+    json_EMA_path = 'EMAs.json'
+    merged_file_name = f"{SYMBOL}_MERGED.csv"
+
+    initialize_ema_json(json_EMA_path)
 
     async with aiohttp.ClientSession() as session:  # Initialize HTTP session
         headers = {"Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", "Accept": "application/json"}
@@ -129,53 +163,66 @@ async def execute_trading_strategy(zones):
                 current_last_candle = read_last_n_lines(LOG_FILE_PATH, 1)  # Read the latest candle
                 if current_last_candle and current_last_candle != last_processed_candle:
                     last_processed_candle = current_last_candle
-                    #get that candle, look at its open and close values
+                    #get that candle, look at its OHLC values
                     candle = last_processed_candle[0]
-                    #print(f"    New candle: {candle}\n    Open: {candle['open']}\n    Close: {candle['close']}")
-                    #print("Zones: ", zones)
-                    #now get the zones
-                    for box_name, (count, high_low_of_day, buffer) in zones.items(): #checking every zone
+                    
+                    # Calculate/Save EMAs
+                    if current_time >= market_open_plus_15:
+                        if not has_calculated and candle_list:
+                            await get_candle_data_and_merge(aftermarket_file, premarket_file, candle_interval, candle_timescale, AM, PM, merged_file_name) 
+                            #i need to change this for loop
+                            for _candle in reversed(candle_list):
+                                index_val_in_list = len(candle_list) - candle_list.index(_candle) - 1
+                                await calculate_save_EMAs(_candle, index_val_in_list)
+                            #calculate the current candle after the list has been processed
+                            await calculate_save_EMAs(candle, get_current_candle_index())
+                            print("    [EMA] Calculated EMA list")
+                            has_calculated = True
+                        elif has_calculated:
+                            await calculate_save_EMAs(candle, get_current_candle_index())
+                            print("    [EMA] Calculated EMA candle")
+                    else:
+                        candle_list.append(candle)
+                        has_calculated = False
+
+                    #Handle the zones
+                    for box_name, (count, high_low_of_day, buffer) in zones.items(): 
+                        # More code...
                         if "support" in box_name:
                             PDL = high_low_of_day #Previous Day Low
                             # if price goes back into zone, then stop recording candles and delete the data in priority_candles.json
-                            if candle['open'] <= buffer and candle['close'] >= buffer: #print("    buy CALL"), await buy_option_cp(IS_REAL_MONEY, SYMBOL, "call", session, headers)
+                            if candle['open'] <= buffer and candle['close'] >= buffer: 
                                 what_type_of_candle = f"{box_name} Buffer"
                                 print(f"    [START 1] Recording SUPPORT Priority Candles; type = {what_type_of_candle}") #simulate recording data...
                                 havent_cleared = True
                             elif candle['open'] >= buffer and candle['close'] <= buffer:
                                 print(f"    [END 2] Recording Priority Candles; type = {what_type_of_candle}")
-                                #resolve_opposite_flags('Bull')
                                 what_type_of_candle = None
                                 
-                                
-                                
-                            if candle['open'] >= PDL and candle['close'] <= PDL: #print("    buy PUT") #simulate buy, await buy_option_cp(IS_REAL_MONEY, SYMBOL, "put", session, headers)
+                            if candle['open'] >= PDL and candle['close'] <= PDL: 
                                 what_type_of_candle = f"{box_name} PDL"
                                 print(f"    [Start 3] Recording Priority Candles; type = {what_type_of_candle}")
                                 havent_cleared = True
                             elif candle['open'] <= PDL and candle['close'] >= PDL:
                                 print(f"    [END 4] Recording Priority Candles; type = {what_type_of_candle}")
-                                #resolve_opposite_flags('Bear')
                                 what_type_of_candle = None
                               
                         elif "resistance" in box_name:
                             PDH = high_low_of_day #Previous Day High
-                            if candle['open'] >= buffer and candle['close'] <= buffer: #dreaks buffer, print("    buy PUT"), await buy_option_cp(IS_REAL_MONEY, SYMBOL, "put", session, headers)
+                            if candle['open'] >= buffer and candle['close'] <= buffer:
                                 what_type_of_candle = f"{box_name} Buffer"
                                 print(f"    [START 5] Recording RESISTANCE Priority Candles; type = {what_type_of_candle}") #simulate recording data...
                                 havent_cleared = True
                             elif candle['open'] <= buffer and candle['close'] >= buffer:
                                 print(f"    [END 6] Recording Priority Candles; type = {what_type_of_candle}")
-                                #resolve_opposite_flags('Bear')
                                 what_type_of_candle = None
                             
-                            if candle['open'] <= PDH and candle['close'] >= PDH: #breaks pdh, print("    buy CALL"), await buy_option_cp(IS_REAL_MONEY, SYMBOL, "call", session, headers)
+                            if candle['open'] <= PDH and candle['close'] >= PDH: 
                                 what_type_of_candle = f"{box_name} PDH"
                                 print(f"    [START 7] Recording RESISTANCE Priority Candles; type = {what_type_of_candle}")
                                 havent_cleared = True
                             elif candle['open'] >= PDH and candle['close'] <= PDH:
                                 print(f"    [END 8] Recording Priority Candles; type = {what_type_of_candle}")
-                                #resolve_opposite_flags('Bull')
                                 what_type_of_candle = None
                                 
 
@@ -349,16 +396,19 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
 
     if hl[1] < trendline_y:
         #more code...
-        print(f"        [BREAKOUT] Detected at {hl}")
+        print(f"        [BREAKOUT] Potential Breakout Detected at {hl}")
 
         # Check if the candle associated with this higher low completely closes below the trendline
         if candle['close'] < trendline_y:
             print(f"        [FLAG] UPDATE LINE DATA 3: {line_name}")
             # Confirms a strong breakout signal, update line data as complete
             update_line_data(line_name=line_name, line_type="Bear", status="complete", point_2=(hl[0], trendline_y))
-            print("    [1] Confirmed Breakout: Buy Signal (PUT)")
-            await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'put', session, headers)
-            return None, None, True
+            if await above_below_ema('below'):
+                print("    [1] Confirmed Breakout: Buy Signal (PUT)")
+                await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'put', session, headers)
+                return None, None, True
+            else:
+                print("    [ORDER CANCELED] Buy Signal (PUT); Not below all EMAs.")
         else:
             # Test new slope and intercept
             new_slope = (hl[1] - lowest_point[1]) / (hl[0] - lowest_point[0])
@@ -376,7 +426,7 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
                     update_line_data(line_name, "Bear", "active", lowest_point, hl)
                     return new_slope, new_intercept, True
                 else:
-                    print("        [INVALID BREAKOUT] on new slope.")
+                    print("        [INVALID BREAKOUT] Invalid breakout on new slope.")
                     return None, None, False
             else:
                 return None, None, False
@@ -390,16 +440,20 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
 
     if lh[1] > trendline_y:
         #more code thats not important for this question...
-        print(f"        [BREAKOUT] Detected at {lh}")
+        print(f"        [BREAKOUT] Potential Breakout Detected at {lh}")
 
         # Check if the candle associated with this lower high completely closes over the trendline
         if candle['close'] > trendline_y:
             print(f"        [FLAG] UPDATE LINE DATA 5: {line_name}")
             # Confirms a strong breakout signal, update line data as complete
             update_line_data(line_name=line_name, line_type="Bull", status="complete", point_2=(lh[0], trendline_y))
-            print("    [1] Confirmed Breakout: Buy Signal (CALL)")
-            await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'call', session, headers)
-            return None, None, True
+            
+            if await above_below_ema('above'):
+                print("    [1] Confirmed Breakout: Buy Signal (CALL)")
+                await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'call', session, headers)
+                return None, None, True
+            else:
+                print("    [ORDER CANCELED] Buy Signal (CALL); Not above EMAs.")
         else:
             # Test new slope and intercept
             new_slope = (lh[1] - highest_point[1]) / (lh[0] - highest_point[0])
@@ -418,12 +472,36 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
                     update_line_data(line_name, "Bull", "active", highest_point, lh)
                     return new_slope, new_intercept, True
                 else:
-                    print("        [INVALID BREAKOUT] on new slope.")
+                    print("        [INVALID BREAKOUT] Invalid breakout on new slope.")
                     return None, None, False
             else:
                 return None, None, False
     return slope, intercept, False
 
+async def above_below_ema(state):
+    # This will return true or false, state has to be either 'above' or 'below'
+    # It will get an instant price of what the stock is trading at
+    # Then it will see if the price is above or below the EMAs.
+    # The state tells us what we're looking for
+
+    # Get current price
+    price = await get_current_price(SYMBOL)
+
+    # Access EMAs.json, get the last EMA values
+    EMAs = load_json_df('EMAs.json')
+    last_EMA = EMAs.iloc[-1]
+    last_EMA_dict = last_EMA.to_dict()
+    print(f"        [EMA] Last EMA Values: {last_EMA_dict}, Price: {price}")
+    # Check if price is above or below the EMAs
+    for ema in last_EMA_dict:
+        if ema != 'x':  # Assuming 'x' is not an EMA value but an index or timestamp
+            if state == 'above' and price <= last_EMA_dict[ema]:
+                return False
+            if state == 'below' and price >= last_EMA_dict[ema]:
+                return False
+
+    return True
+        
 def calculate_slope_intercept(lower_highs, highest_point):
     # Calculate slope (m) and intercept (c)
     # Get the latest in the list [1,0,-1] each one is a X,Y coordinate
@@ -437,7 +515,7 @@ def calculate_slope_intercept(lower_highs, highest_point):
         print(f"        [VALID SLOPE] Slope: {slope}, Intercept: {intercept}")
         return slope, intercept
     else:
-        print("        [INVALID SLOPE] First point is later than second point.")
+        print("        [INVALID POINTS] First point is later than second point.")
         return None, None
 
 def update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle):
@@ -499,7 +577,7 @@ def restart_state_json(state_file_path, havent_cleared):
     if havent_cleared:
         with open(state_file_path, 'w') as file:
             json.dump(initial_state, file, indent=4)
-        print("    [RESET] state.json reset to initial values.")
+        print("    [RESET] State JSON file has been reset to initial state.")
 
 def is_angle_valid(slope, config, bearish=False):
     """
@@ -521,7 +599,7 @@ def is_angle_valid(slope, config, bearish=False):
         min_angle = config["FLAGPOLE_CRITERIA"]["BULL_MIN_ANGLE"]
         max_angle = config["FLAGPOLE_CRITERIA"]["BULL_MAX_ANGLE"]
 
-    print(f"        [Slope Angle] {angle} degrees; {'Bear' if bearish else 'Bull'} flag")
+    print(f"        [Slope Angle] {angle} degrees for {'Bear' if bearish else 'Bull'} flag")
     return min_angle <= angle <= max_angle
 
 def resolve_flags(json_file='line_data.json'):
@@ -532,7 +610,7 @@ def resolve_flags(json_file='line_data.json'):
         with open(line_data_path, 'r') as file:
             line_data = json.load(file)
     else:
-        print(f"File {json_file} not found.")
+        print(f"    [FLAG ERROR] File {json_file} not found.")
         return
 
     # Iterate through the flags and resolve opposite flags
@@ -555,8 +633,6 @@ def resolve_flags(json_file='line_data.json'):
     # Save the updated data back to the JSON file
     with open(line_data_path, 'w') as file:
         json.dump(updated_line_data, file, indent=4)
-
-    
 
 #right now i have real_money_activated == false
 async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, headers):
@@ -587,7 +663,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, header
         else:
             buying_power = get_papertrade_BP()
         commission_fee = 0.35
-        buffer = 0.25 # 50 cents
+        buffer = 0.25
         strike_bid_cost = strike_ask_bid * 100 # 0.32 is actually 32$ when dealing with option contracts
         order_cost = (strike_bid_cost + commission_fee) * quantity
         order_cost_buffer = ((strike_bid_cost+buffer) + commission_fee) * quantity
@@ -664,7 +740,7 @@ def clear_priority_candles(havent_cleared, type_candle, json_file='priority_cand
     if havent_cleared:
         with open(json_file, 'w') as file:
             json.dump([], file, indent=4)
-        print(f"    [RESET] priority_candles.json; what_type_of_candle = {type_candle}")
+        print(f"    [RESET] {json_file}; what_type_of_candle = {type_candle}")
         havent_cleared = False
 
 async def record_priority_candle(candle, type_candles, json_file='priority_candles.json'):
@@ -675,8 +751,7 @@ async def record_priority_candle(candle, type_candles, json_file='priority_candl
     except (FileNotFoundError, json.JSONDecodeError):
         candles_data = []
 
-    log_file_path = Path(__file__).resolve().parent / 'logs/SPY_2M.log'
-    current_candle_index = get_current_candle_index(log_file_path)
+    current_candle_index = get_current_candle_index()
 
     # Append the new candle data along with its type
     candle_with_type = candle.copy()

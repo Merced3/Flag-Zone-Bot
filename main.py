@@ -1,6 +1,6 @@
 #main.py
 from chart_visualization import plot_candles_and_boxes
-from data_acquisition import get_candle_data
+from data_acquisition import get_candle_data, get_dates
 from tll_trading_strategy import message_ids_dict, used_buying_power, execute_trading_strategy
 from print_discord_messages import bot, print_discord, get_message_content, send_file_discord
 from error_handler import error_log_and_discord_message
@@ -187,28 +187,7 @@ def load_from_csv(filename):
         print(f"An error occurred while loading {filename}: {e}")
         return None
 
-def get_dates(num_of_days, use_todays_date=False):
-    # If using today's date, else use yesterday's date or Friday's date if today is a weekend
-    if use_todays_date:
-        start = datetime.today()
-    else:
-        start = datetime.today() - timedelta(days=1)
-        if start.weekday() > 4:  # If it's Saturday (5) or Sunday (6)
-            start = start - timedelta(days=start.weekday() - 4)
 
-    # Convert start to a pandas Timestamp
-    start = pd.Timestamp(start)
-
-    # Calculate business days
-    business_days = pd.bdate_range(end=start, periods=num_of_days, freq='B')
-    start_date = business_days[0]
-    end_date = business_days[-1]
-
-    # Formatting dates to 'YYYY-MM-DD'
-    start_date_str = start_date.strftime('%Y-%m-%d')
-    end_date_str = end_date.strftime('%Y-%m-%d')
-
-    return start_date_str, end_date_str
 
 async def process_data(queue):
     print("Starting process_data()...")
@@ -282,7 +261,6 @@ async def main():
 
     await print_discord(f"Starting Bot, Real Money Activated" if IS_REAL_MONEY else f"Starting Bot, Paper Trading Activated")
 
-    
     queue = asyncio.Queue()
     already_ran = False
 
@@ -322,7 +300,6 @@ async def main():
                     print("No candle data was retrieved or 'timestamp' column is missing.")
             
             if market_open_time <= current_time <= market_close_time:
-                #more code...
                 if websocket_connection is None:  # Only create a new connection if there isn't one
                     data_acquisition.should_close = False
                     chart_visualization.should_close = False
@@ -385,7 +362,6 @@ async def reseting_values():
         end_of_day_account_balance = config["ACCOUNT_BALANCES"][1]
     f_e_account_balance = "{:,.2f}".format(end_of_day_account_balance)
     await print_discord(f"Market is closed. Today's closing balance: ${f_e_account_balance}")
-
     #send 2-min chart picture to discord chat
     pic_2m_filepath = Path(__file__).resolve().parent / f"{SYMBOL}_2-min_chart.png"
     await send_file_discord(pic_2m_filepath)
@@ -394,29 +370,19 @@ async def reseting_values():
     output_message = await calculate_day_performance(message_ids_dict, start_of_day_account_balance, end_of_day_account_balance)
     await print_discord(output_message)
     #reset all values
-    message_ids_dict.clear()
     used_buying_power.clear()
     print("[RESET] Cleared 'used_buying_power' list.")
 
     #clear 'message_ids.json' file
-    with open('message_ids.json', 'w') as f:
-        json.dump(message_ids_dict, f, indent=4)
-        print("[RESET] Cleared file: message_ids.json")
-
+    reset_json('message_ids.json', {})
     #Clear the markers.json file
-    with open('markers.json', 'w') as f:
-        json.dump({}, f, indent=4)
-        print("[RESET] Cleared file: markers.json")
-
+    reset_json('markers.json', {})
     #clear line_data_TEST.json
-    with open('line_data.json', 'w') as f:
-        json.dump([], f, indent=4)
-        print("[RESET] Cleared file: line_data.json")
-
-    #clear line_data_TEST.json
-    with open('priority_candles.json', 'w') as f:
-        json.dump([], f, indent=4)
-        print("[RESET] Cleared file: priority_candles.json")
+    reset_json('line_data.json', [])
+    #clear priority_candles.json
+    reset_json('priority_candles.json', [])
+    #clear EMAs.json
+    reset_json('EMAs.json', [])
               
     #edit, maybe we can fix this by doing 
     #since all the logging has been done and everything is recorded
@@ -451,6 +417,11 @@ async def reseting_values():
             print(f"[RESET] Order log file {file} deleted.")
         except Exception as e:
             print(f"An error occurred while deleting {file}: {e}")
+
+def reset_json(file_path, contents):
+    with open(file_path, 'w') as f:
+        json.dump(contents, f, indent=4)
+        print(f"[RESET] Cleared file: {file_path}")
 
 if __name__ == "__main__":
     

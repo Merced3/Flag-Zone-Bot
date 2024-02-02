@@ -27,6 +27,7 @@ config = read_config()
 SYMBOL = config["SYMBOL"]
 IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 BOX_SIZE_THRESHOLDS = config["BOX_SIZE_THRESHOLDS"]
+EMA = config["EMAS"]
 
 def update_chart_periodically(root, canvas, boxes, symbol, log_file_path):
     global df_2_min, should_close
@@ -135,10 +136,6 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
             
         ax.add_patch(rect)
 
-    # if i take out this block of code, the chart works as it should, but with this block of code, it condenses the 
-    # candle sticks to the top of the chart because the candle stick values being higher than most of the boxes, its
-    # plotting everthing correctly, but it only needs to show the boxes that are in the in the 2 min charts facinity.
-    # Not everysingle box that has to be shown on the 2-min chart.
     if timescale_type == "2-min":
         # Check and plot markers
         markers_file_path = Path(__file__).resolve().parent / 'markers.json'
@@ -152,7 +149,31 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
             print("No markers.json file found.")
 
         lines_file_path = Path(__file__).resolve().parent / 'line_data.json'
- 
+
+        # <<<<<<<<<Check and plot EMAs HERE>>>>>>>>>>
+        ema_file_path = Path(__file__).resolve().parent / 'EMAs.json'
+        try:
+            with open(ema_file_path, 'r') as f:
+                emas = json.load(f)
+
+            # Assuming the 'x' values are consistent across all EMAs
+            x_values = [entry['x'] for entry in emas]
+
+            # Iterate over each EMA configuration to plot
+            for ema_config in EMA:  # EMA is loaded from config["EMAS"] earlier in your script
+                window, color = ema_config
+                ema_values = [entry[str(window)] for entry in emas if str(window) in entry]
+                
+                # Check if there are EMA values to plot to avoid errors
+                if ema_values:
+                    ax.plot(x_values, ema_values, label=f'EMA {window}', color=color, linewidth=1)
+
+            # Add a legend to help identify the lines
+            ax.legend()
+
+        except FileNotFoundError:
+            print("EMA data file not found.")
+
         try:
             with open(lines_file_path, 'r') as f:
                 lines = json.load(f)
@@ -176,9 +197,6 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
     canvas.draw()
     canvas.figure.savefig(f"{symbol}_{timescale_type}_chart.png")
 
-def check_for_new_markers():
-    #something
-    pass
 
 def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
     global df_15_min, df_2_min, should_close

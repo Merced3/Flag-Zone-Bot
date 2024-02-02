@@ -23,3 +23,4 @@ What I Want To Add Later On
 2) when a trade is done, it sends the order log file when the trade is done so that I can delete the file afterward and save file space. It sends it right after the order calculations
 3) At the end of the day, it sends today's performance (It's currently doing it), and afterward, it sends a screenshot of the 2-minute chart to the Discord channel.
 
+issue noticed: Whenever a candles open
