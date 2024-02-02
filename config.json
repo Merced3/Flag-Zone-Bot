@@ -9,7 +9,7 @@
         "2M"
     ],
     "STOP_LOSS_PERCENTAGE": -20,
-    "PAST_DAYS": 25,
+    "PAST_DAYS": 20,
     "NUM_OUT_OF_MONEY": 5,
     "BOX_SIZE_THRESHOLDS": [
         0.2,
