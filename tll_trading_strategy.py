@@ -270,19 +270,22 @@ async def identify_flag(candle, num_flags, session, headers):
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high
         if current_high is None or candle['high'] > current_high:
+            # NEW CODE: Somehow check if there already is a flag and if current candle is higher then slopes highest high, if it is it should buy
+            if slope is not None and intercept is not None:
+                slope, intercept, breakout_detected = await process_breakout_detection(
+                    line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'
+                )
             current_high = candle['high']
             highest_point = (candle['candle_index'], current_high)
-            print(f"        New Highest Point: {highest_point}")
+            print(f"        [Highest Point] New: {highest_point}")
             lower_highs = []
         else: 
             if candle['high'] == current_high and candle['candle_index'] > highest_point[0]:
                 highest_point = (candle['candle_index'], current_high)
-                print(f"        Updated Highest Point: {highest_point}")
+                print(f"        [Highest Point] Updated: {highest_point}")
                 lower_highs = []
             else:
                 lower_highs.append((candle['candle_index'], candle['high']))
-
-        #please keep comments, helps me better understand whats going on
         # This block calculates the slope and intercept for a potential flag, updating line data if valid points are found.
         if len(lower_highs) >= MIN_NUM_CANDLES and (slope is None or intercept is None):
             print(f"        [SLOPE] Calculating Slope Line...")
@@ -294,47 +297,42 @@ async def identify_flag(candle, num_flags, session, headers):
                     print(f"        [FLAG] UPDATE LINE DATA 1: {line_name}")
                     update_line_data(line_name, "Bull", "active", highest_point)
                     #check if there are any points above the line
-                    for lh in lower_highs:
-                        if slope is not None and intercept is not None:
-                            slope, intercept, breakout_detected = await check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, session, headers)
-                            if breakout_detected:
-                                print("        [1] Breakout Detected [DO SOMETHING]")
+                    if slope is not None and intercept is not None:
+                        slope, intercept, breakout_detected = await process_breakout_detection(
+                            line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'
+                        )
                 else:
-                    print("        Invalid points for slope: First point is later than second point.")
-                    # You can choose to reset state, ignore these points, or handle as needed
-                    slope = None
-                    intercept = None
-                    # Optionally reset highest_point and lower_highs if needed
-                    #highest_point = None
-                    #lower_highs = []
+                    print("        [INVALID SLOPE] First point is later than second point.")
+                    slope, intercept = None, None
             else:
-                print("        Slope calculation failed or not applicable.")    
+                print("        [SLOPE] calculation failed or not applicable.")
         elif slope is not None and intercept is not None:
-            for lh in lower_highs:
-                slope, intercept, breakout_detected = await check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, session, headers)
-                if breakout_detected:
-                    print("        [2] Breakout Detected [DO SOMETHING]")
-
+            slope, intercept, breakout_detected = await process_breakout_detection(
+                line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'
+            )
         # Check for breakout
-        for lh in lower_highs:
-            if slope is not None and intercept is not None:
-                slope, intercept, breakout_detected = await check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, session, headers)
-                if breakout_detected:
-                    print("        [3] Breakout Detected [DO SOMETHING]")           
-                #lower_highs.clear()
+        if slope is not None and intercept is not None:
+            slope, intercept, breakout_detected = await process_breakout_detection(
+                line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'
+            )
+    
     elif (('support' in candle['type']) and ('PDL' in candle['type'])) or (('resistance' in candle['type']) and ('Buffer' in candle['type'])):
         #now Lets work on Bear Candles, instead of Higher highs we will be looking at lower lows
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high
         if current_low is None or candle['low'] < current_low:
+            if slope is not None and intercept is not None:
+                slope, intercept, breakout_detected = await process_breakout_detection(
+                    line_name, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, breakout_type='bearish'
+                )
             current_low = candle['low']
             lowest_point = (candle['candle_index'], current_low)
-            print(f"        New Lowest Point: {lowest_point}")
+            print(f"        [Lowest Point] New: {lowest_point}")
             higher_lows = []
         else: 
             if candle['low'] == current_low and candle['candle_index'] > lowest_point[0]:
                 lowest_point = (candle['candle_index'], current_low)
-                print(f"        Updated Lowest Point: {current_low}")
+                print(f"        [Lowest Point] Updated: {current_low}")
                 higher_lows = []
             else:
                 higher_lows.append((candle['candle_index'], candle['low']))
@@ -350,37 +348,28 @@ async def identify_flag(candle, num_flags, session, headers):
                     print(f"        [FLAG] UPDATE LINE DATA 2: {line_name}")
                     update_line_data(line_name, "Bear", "active", lowest_point)
                     #check if there are any points above the line
-                    for hl in higher_lows:
-                        if slope is not None and intercept is not None:
-                            slope, intercept, breakout_detected = await check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, session, headers)
-                            if breakout_detected:
-                                print("        [4] Breakout Detected [DO SOMETHING]")
+                    if slope is not None and intercept is not None:
+                        slope, intercept, breakout_detected = await process_breakout_detection(
+                            line_name, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, breakout_type='bearish'
+                        )
                 else:
-                    print("        Invalid points for slope: First point is later than second point.")
-                    # You can choose to reset state, ignore these points, or handle as needed
-                    slope = None
-                    intercept = None
-                    # Optionally reset highest_point and lower_highs if needed
-                    #highest_point = None
-                    #lower_highs = []
+                    print("        [INVALID SLOPE] First point is later than second point.")
+                    slope, intercept = None, None
             else:
-                print("        Slope calculation failed or not applicable.")
+                print("        [SLOPE] calculation failed or not applicable.")
 
         elif slope is not None and intercept is not None:
-            for hl in higher_lows:
-                slope, intercept, breakout_detected = await check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, session, headers)
-                if breakout_detected:
-                    print("        [5] Breakout Detected [DO SOMETHING]")
+            slope, intercept, breakout_detected = await process_breakout_detection(
+                line_name, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, breakout_type='bearish'
+            )
 
         # Check for breakout
-        for hl in higher_lows:
-            if slope is not None and intercept is not None:
-                slope, intercept, breakout_detected = await check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, session, headers)
-                if breakout_detected:
-                    print("        [6] Breakout Detected [DO SOMETHING]")           
-                #lower_highs.clear()
+        if slope is not None and intercept is not None:
+            slope, intercept, breakout_detected = await process_breakout_detection(
+                line_name, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, breakout_type='bearish'
+            )
     else:
-        print(f"        No Support Candle: type = {candle}")    
+        print(f"        [No Support Candle] type = {candle}")    
     
     # Write the updated state back to the JSON file
     with open(state_file_path, 'w') as file:
@@ -389,19 +378,18 @@ async def identify_flag(candle, num_flags, session, headers):
     update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle)
 
 async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, session, headers):
-    # Check and resolve any active bull flags
-    #resolve_opposite_flags('Bull')
+    # Ensure slope and intercept are not None
+    if slope is None or intercept is None:
+        print("Error: Slope or intercept is None.")
+        return None, None, False
 
     trendline_y = slope * hl[0] + intercept
 
     if hl[1] < trendline_y:
-        #more code...
         print(f"        [BREAKOUT] Potential Breakout Detected at {hl}")
 
-        # Check if the candle associated with this higher low completely closes below the trendline
         if candle['close'] < trendline_y:
             print(f"        [FLAG] UPDATE LINE DATA 3: {line_name}")
-            # Confirms a strong breakout signal, update line data as complete
             update_line_data(line_name=line_name, line_type="Bear", status="complete", point_2=(hl[0], trendline_y))
             if await above_below_ema('below'):
                 print("    [1] Confirmed Breakout: Buy Signal (PUT)")
@@ -410,10 +398,8 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
             else:
                 print("    [ORDER CANCELED] Buy Signal (PUT); Not below all EMAs.")
         else:
-            # Test new slope and intercept
-            new_slope = (hl[1] - lowest_point[1]) / (hl[0] - lowest_point[0])
-            new_intercept = lowest_point[1] - new_slope * lowest_point[0]
-
+            # Recalculate slope and intercept with new points to check for a valid breakout
+            new_slope, new_intercept = calculate_slope_intercept([hl, lowest_point], lowest_point)
             if new_slope is not None and is_angle_valid(new_slope, config, bearish=True):
                 valid_breakout = True
                 for test_point in higher_lows:
@@ -433,21 +419,19 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
     return slope, intercept, False
 
 async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, session, headers):
-    # Check and resolve any active bear flags
-    #resolve_opposite_flags('Bear')
-    
+    # Ensure slope and intercept are not None
+    if slope is None or intercept is None:
+        print("Error: Slope or intercept is None.")
+        return None, None, False
+
     trendline_y = slope * lh[0] + intercept
 
     if lh[1] > trendline_y:
-        #more code thats not important for this question...
         print(f"        [BREAKOUT] Potential Breakout Detected at {lh}")
 
-        # Check if the candle associated with this lower high completely closes over the trendline
         if candle['close'] > trendline_y:
             print(f"        [FLAG] UPDATE LINE DATA 5: {line_name}")
-            # Confirms a strong breakout signal, update line data as complete
             update_line_data(line_name=line_name, line_type="Bull", status="complete", point_2=(lh[0], trendline_y))
-            
             if await above_below_ema('above'):
                 print("    [1] Confirmed Breakout: Buy Signal (CALL)")
                 await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'call', session, headers)
@@ -455,19 +439,16 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
             else:
                 print("    [ORDER CANCELED] Buy Signal (CALL); Not above EMAs.")
         else:
-            # Test new slope and intercept
-            new_slope = (lh[1] - highest_point[1]) / (lh[0] - highest_point[0])
-            new_intercept = highest_point[1] - new_slope * highest_point[0]
-
+            # Recalculate slope and intercept with new points to check for a valid breakout
+            new_slope, new_intercept = calculate_slope_intercept([highest_point, lh], highest_point)
             if new_slope is not None and is_angle_valid(new_slope, config):
                 valid_breakout = True
                 for test_point in lower_highs:
-                    # Check if any point is above the new trendline
                     if test_point[1] > new_slope * test_point[0] + new_intercept:
                         valid_breakout = False
-                        #break
+                        break
 
-                if valid_breakout: # and ((lh[0] - highest_point[0]) >= MIN_NUM_CANDLES):
+                if valid_breakout:
                     print(f"        [FLAG] UPDATE LINE DATA 6: {line_name}")
                     update_line_data(line_name, "Bull", "active", highest_point, lh)
                     return new_slope, new_intercept, True
@@ -477,6 +458,42 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
             else:
                 return None, None, False
     return slope, intercept, False
+
+
+async def process_breakout_detection(line_name, points, highest_or_lowest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'):
+    """
+    Processes breakout detection for given points.
+
+    Args:
+        line_name (str): The name of the line or flag being processed.
+        points (list): A list of points (lower highs or higher lows) to check for breakouts.
+        highest_or_lowest_point (tuple): The highest or lowest point related to the flag.
+        slope (float): The slope of the trendline.
+        intercept (float): The intercept of the trendline.
+        candle (dict): The current candle being processed.
+        config (dict): Configuration settings.
+        session: The HTTP session.
+        headers: HTTP headers for requests.
+        breakout_type (str): 'bullish' or 'bearish' to determine the type of breakout to check.
+
+    Returns:
+        tuple: Updated slope, intercept, and a boolean indicating if a breakout was detected.
+    """
+    breakout_detected = False
+    for point in points:
+        if breakout_type == 'bullish':
+            slope, intercept, detected = await check_for_bullish_breakout(
+                line_name, point, points, highest_or_lowest_point, slope, intercept, candle, config, session, headers
+            )
+        else:  # 'bearish'
+            slope, intercept, detected = await check_for_bearish_breakout(
+                line_name, point, points, highest_or_lowest_point, slope, intercept, candle, config, session, headers
+            )
+        if detected:
+            breakout_detected = True
+            print(f"        [Breakout Detected] {line_name} detected a {breakout_type} breakout at {point}")
+            break  # Optional: break if you only care about the first detected breakout
+    return slope, intercept, breakout_detected
 
 async def above_below_ema(state):
     # This will return true or false, state has to be either 'above' or 'below'

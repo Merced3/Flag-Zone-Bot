@@ -423,6 +423,17 @@ def reset_json(file_path, contents):
         json.dump(contents, f, indent=4)
         print(f"[RESET] Cleared file: {file_path}")
 
+async def shutdown(loop):
+    """Shutdown tasks and the Discord bot."""
+    # Gracefully shutdown the Discord bot
+    await bot.close()  # Make sure this is the correct way to close your bot instance
+    # Cancel all remaining tasks
+    tasks = [t for t in asyncio.all_tasks(loop) if t is not asyncio.current_task(loop)]
+    for task in tasks:
+        task.cancel()
+    await asyncio.gather(*tasks, return_exceptions=True)
+    loop.stop()
+
 if __name__ == "__main__":
     
 
@@ -434,5 +445,6 @@ if __name__ == "__main__":
         loop.run_forever()
     except KeyboardInterrupt:
         print("Manually interrupted, cleaning up...")
+        loop.run_until_complete(shutdown(loop))
     finally:
         loop.close()
