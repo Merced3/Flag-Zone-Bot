@@ -325,6 +325,7 @@ async def main():
                     # manage_active_order()
                 )
             else:
+                
                 print("The market is closed...")
                 if websocket_connection is not None:
                     data_acquisition.should_close = True  # Signal to close WebSocket
