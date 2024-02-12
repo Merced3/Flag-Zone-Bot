@@ -169,7 +169,7 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
                     ax.plot(x_values, ema_values, label=f'EMA {window}', color=color, linewidth=1)
 
             # Add a legend to help identify the lines
-            ax.legend()
+            ax.legend(loc='upper left')
 
         except FileNotFoundError:
             print("EMA data file not found.")
