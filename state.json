@@ -1,11 +1,87 @@
 {
-    "current_high": null,
-    "highest_point": null,
+    "current_high": 494.1,
+    "highest_point": [
+        194,
+        494.1
+    ],
     "lower_highs": [],
     "current_low": null,
     "lowest_point": null,
     "higher_lows": [],
     "slope": null,
     "intercept": null,
-    "previous_candles": []
+    "previous_candles": [
+        {
+            "open": 492.38,
+            "high": 492.6564,
+            "low": 492.32,
+            "close": 492.57,
+            "timestamp": "2024-02-13T14:44:00.072175",
+            "type": "support_5 Buffer",
+            "candle_index": 187
+        },
+        {
+            "open": 492.575,
+            "high": 492.82,
+            "low": 492.47,
+            "close": 492.8,
+            "timestamp": "2024-02-13T14:46:00.278283",
+            "type": "support_5 Buffer",
+            "candle_index": 188
+        },
+        {
+            "open": 492.8,
+            "high": 492.99,
+            "low": 492.67,
+            "close": 492.89,
+            "timestamp": "2024-02-13T14:48:00.241649",
+            "type": "support_5 Buffer",
+            "candle_index": 189
+        },
+        {
+            "open": 492.89,
+            "high": 493.02,
+            "low": 492.83,
+            "close": 493.015,
+            "timestamp": "2024-02-13T14:50:00.053886",
+            "type": "support_5 Buffer",
+            "candle_index": 190
+        },
+        {
+            "open": 493.03,
+            "high": 493.04,
+            "low": 492.565,
+            "close": 492.74,
+            "timestamp": "2024-02-13T14:52:00.030963",
+            "type": "support_5 Buffer",
+            "candle_index": 191
+        },
+        {
+            "open": 492.7484,
+            "high": 493.015,
+            "low": 492.57,
+            "close": 493.015,
+            "timestamp": "2024-02-13T14:54:00.107028",
+            "type": "support_5 Buffer",
+            "candle_index": 192
+        },
+        {
+            "open": 493.01,
+            "high": 493.885,
+            "low": 492.85,
+            "close": 493.7375,
+            "timestamp": "2024-02-13T14:56:00.107074",
+            "type": "support_5 Buffer",
+            "candle_index": 193
+        },
+        {
+            "open": 493.74,
+            "high": 494.1,
+            "low": 493.55,
+            "close": 493.675,
+            "timestamp": "2024-02-13T14:58:00.072611",
+            "type": "support_5 Buffer",
+            "candle_index": 194
+        }
+    ]
 }

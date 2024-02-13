@@ -10,6 +10,7 @@ from print_discord_messages import bot, print_discord, edit_discord_message, get
 from submit_order import submit_option_order, get_order_status
 from error_handler import error_log_and_discord_message
 from data_acquisition import add_markers
+import time
 import re
 
 config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
@@ -297,6 +298,18 @@ async def manage_active_order(active_order_details, message_ids_dict):
             # Wait before checking again
             await asyncio.sleep(.5)
 
+def safe_write_to_file(path, data, max_retries=3, retry_delay=0.25):
+    for attempt in range(max_retries):
+        try:
+            with open(path, "a") as log_file:
+                log_file.write(data)
+                log_file.flush()
+            return True  # Successfully written
+        except PermissionError as e:
+            print(f"Permission denied on attempt {attempt+1}: {e}")
+            time.sleep(retry_delay)
+    return False  # Failed to write after retries
+
 async def manage_active_fake_order(active_order_details, message_ids_dict):
     global unique_order_id
     global order_quantity
@@ -366,9 +379,11 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                             if lowest_bid_price is None or current_bid_price < lowest_bid_price:
                                 lowest_bid_price = current_bid_price
                             # Open the log file and write the bid price
-                            with open(order_log_name, "a") as log_file:
-                                log_file.write(f"{current_bid_price}\n")
-                                log_file.flush()  # Ensure the data is written to the file
+                            if not safe_write_to_file(order_log_name, f"{current_bid_price}\n"):
+                                print(f"Failed to write to {order_log_name} after retries.")
+                            #with open(order_log_name, "a") as log_file: #ERROR HAPPEND HERE ------------------------------------------
+                                #log_file.write(f"{current_bid_price}\n")
+                                #log_file.flush()  # Ensure the data is written to the file
 
                 # Check for stop loss condition
                 if current_bid_price is not None and buy_entry_price is not None:
