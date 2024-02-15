@@ -1,11 +1,33 @@
 {
-    "current_high": null,
-    "highest_point": null,
+    "current_high": 501.86,
+    "highest_point": [
+        193,
+        501.86
+    ],
     "lower_highs": [],
     "current_low": null,
     "lowest_point": null,
     "higher_lows": [],
     "slope": null,
     "intercept": null,
-    "previous_candles": []
+    "previous_candles": [
+        {
+            "open": 501.62,
+            "high": 501.77,
+            "low": 501.53,
+            "close": 501.735,
+            "timestamp": "2024-02-15T14:56:00.137706",
+            "type": "resistance_4 PDH",
+            "candle_index": 192
+        },
+        {
+            "open": 501.74,
+            "high": 501.86,
+            "low": 501.6,
+            "close": 501.85,
+            "timestamp": "2024-02-15T14:58:00.093784",
+            "type": "resistance_4 PDH",
+            "candle_index": 193
+        }
+    ]
 }
