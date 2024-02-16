@@ -387,15 +387,11 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
 
             # Check if the candle associated with this higher low completely closes below the trendline
             if candle['close'] < trendline_y:
-                print(f"        [FLAG] UPDATE LINE DATA 3: {line_name}")
-                # Confirms a strong breakout signal, update line data as complete
-                update_line_data(line_name=line_name, line_type="Bear", status="complete", point_2=(hl[0], trendline_y))
-                if await above_below_ema('below'):
-                    print("    [1] Confirmed Breakout: Buy Signal (PUT)")
-                    await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'put', session, headers)
+                success = await handle_breakout_and_order(
+                    candle, trendline_y, line_name, hl[0], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bear"
+                )
+                if success:
                     return None, None, True
-                else:
-                    print("    [ORDER CANCELED] Buy Signal (PUT); Not below all EMAs.")
             else:
                 # Test new slope and intercept
                 new_slope = (hl[1] - lowest_point[1]) / (hl[0] - lowest_point[0])
@@ -419,17 +415,11 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
 
         
         if candle['close'] < trendline_y:
-            print(f"        [FLAG] UPDATE LINE DATA 7: {line_name}")
-
-            trendline_y = slope * candle['candle_index'] + intercept
-
-            update_line_data(line_name=line_name, line_type="Bear", status="complete", point_2=(candle['candle_index'], trendline_y))
-            if await above_below_ema('below'):
-                print("    [2] Confirmed Breakout: Buy Signal (PUT)")
-                await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'put', session, headers)
+            success = await handle_breakout_and_order(
+                candle, trendline_y, line_name, candle['candle_index'], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bear", calculate_new_trendline=True, slope=slope, intercept=intercept
+            )
+            if success:
                 return None, None, True
-            else:
-                print("    [ORDER CANCELED] Buy Signal (PUT); Not below all EMAs.")
     return slope, intercept, False
 
 async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, session, headers):
@@ -439,21 +429,14 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
         trendline_y = slope * lh[0] + intercept
         
         if lh[1] > trendline_y:
-            #more code thats not important for this question...
             print(f"        [BREAKOUT] Potential Breakout Detected at {lh}")
-
-            # Check if the candle associated with this lower high completely closes over the trendline
+            # Check if the candle associated with this lower high closes over the slope intercept (trendline_y)
             if candle['close'] > trendline_y:
-                print(f"        [FLAG] UPDATE LINE DATA 5: {line_name}")
-                # Confirms a strong breakout signal, update line data as complete
-                update_line_data(line_name=line_name, line_type="Bull", status="complete", point_2=(lh[0], trendline_y))
-                
-                if await above_below_ema('above'):
-                    print("    [1] Confirmed Breakout: Buy Signal (CALL)")
-                    await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'call', session, headers)
+                success = await handle_breakout_and_order(
+                    candle, trendline_y, line_name, lh[0], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bull"
+                )
+                if success:
                     return None, None, True
-                else:
-                    print("    [ORDER CANCELED] Buy Signal (CALL); Not above EMAs.")
             else:
                 # Test new slope and intercept
                 new_slope = (lh[1] - highest_point[1]) / (lh[0] - highest_point[0])
@@ -476,18 +459,13 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
                         return None, None, False
                 else:
                     return None, None, False
+        #this is incase the candle is the one that breaks above the whole trendline, making a new highest high
         if candle['close'] > trendline_y:
-            print(f"        [FLAG] UPDATE LINE DATA 8: {line_name}")
-            # Calculate new trendline_y since were abive the whole slope
-            trendline_y = slope * candle['candle_index'] + intercept
-            # Confirms a strong breakout signal, update line data as complete
-            update_line_data(line_name=line_name, line_type="Bull", status="complete", point_2=(candle['candle_index'], trendline_y))
-            if await above_below_ema('above'):
-                print("    [2] Confirmed Breakout: Buy Signal (CALL)")
-                await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'call', session, headers)
+            success = await handle_breakout_and_order(
+                candle, trendline_y, line_name, candle['candle_index'], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bull", calculate_new_trendline=True, slope=slope, intercept=intercept
+            )
+            if success:
                 return None, None, True
-            else:
-                print("    [ORDER CANCELED] Buy Signal (CALL); Not above EMAs.")
     return slope, intercept, False
 
 async def process_breakout_detection(line_name, points, highest_or_lowest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'):
@@ -548,7 +526,65 @@ async def above_below_ema(state):
                 return False
 
     return True
-        
+
+def check_valid_points(line_name):
+    line_data_path = Path('line_data.json')
+    if line_data_path.exists():
+        with open(line_data_path, 'r') as file:
+            line_data = json.load(file)
+            for flag in line_data:
+                if flag['name'] == line_name:
+                    # Ensure both point_1 and point_2 exist and have non-null x and y
+                    point_1_valid = flag.get('point_1') and flag['point_1'].get('x') is not None and flag['point_1'].get('y') is not None
+                    point_2_valid = flag.get('point_2') and flag['point_2'].get('x') is not None and flag['point_2'].get('y') is not None
+                    return point_1_valid and point_2_valid
+    return False
+
+async def handle_breakout_and_order(candle, trendline_y, line_name, point, session, headers, is_real_money, symbol, line_type, calculate_new_trendline=False, slope=None, intercept=None):
+    """
+    Handle the breakout logic and conditional order execution, with an optional calculation of a new trendline.
+
+    Args:
+    - candle: The current candle data.
+    - trendline_y: The y-value of the trendline at the x-position of the current candle.
+    - line_name: The name of the line associated with the current analysis.
+    - point: The point associated with the current breakout analysis. Can be lh or candle['candle_index'] based on the context.
+    - session: The aiohttp client session for making HTTP requests.
+    - headers: HTTP request headers.
+    - is_real_money: Boolean indicating if real money trading is activated.
+    - symbol: The trading symbol.
+    - line_type: 'Bull' for bullish breakouts or 'Bear' for bearish breakouts.
+    - calculate_new_trendline: Boolean indicating if a new trendline calculation is needed based on the current candle.
+    - slope: The slope of the trendline (required if calculate_new_trendline is True).
+    - intercept: The intercept of the trendline (required if calculate_new_trendline is True).
+    """
+
+    # Calculate new trendline if required, needed for both line types
+    if calculate_new_trendline and slope is not None and intercept is not None:
+        trendline_y = slope * point + intercept  # Recalculate trendline_y with new slope and intercept
+    
+    print(f"        [FLAG] UPDATE LINE DATA: {line_name}")
+    update_line_data(line_name=line_name, line_type=line_type, status="active", point_2=(point, trendline_y))
+    
+    if line_type == 'Bull':
+        condition_met = await above_below_ema('above')
+    else:  # 'Bear'
+        condition_met = await above_below_ema('below')
+
+    
+    if condition_met and check_valid_points(line_name):
+        action = 'call' if line_type == 'Bull' else 'put'
+        print(f"    [Confirmed Breakout] Buy Signal ({action.upper()})")
+        await buy_option_cp(is_real_money, symbol, action, session, headers)
+        update_line_data(line_name=line_name, line_type=line_type, status="complete")
+        return True
+    else:
+        reason = "Not above EMAs" if not await above_below_ema('above') else "Invalid points"
+        action = 'CALL' if line_type == 'Bull' else 'PUT'
+        print(f"    [ORDER CANCELED] Buy Signal ({action}); {reason}.")
+        return False
+    
+
 def calculate_slope_intercept(lower_highs, highest_point):
     # Calculate slope (m) and intercept (c)
     # Get the latest in the list [1,0,-1] each one is a X,Y coordinate

@@ -1,33 +1,114 @@
 {
-    "current_high": 501.86,
-    "highest_point": [
-        193,
-        501.86
-    ],
+    "current_high": null,
+    "highest_point": null,
     "lower_highs": [],
-    "current_low": null,
-    "lowest_point": null,
-    "higher_lows": [],
-    "slope": null,
-    "intercept": null,
+    "current_low": 500.92,
+    "lowest_point": [
+        107,
+        500.92
+    ],
+    "higher_lows": [
+        [
+            108,
+            500.96
+        ],
+        [
+            109,
+            501.005
+        ]
+    ],
+    "slope": 0.03999999999996362,
+    "intercept": 496.6400000000039,
     "previous_candles": [
         {
-            "open": 501.62,
-            "high": 501.77,
-            "low": 501.53,
-            "close": 501.735,
-            "timestamp": "2024-02-15T14:56:00.137706",
-            "type": "resistance_4 PDH",
-            "candle_index": 192
+            "open": 502.09,
+            "high": 502.1,
+            "low": 501.88,
+            "close": 501.965,
+            "timestamp": "2024-02-16T11:52:00.277611",
+            "type": "resistance_1 Buffer",
+            "candle_index": 100
         },
         {
-            "open": 501.74,
+            "open": 501.965,
+            "high": 502.0299,
+            "low": 501.85,
+            "close": 501.9188,
+            "timestamp": "2024-02-16T11:54:00.396564",
+            "type": "resistance_1 Buffer",
+            "candle_index": 101
+        },
+        {
+            "open": 501.92,
+            "high": 502.03,
+            "low": 501.91,
+            "close": 501.97,
+            "timestamp": "2024-02-16T11:56:00.179946",
+            "type": "resistance_1 Buffer",
+            "candle_index": 102
+        },
+        {
+            "open": 501.97,
+            "high": 502.01,
+            "low": 501.76,
+            "close": 501.7906,
+            "timestamp": "2024-02-16T11:58:00.065400",
+            "type": "resistance_1 Buffer",
+            "candle_index": 103
+        },
+        {
+            "open": 501.79,
             "high": 501.86,
-            "low": 501.6,
-            "close": 501.85,
-            "timestamp": "2024-02-15T14:58:00.093784",
-            "type": "resistance_4 PDH",
-            "candle_index": 193
+            "low": 501.66,
+            "close": 501.82,
+            "timestamp": "2024-02-16T12:00:00.075186",
+            "type": "resistance_1 Buffer",
+            "candle_index": 104
+        },
+        {
+            "open": 501.83,
+            "high": 501.855,
+            "low": 501.41,
+            "close": 501.53,
+            "timestamp": "2024-02-16T12:02:00.061317",
+            "type": "resistance_1 Buffer",
+            "candle_index": 105
+        },
+        {
+            "open": 501.53,
+            "high": 501.545,
+            "low": 501.28,
+            "close": 501.325,
+            "timestamp": "2024-02-16T12:04:00.078382",
+            "type": "resistance_1 Buffer",
+            "candle_index": 106
+        },
+        {
+            "open": 501.325,
+            "high": 501.39,
+            "low": 500.92,
+            "close": 501.01,
+            "timestamp": "2024-02-16T12:06:00.126974",
+            "type": "resistance_1 Buffer",
+            "candle_index": 107
+        },
+        {
+            "open": 500.9908,
+            "high": 501.12,
+            "low": 500.96,
+            "close": 501.02,
+            "timestamp": "2024-02-16T12:08:00.047735",
+            "type": "resistance_1 Buffer",
+            "candle_index": 108
+        },
+        {
+            "open": 501.02,
+            "high": 501.25,
+            "low": 501.005,
+            "close": 501.145,
+            "timestamp": "2024-02-16T12:10:00.226908",
+            "type": "resistance_1 Buffer",
+            "candle_index": 109
         }
     ]
 }
