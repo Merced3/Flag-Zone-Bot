@@ -171,14 +171,27 @@
     {
         "name": "flag_13",
         "type": "Bear",
-        "status": "active",
+        "status": "complete",
         "point_1": {
             "x": 107,
             "y": 500.92
         },
         "point_2": {
-            "x": 108,
-            "y": 500.96
+            "x": 110,
+            "y": 501.0399999999999
+        }
+    },
+    {
+        "name": "flag_14",
+        "type": "Bear",
+        "status": "active",
+        "point_1": {
+            "x": 110,
+            "y": 500.74
+        },
+        "point_2": {
+            "x": 111,
+            "y": 500.8
         }
     }
 ]

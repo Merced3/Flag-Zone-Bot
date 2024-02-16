@@ -88,5 +88,32 @@
         "timestamp": "2024-02-16T12:10:00.226908",
         "type": "resistance_1 Buffer",
         "candle_index": 109
+    },
+    {
+        "open": 501.145,
+        "high": 501.155,
+        "low": 500.74,
+        "close": 500.82,
+        "timestamp": "2024-02-16T12:12:00.211093",
+        "type": "resistance_1 Buffer",
+        "candle_index": 110
+    },
+    {
+        "open": 500.82,
+        "high": 501.08,
+        "low": 500.8,
+        "close": 501.0,
+        "timestamp": "2024-02-16T12:14:00.015684",
+        "type": "resistance_1 Buffer",
+        "candle_index": 111
+    },
+    {
+        "open": 501.0,
+        "high": 501.225,
+        "low": 500.99,
+        "close": 501.22,
+        "timestamp": "2024-02-16T12:16:00.072156",
+        "type": "resistance_1 Buffer",
+        "candle_index": 112
     }
 ]

@@ -43,5 +43,23 @@
             "marker": "v",
             "color": "red"
         }
+    },
+    {
+        "event_type": "buy",
+        "x": 111,
+        "y": 500.83,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "sell",
+        "x": 112,
+        "y": 501.225,
+        "style": {
+            "marker": "v",
+            "color": "red"
+        }
     }
 ]

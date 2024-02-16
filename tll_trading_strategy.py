@@ -584,7 +584,6 @@ async def handle_breakout_and_order(candle, trendline_y, line_name, point, sessi
         print(f"    [ORDER CANCELED] Buy Signal ({action}); {reason}.")
         return False
     
-
 def calculate_slope_intercept(lower_highs, highest_point):
     # Calculate slope (m) and intercept (c)
     # Get the latest in the list [1,0,-1] each one is a X,Y coordinate

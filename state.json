@@ -2,23 +2,23 @@
     "current_high": null,
     "highest_point": null,
     "lower_highs": [],
-    "current_low": 500.92,
+    "current_low": 500.74,
     "lowest_point": [
-        107,
-        500.92
+        110,
+        500.74
     ],
     "higher_lows": [
         [
-            108,
-            500.96
+            112,
+            500.99
         ],
         [
-            109,
-            501.005
+            111,
+            500.8
         ]
     ],
-    "slope": 0.03999999999996362,
-    "intercept": 496.6400000000039,
+    "slope": 0.060000000000002274,
+    "intercept": 494.13999999999976,
     "previous_candles": [
         {
             "open": 502.09,
@@ -109,6 +109,33 @@
             "timestamp": "2024-02-16T12:10:00.226908",
             "type": "resistance_1 Buffer",
             "candle_index": 109
+        },
+        {
+            "open": 501.145,
+            "high": 501.155,
+            "low": 500.74,
+            "close": 500.82,
+            "timestamp": "2024-02-16T12:12:00.211093",
+            "type": "resistance_1 Buffer",
+            "candle_index": 110
+        },
+        {
+            "open": 500.82,
+            "high": 501.08,
+            "low": 500.8,
+            "close": 501.0,
+            "timestamp": "2024-02-16T12:14:00.015684",
+            "type": "resistance_1 Buffer",
+            "candle_index": 111
+        },
+        {
+            "open": 501.0,
+            "high": 501.225,
+            "low": 500.99,
+            "close": 501.22,
+            "timestamp": "2024-02-16T12:16:00.072156",
+            "type": "resistance_1 Buffer",
+            "candle_index": 112
         }
     ]
 }
