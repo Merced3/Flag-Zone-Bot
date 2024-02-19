@@ -534,10 +534,25 @@ def check_valid_points(line_name):
             line_data = json.load(file)
             for flag in line_data:
                 if flag['name'] == line_name:
+                    # Check and print point_1's x, y if available
+                    point_1 = flag.get('point_1')
+                    if point_1:
+                        print(f"        [LINE CHECK] Point 1: x={point_1.get('x')}, y={point_1.get('y')}")
+                    else:
+                        print("        [LINE CHECK] Point 1: None")
+
+                    # Check and print point_2's x, y if available
+                    point_2 = flag.get('point_2')
+                    if point_2:
+                        print(f"        [LINE CHECK] Point 2: x={point_2.get('x')}, y={point_2.get('y')}")
+                    else:
+                        print("        [LINE CHECK] Point 2: None")
+
                     # Ensure both point_1 and point_2 exist and have non-null x and y
-                    point_1_valid = flag.get('point_1') and flag['point_1'].get('x') is not None and flag['point_1'].get('y') is not None
-                    point_2_valid = flag.get('point_2') and flag['point_2'].get('x') is not None and flag['point_2'].get('y') is not None
-                    return point_1_valid and point_2_valid
+                    point_1_valid = point_1 and point_1.get('x') is not None and point_1.get('y') is not None
+                    point_2_valid = point_2 and point_2.get('x') is not None and point_2.get('y') is not None
+                    
+                    return point_1_valid, point_2_valid
     return False
 
 async def handle_breakout_and_order(candle, trendline_y, line_name, point, session, headers, is_real_money, symbol, line_type, calculate_new_trendline=False, slope=None, intercept=None):
@@ -571,15 +586,17 @@ async def handle_breakout_and_order(candle, trendline_y, line_name, point, sessi
     else:  # 'Bear'
         condition_met = await above_below_ema('below')
 
-    
-    if condition_met and check_valid_points(line_name):
+    vp_1, vp_2 = check_valid_points(line_name)
+
+    print(f"        [CONDITIONS] {condition_met}, {vp_1}, {vp_2}")
+    if condition_met and vp_1 and vp_2:
         action = 'call' if line_type == 'Bull' else 'put'
-        print(f"    [Confirmed Breakout] Buy Signal ({action.upper()})")
+        print(f"    [ORDER CONFIRMED] Buy Signal ({action.upper()})")
         await buy_option_cp(is_real_money, symbol, action, session, headers)
         update_line_data(line_name=line_name, line_type=line_type, status="complete")
         return True
     else:
-        reason = "Not above EMAs" if not await above_below_ema('above') else "Invalid points"
+        reason = "Not above EMAs" if not condition_met else "Invalid points"
         action = 'CALL' if line_type == 'Bull' else 'PUT'
         print(f"    [ORDER CANCELED] Buy Signal ({action}); {reason}.")
         return False

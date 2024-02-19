@@ -1,38 +1,11 @@
 {
-    "current_high": 499.69,
-    "highest_point": [
-        192,
-        499.69
-    ],
-    "lower_highs": [
-        [
-            193,
-            499.595
-        ]
-    ],
+    "current_high": null,
+    "highest_point": null,
+    "lower_highs": [],
     "current_low": null,
     "lowest_point": null,
     "higher_lows": [],
     "slope": null,
     "intercept": null,
-    "previous_candles": [
-        {
-            "open": 499.15,
-            "high": 499.69,
-            "low": 499.125,
-            "close": 499.415,
-            "timestamp": "2024-02-16T14:56:00.203596",
-            "type": "support_1 Buffer",
-            "candle_index": 192
-        },
-        {
-            "open": 499.415,
-            "high": 499.595,
-            "low": 499.304,
-            "close": 499.42,
-            "timestamp": "2024-02-16T14:58:00.060544",
-            "type": "support_1 Buffer",
-            "candle_index": 193
-        }
-    ]
+    "previous_candles": []
 }
