@@ -1,78 +1,104 @@
 {
-    "current_high": null,
-    "highest_point": null,
-    "lower_highs": [],
-    "current_low": 495.14,
-    "lowest_point": [
-        78,
-        495.14
+    "current_high": 496.25,
+    "highest_point": [
+        189,
+        496.25
     ],
-    "higher_lows": [
+    "lower_highs": [
         [
-            80,
-            495.19
+            193,
+            496.12
         ],
         [
-            79,
-            495.15
+            191,
+            495.99
+        ],
+        [
+            190,
+            496.18
+        ],
+        [
+            192,
+            496.2499
         ]
     ],
+    "current_low": null,
+    "lowest_point": null,
+    "higher_lows": [],
     "slope": null,
     "intercept": null,
     "previous_candles": [
         {
-            "open": 495.655,
-            "high": 495.76,
-            "low": 495.29,
-            "close": 495.4513,
-            "timestamp": "2024-02-20T11:02:00.241156",
-            "type": "resistance_4 Buffer",
-            "candle_index": 75
+            "open": 495.63,
+            "high": 495.95,
+            "low": 495.63,
+            "close": 495.93,
+            "timestamp": "2024-02-20T14:44:00.097827",
+            "type": "resistance_4 PDH",
+            "candle_index": 186
         },
         {
-            "open": 495.46,
-            "high": 495.47,
-            "low": 495.26,
-            "close": 495.3399,
-            "timestamp": "2024-02-20T11:04:00.168633",
-            "type": "resistance_4 Buffer",
-            "candle_index": 76
+            "open": 495.93,
+            "high": 496.1,
+            "low": 495.8,
+            "close": 496.055,
+            "timestamp": "2024-02-20T14:46:00.054102",
+            "type": "resistance_4 PDH",
+            "candle_index": 187
         },
         {
-            "open": 495.34,
-            "high": 495.38,
-            "low": 495.14,
-            "close": 495.2,
-            "timestamp": "2024-02-20T11:06:00.150226",
-            "type": "resistance_4 Buffer",
-            "candle_index": 77
+            "open": 496.055,
+            "high": 496.25,
+            "low": 495.945,
+            "close": 496.22,
+            "timestamp": "2024-02-20T14:48:00.060739",
+            "type": "resistance_4 PDH",
+            "candle_index": 188
         },
         {
-            "open": 495.2,
-            "high": 495.34,
-            "low": 495.14,
-            "close": 495.3,
-            "timestamp": "2024-02-20T11:08:00.138651",
-            "type": "resistance_4 Buffer",
-            "candle_index": 78
+            "open": 496.225,
+            "high": 496.25,
+            "low": 495.77,
+            "close": 495.98,
+            "timestamp": "2024-02-20T14:50:00.023700",
+            "type": "resistance_4 PDH",
+            "candle_index": 189
         },
         {
-            "open": 495.3,
-            "high": 495.35,
-            "low": 495.15,
-            "close": 495.2,
-            "timestamp": "2024-02-20T11:10:00.227166",
-            "type": "resistance_4 Buffer",
-            "candle_index": 79
+            "open": 495.985,
+            "high": 496.18,
+            "low": 495.87,
+            "close": 495.89,
+            "timestamp": "2024-02-20T14:52:00.207968",
+            "type": "resistance_4 PDH",
+            "candle_index": 190
         },
         {
-            "open": 495.2,
-            "high": 495.43,
-            "low": 495.19,
-            "close": 495.2097,
-            "timestamp": "2024-02-20T11:12:00.202732",
-            "type": "resistance_4 Buffer",
-            "candle_index": 80
+            "open": 495.86,
+            "high": 495.99,
+            "low": 495.76,
+            "close": 495.99,
+            "timestamp": "2024-02-20T14:54:00.189267",
+            "type": "resistance_4 PDH",
+            "candle_index": 191
+        },
+        {
+            "open": 496.0,
+            "high": 496.2499,
+            "low": 495.73,
+            "close": 495.88,
+            "timestamp": "2024-02-20T14:56:00.031496",
+            "type": "resistance_4 PDH",
+            "candle_index": 192
+        },
+        {
+            "open": 495.86,
+            "high": 496.12,
+            "low": 495.835,
+            "close": 496.12,
+            "timestamp": "2024-02-20T14:58:00.062501",
+            "type": "resistance_4 PDH",
+            "candle_index": 193
         }
     ]
 }
