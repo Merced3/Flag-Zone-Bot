@@ -586,7 +586,7 @@ async def handle_breakout_and_order(candle, trendline_y, line_name, point, sessi
     else:  # 'Bear'
         condition_met = await above_below_ema('below')
 
-    vp_1, vp_2 = check_valid_points(line_name)
+    vp_1, vp_2 = check_valid_points(line_name) #vp means valid point
 
     print(f"        [CONDITIONS] {condition_met}, {vp_1}, {vp_2}")
     if condition_met and vp_1 and vp_2:
@@ -599,6 +599,9 @@ async def handle_breakout_and_order(candle, trendline_y, line_name, point, sessi
         reason = "Not above EMAs" if not condition_met else "Invalid points"
         action = 'CALL' if line_type == 'Bull' else 'PUT'
         print(f"    [ORDER CANCELED] Buy Signal ({action}); {reason}.")
+        #if any of the vp_1 or vp_2 are false, don't go through. but if vp_1 and vp_2 are both true and not condition_met is true then go through
+        if not condition_met and vp_1 and vp_2:
+            update_line_data(line_name=line_name, line_type=line_type, status="complete") #test this out next day to see if this fixes the wait-until above/below emas to buy error.
         return False
     
 def calculate_slope_intercept(lower_highs, highest_point):

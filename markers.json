@@ -1,1 +1,47 @@
-{}
+[
+    {
+        "event_type": "buy",
+        "x": 16,
+        "y": 496.505,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "trim",
+        "x": 21,
+        "y": 495.955,
+        "style": {
+            "marker": "o",
+            "color": "red"
+        }
+    },
+    {
+        "event_type": "sell",
+        "x": 28,
+        "y": 496.62,
+        "style": {
+            "marker": "v",
+            "color": "red"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 31,
+        "y": 495.915,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "sell",
+        "x": 32,
+        "y": 496.16,
+        "style": {
+            "marker": "v",
+            "color": "red"
+        }
+    }
+]

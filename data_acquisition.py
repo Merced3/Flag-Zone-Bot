@@ -1,6 +1,7 @@
 #data_aquisition.py
 import requests
 import pandas as pd
+import pandas_market_calendars as mcal
 import numpy as np
 from error_handler import error_log_and_discord_message
 import websockets
@@ -192,6 +193,7 @@ async def filter_data(df, exclude_today=True):
     
     return corrected_df
 
+
 async def get_account_balance(is_real_money, bp=None):
     if is_real_money:
         endpoint = f'{cred.TRADIER_BROKERAGE_BASE_URL}accounts/{cred.TRADIER_BROKERAGE_ACCOUNT_NUMBER}/balances'
@@ -233,10 +235,8 @@ async def get_account_balance(is_real_money, bp=None):
 def get_current_candle_index(log_file_path = Path(__file__).resolve().parent / 'logs/SPY_2M.log'):
     with open(log_file_path, 'r') as file:
         lines = file.readlines()
-
     if not lines:
         return None  # Return None if the log file is empty
-
     # The index of the last candle is the length of the lines list minus 1
     return len(lines) - 1
 
@@ -317,6 +317,8 @@ async def add_markers(event_type):
         json.dump(markers, f, indent=4)
 
 def get_dates(num_of_days, use_todays_date=False):
+    nyse = mcal.get_calendar('NYSE')
+
     # If using today's date, else use yesterday's date or Friday's date if today is a weekend
     if use_todays_date:
         start = datetime.today()
@@ -324,6 +326,12 @@ def get_dates(num_of_days, use_todays_date=False):
         start = datetime.today() - timedelta(days=1)
         if start.weekday() > 4:  # If it's Saturday (5) or Sunday (6)
             start = start - timedelta(days=start.weekday() - 4)
+
+    # Adjust start date if it's a holiday or weekend
+    while not nyse.valid_days(start_date=start, end_date=start).empty is False or start.weekday() > 4:
+        start -= timedelta(days=1)
+        if start.weekday() > 4:  # Adjust if still weekend
+            start -= timedelta(days=start.weekday() - 4)
 
     # Convert start to a pandas Timestamp
     start = pd.Timestamp(start)
@@ -402,7 +410,7 @@ async def get_candle_data_and_merge(aftermarket_file, premarket_file, candle_int
     start_date, end_date = get_dates(1, True)
     print(f"\n[PM] Start and End days: {start_date}, {end_date}")
     CD_PM = await get_certain_candle_data(cred.POLYGON_API_KEY, SYMBOL, candle_interval, candle_timescale, start_date, end_date, pm)
-
+    #more code...
     if PD_AM is not None and CD_PM is not None:
         # Merge dataframes
         merged_df = pd.concat([PD_AM, CD_PM], ignore_index=True)
