@@ -207,7 +207,7 @@ async def execute_trading_strategy(zones):
                                 print(f"    [END 4] Recording Priority Candles; type = {what_type_of_candle}")
                                 what_type_of_candle = None
                               
-                        elif "resistance" in box_name:
+                        elif ("resistance" or "PDHL") in box_name:
                             PDH = high_low_of_day #Previous Day High
                             if candle['open'] >= buffer and candle['close'] <= buffer:
                                 what_type_of_candle = f"{box_name} Buffer"

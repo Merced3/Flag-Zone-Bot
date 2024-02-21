@@ -24,13 +24,17 @@ def get(candle_data, num_boxes=5):
     if unique_dates[0] == pd.Timestamp('today').date():
         unique_dates = unique_dates[1:]
 
-    resistances = []
-    supports = []
-    DAYS = config["PAST_DAYS"]
+    resistances, supports = [], []
 
+    PDHL_box = None
     for current_date in unique_dates:
         day_data = candle_data[candle_data.index.date == current_date]
 
+        # Use the first current_date as the previous day
+        if current_date == unique_dates[0]:
+            PDHL_box = get_PDHL(candle_data, current_date)
+            continue 
+        
         # Find resistances (highs)
         if len(resistances) < num_boxes:
             daily_high = day_data['high'].max()
@@ -67,17 +71,45 @@ def get(candle_data, num_boxes=5):
 
         if len(resistances) >= num_boxes and len(supports) >= num_boxes:
             break
-    #boxes made
+    
+    #boxes made...
     boxes = {f'resistance_{i+1}': box for i, box in enumerate(resistances)}
     boxes.update({f'support_{i+1}': box for i, box in enumerate(supports)})
+    
     print(f"\nBasic Boxes: {boxes}")
-    #for _ in range(2):
+
     boxes = correct_too_big_small_boxes(candle_data, boxes)
     boxes = remove_zones_that_are_too_close(boxes)
-    
     boxes = correct_bleeding_boxes(boxes)
-    #boxes = old_resistance_becomes_new_support(boxes)
+    if PDHL_box is not None:
+        boxes.update(PDHL_box)# Add PDHL to boxes, whatever the syntax is
+    
+    else: 
+        print(f"\nPDHL_box could not be added because it is empty\n")
+    
+    boxes = remove_zones_that_are_too_close(boxes)
+    boxes = correct_bleeding_boxes(boxes)
+
     return boxes
+
+def get_PDHL(candle_data, current_date):
+    # Filter data for the given day
+    one_day_of_candle_data = candle_data[candle_data.index.date == current_date]
+
+    # Find the highest and lowest point of the day
+    highest_val = one_day_of_candle_data['high'].max()
+    lowest_val = one_day_of_candle_data['low'].min()
+
+    # Find the x positions (indexes) of the highest and lowest points
+    h_x_pos = candle_data.index.get_loc(one_day_of_candle_data['high'].idxmax())
+    l_x_pos = candle_data.index.get_loc(one_day_of_candle_data['low'].idxmin())
+
+    # Choose the earlier x-position as the box position
+    x_pos = min(h_x_pos, l_x_pos)
+
+    # Create the PDHL box
+    PDHL = {'PDHL': (x_pos, highest_val, lowest_val)}
+    return PDHL
 
 def remove_zones_that_are_too_close(boxes):
     print(f"\n---------------------\nRemoving Boxes that are too close to each other:")
@@ -254,26 +286,35 @@ def correct_too_big_small_boxes(candle_data, boxes):
             continue
 
         min_value, max_value = sorted([keep_value - BOX_SIZE_THRESHOLDS[1], keep_value - BOX_SIZE_THRESHOLDS[0]]) if box_type == 'resistance' else sorted([keep_value + BOX_SIZE_THRESHOLDS[0], keep_value + BOX_SIZE_THRESHOLDS[1]])
-
+        closest_distance = float('inf')
+        corrected_value = change_value
+        corrected_pos = box_candle_pos
+        
         dataframes_to_check = [day_data, day_after_data, day_before_data]
         for df in dataframes_to_check:
             for _, candle in df.iterrows():
                 possible_values = [candle['open'], candle['close'], candle['high'], candle['low']]
+                #i want it too choose from any one of the 'value' that is closest to either one of the min_value or max_values thresholds, if there are none within those thresholds. please lmk if that makes sense.
                 for value in possible_values:
                     if min_value <= value <= max_value:
                         corrected_value = value
                         corrected_pos = candle_data.index.get_loc(candle.name)
                         break
                 else:
+                    # Find the value closest to min_value or max_value
+                    closest_value = min(possible_values, key=lambda x: min(abs(x - min_value), abs(x - max_value)))
+                    closest_diff = min(abs(closest_value - min_value), abs(closest_value - max_value))
+                    if closest_diff < closest_distance:
+                        corrected_value = closest_value
+                        closest_distance = closest_diff
+                        corrected_pos = candle_data.index.get_loc(candle.name)
                     continue
                 break
             else:
                 continue
             break
         else:
-            print(f"{box_name} Has No Suitable Candle Within Threshold")
-            corrected_value = change_value
-            corrected_pos = box_candle_pos
+            print(f"{box_name} Has No Suitable Candle Within Threshold, adjusted to closest value")
 
         corrected_pos = min(corrected_pos, box_candle_pos)
         corrected_boxes[box_name] = (corrected_pos, keep_value, corrected_value)

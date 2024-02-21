@@ -123,7 +123,13 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
     # Add boxes to the plot using the previous working method
     for box_name, box_details in boxes.items():
         left_idx, top, bottom = box_details
-        box_color = 'green' if 'support' in box_name else 'red'
+         
+        if 'support' in box_name:
+            box_color = 'green'
+        elif 'resistance' in box_name:
+            box_color = 'red'
+        else:
+            box_color = 'blue'
         if timescale_type == "15-min":
             # Calculate the x position of the right edge of the box
             last_index_position = df.index.get_loc(df.index[-1])  # Get the index position of the last timestamp
