@@ -121,7 +121,8 @@ async def execute_trading_strategy(zones):
     havent_cleared = None
 
     candle_list = []  # Stores candles for the first 15 minutes
-    has_calculated = False # Flag to check if initial candles have been processed
+    # Flag to check if initial candles have been processed
+    has_calculated = False #TODO
 
     MARKET_OPEN_TIME = get_market_open_time()  # Get today's market open time
     market_open_plus_15 = MARKET_OPEN_TIME + timedelta(minutes=15)
@@ -207,7 +208,7 @@ async def execute_trading_strategy(zones):
                                 print(f"    [END 4] Recording Priority Candles; type = {what_type_of_candle}")
                                 what_type_of_candle = None
                               
-                        elif ("resistance" or "PDHL") in box_name:
+                        elif ("resistance" in box_name) or ("PDHL" in box_name):
                             PDH = high_low_of_day #Previous Day High
                             if candle['open'] >= buffer and candle['close'] <= buffer:
                                 what_type_of_candle = f"{box_name} Buffer"
@@ -224,12 +225,9 @@ async def execute_trading_strategy(zones):
                             elif candle['open'] >= PDH and candle['close'] <= PDH:
                                 print(f"    [END 8] Recording Priority Candles; type = {what_type_of_candle}")
                                 what_type_of_candle = None
-                                
-
                     if what_type_of_candle is not None:
                         #record the candle data
                         await record_priority_candle(candle, what_type_of_candle)
-
                         priority_candles = load_json_df('priority_candles.json')
                         num_flags = count_flags_in_json()
                         last_candle = priority_candles.iloc[-1]
@@ -266,7 +264,7 @@ async def identify_flag(candle, num_flags, session, headers):
 
 
     # Check if the 'type' key exists in the candle dictionary
-    if 'type' in candle and (('support' in candle['type']) and ('Buffer' in candle['type'])) or (('resistance' in candle['type']) and ('PDH' in candle['type'])):
+    if 'type' in candle and (('support' in candle['type']) and ('Buffer' in candle['type'])) or (('resistance' in candle['type']) and ('PDH' in candle['type'])) or (('PDHL' in candle['type']) and ('PDH' in candle['type'])):
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high
         if current_high is None or candle['high'] > current_high:
@@ -316,7 +314,7 @@ async def identify_flag(candle, num_flags, session, headers):
                 line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'
             )
     
-    elif (('support' in candle['type']) and ('PDL' in candle['type'])) or (('resistance' in candle['type']) and ('Buffer' in candle['type'])):
+    elif (('support' in candle['type']) and ('PDL' in candle['type'])) or (('resistance' in candle['type']) and ('Buffer' in candle['type'])) or (('PDHL' in candle['type']) and ('Buffer' in candle['type'])):
         #now Lets work on Bear Candles, instead of Higher highs we will be looking at lower lows
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high

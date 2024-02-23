@@ -58,6 +58,10 @@ def update_chart_periodically(root, canvas, boxes, symbol, log_file_path):
                 # Schedule the update_plot function to run on the main thread
                 root.after(0, lambda: update_plot(canvas, df_2_min, boxes, symbol, "2-min"))
 
+        if should_close:
+            print("Closing the GUI...")
+            root.quit()
+            break
         # Short sleep to prevent excessive CPU usage
         time.sleep(0.5)  # Sleep for half a second, adjust as needed
 
@@ -203,7 +207,6 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
     canvas.draw()
     canvas.figure.savefig(f"{symbol}_{timescale_type}_chart.png")
 
-
 def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
     global df_15_min, df_2_min, should_close
     df_15_min, df_2_min, boxes = df_15, df_2, box_data
@@ -240,3 +243,7 @@ def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
 
     # Start the Tkinter event loop
     tk.mainloop()
+
+def initiate_shutdown():
+    global should_close
+    should_close = True

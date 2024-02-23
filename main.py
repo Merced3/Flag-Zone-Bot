@@ -1,5 +1,5 @@
 #main.py
-from chart_visualization import plot_candles_and_boxes
+from chart_visualization import plot_candles_and_boxes, initiate_shutdown
 from data_acquisition import get_candle_data, get_dates
 from tll_trading_strategy import message_ids_dict, used_buying_power, execute_trading_strategy
 from print_discord_messages import bot, print_discord, get_message_content, send_file_discord
@@ -424,7 +424,7 @@ def reset_json(file_path, contents):
         json.dump(contents, f, indent=4)
         print(f"[RESET] Cleared file: {file_path}")
 
-async def shutdown(loop):
+async def shutdown(loop, root=None):
     """Shutdown tasks and the Discord bot."""
     # Gracefully shutdown the Discord bot
     await bot.close()  # Make sure this is the correct way to close your bot instance
@@ -433,6 +433,9 @@ async def shutdown(loop):
     for task in tasks:
         task.cancel()
     await asyncio.gather(*tasks, return_exceptions=True)
+
+    initiate_shutdown()
+
     loop.stop()
 
 if __name__ == "__main__":
