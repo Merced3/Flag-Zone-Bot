@@ -117,12 +117,12 @@ async def execute_trading_strategy(zones):
     message_ids_dict = load_message_ids()
     print("message_ids_dict: ", message_ids_dict)
 
-    what_type_of_candle = None
-    havent_cleared = None
+    what_type_of_candle = None #TODO None
+    havent_cleared = None #TODO None
 
     candle_list = []  # Stores candles for the first 15 minutes
     # Flag to check if initial candles have been processed
-    has_calculated = False #TODO
+    has_calculated = False #TODO False
 
     MARKET_OPEN_TIME = get_market_open_time()  # Get today's market open time
     market_open_plus_15 = MARKET_OPEN_TIME + timedelta(minutes=15)
@@ -264,7 +264,7 @@ async def identify_flag(candle, num_flags, session, headers):
 
 
     # Check if the 'type' key exists in the candle dictionary
-    if 'type' in candle and (('support' in candle['type']) and ('Buffer' in candle['type'])) or (('resistance' in candle['type']) and ('PDH' in candle['type'])) or (('PDHL' in candle['type']) and ('PDH' in candle['type'])):
+    if 'type' in candle and ('support Buffer' in candle['type']) or ('resistance PDH' in candle['type']) or ('PDHL PDH' in candle['type']):
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high
         if current_high is None or candle['high'] > current_high:
@@ -314,7 +314,7 @@ async def identify_flag(candle, num_flags, session, headers):
                 line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'
             )
     
-    elif (('support' in candle['type']) and ('PDL' in candle['type'])) or (('resistance' in candle['type']) and ('Buffer' in candle['type'])) or (('PDHL' in candle['type']) and ('Buffer' in candle['type'])):
+    elif ('support PDL' in candle['type']) or ('resistance Buffer' in candle['type']) or ('PDHL Buffer' in candle['type']):
         #now Lets work on Bear Candles, instead of Higher highs we will be looking at lower lows
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high
