@@ -1,1 +1,20 @@
-[]
+[
+    {
+        "open": 508.605,
+        "high": 508.77,
+        "low": 508.45,
+        "close": 508.77,
+        "timestamp": "2024-02-29T08:42:00.351013",
+        "type": "resistance_2 PDH",
+        "candle_index": 5
+    },
+    {
+        "open": 508.73,
+        "high": 508.77,
+        "low": 508.4001,
+        "close": 508.4001,
+        "timestamp": "2024-02-29T08:44:00.118554",
+        "type": "resistance_2 PDH",
+        "candle_index": 6
+    }
+]

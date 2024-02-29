@@ -264,7 +264,7 @@ async def identify_flag(candle, num_flags, session, headers):
 
 
     # Check if the 'type' key exists in the candle dictionary
-    if 'type' in candle and ('support Buffer' in candle['type']) or ('resistance PDH' in candle['type']) or ('PDHL PDH' in candle['type']):
+    if 'type' in candle and ('support' in candle['type'] and 'Buffer' in candle['type']) or ('resistance' in candle['type'] and 'PDH' in candle['type']) or ('PDHL PDH' in candle['type']):
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high
         if current_high is None or candle['high'] > current_high:
@@ -314,7 +314,7 @@ async def identify_flag(candle, num_flags, session, headers):
                 line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'
             )
     
-    elif ('support PDL' in candle['type']) or ('resistance Buffer' in candle['type']) or ('PDHL Buffer' in candle['type']):
+    elif ('support' in candle['type'] and 'PDL' in candle['type']) or ('resistance' in candle['type'] and 'Buffer' in candle['type']) or ('PDHL Buffer' in candle['type']):
         #now Lets work on Bear Candles, instead of Higher highs we will be looking at lower lows
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high
