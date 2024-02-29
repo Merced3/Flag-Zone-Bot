@@ -28,7 +28,7 @@
     {
         "name": "flag_2",
         "type": "Bear",
-        "status": "active",
+        "status": "complete",
         "point_1": {
             "x": 22,
             "y": 506.81
