@@ -41,14 +41,66 @@
     {
         "name": "flag_3",
         "type": "Bull",
-        "status": "active",
+        "status": "complete",
         "point_1": {
-            "x": 110,
-            "y": 507.82
+            "x": 123,
+            "y": 507.885
         },
         "point_2": {
-            "x": 113,
-            "y": 507.74
+            "x": 127,
+            "y": 507.665
+        }
+    },
+    {
+        "name": "flag_4",
+        "type": "Bull",
+        "status": "complete",
+        "point_1": {
+            "x": 123,
+            "y": 507.885
+        },
+        "point_2": {
+            "x": 130,
+            "y": 507.682
+        }
+    },
+    {
+        "name": "flag_5",
+        "type": "Bull",
+        "status": "complete",
+        "point_1": {
+            "x": 137,
+            "y": 508.0
+        },
+        "point_2": {
+            "x": 140,
+            "y": 507.79015000000004
+        }
+    },
+    {
+        "name": "flag_6",
+        "type": "Bull",
+        "status": "complete",
+        "point_1": {
+            "x": 145,
+            "y": 508.29
+        },
+        "point_2": {
+            "x": 153,
+            "y": 507.7428
+        }
+    },
+    {
+        "name": "flag_7",
+        "type": "Bull",
+        "status": "active",
+        "point_1": {
+            "x": 145,
+            "y": 508.29
+        },
+        "point_2": {
+            "x": null,
+            "y": null
         }
     }
 ]

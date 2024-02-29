@@ -1,24 +1,60 @@
 {
-    "current_high": 507.8799,
+    "current_high": 508.29,
     "highest_point": [
-        118,
-        507.8799
+        145,
+        508.29
     ],
     "lower_highs": [
         [
-            119,
+            146,
+            508.22
+        ],
+        [
+            151,
             507.86
         ],
         [
-            120,
-            507.8699
+            147,
+            508.07
+        ],
+        [
+            150,
+            507.865
+        ],
+        [
+            152,
+            507.8112
+        ],
+        [
+            154,
+            507.8
+        ],
+        [
+            156,
+            507.63
+        ],
+        [
+            155,
+            507.7629
+        ],
+        [
+            148,
+            507.8399
+        ],
+        [
+            149,
+            507.73
+        ],
+        [
+            153,
+            507.81
         ]
     ],
     "current_low": null,
     "lowest_point": null,
     "higher_lows": [],
-    "slope": null,
-    "intercept": null,
+    "slope": -0.05271000000000185,
+    "intercept": 515.9329500000003,
     "previous_candles": [
         {
             "open": 506.84,
@@ -235,6 +271,330 @@
             "timestamp": "2024-02-29T12:32:00.144817",
             "type": "PDHL PDH",
             "candle_index": 120
+        },
+        {
+            "open": 507.8,
+            "high": 507.85,
+            "low": 507.7787,
+            "close": 507.82,
+            "timestamp": "2024-02-29T12:34:00.439526",
+            "type": "PDHL PDH",
+            "candle_index": 121
+        },
+        {
+            "open": 507.82,
+            "high": 507.85,
+            "low": 507.7,
+            "close": 507.85,
+            "timestamp": "2024-02-29T12:36:00.237477",
+            "type": "PDHL PDH",
+            "candle_index": 122
+        },
+        {
+            "open": 507.8496,
+            "high": 507.885,
+            "low": 507.6851,
+            "close": 507.73,
+            "timestamp": "2024-02-29T12:38:00.524627",
+            "type": "PDHL PDH",
+            "candle_index": 123
+        },
+        {
+            "open": 507.73,
+            "high": 507.79,
+            "low": 507.64,
+            "close": 507.75,
+            "timestamp": "2024-02-29T12:40:00.047154",
+            "type": "PDHL PDH",
+            "candle_index": 124
+        },
+        {
+            "open": 507.75,
+            "high": 507.76,
+            "low": 507.5201,
+            "close": 507.604,
+            "timestamp": "2024-02-29T12:42:00.123328",
+            "type": "PDHL PDH",
+            "candle_index": 125
+        },
+        {
+            "open": 507.6,
+            "high": 507.72,
+            "low": 507.53,
+            "close": 507.55,
+            "timestamp": "2024-02-29T12:44:00.136843",
+            "type": "PDHL PDH",
+            "candle_index": 126
+        },
+        {
+            "open": 507.55,
+            "high": 507.75,
+            "low": 507.5,
+            "close": 507.72,
+            "timestamp": "2024-02-29T12:46:00.543458",
+            "type": "PDHL PDH",
+            "candle_index": 127
+        },
+        {
+            "open": 507.72,
+            "high": 507.74,
+            "low": 507.59,
+            "close": 507.65,
+            "timestamp": "2024-02-29T12:48:00.416869",
+            "type": "PDHL PDH",
+            "candle_index": 128
+        },
+        {
+            "open": 507.65,
+            "high": 507.654,
+            "low": 507.526,
+            "close": 507.63,
+            "timestamp": "2024-02-29T12:50:00.380024",
+            "type": "PDHL PDH",
+            "candle_index": 129
+        },
+        {
+            "open": 507.63,
+            "high": 507.786,
+            "low": 507.6,
+            "close": 507.75,
+            "timestamp": "2024-02-29T12:52:00.529370",
+            "type": "PDHL PDH",
+            "candle_index": 130
+        },
+        {
+            "open": 507.755,
+            "high": 507.86,
+            "low": 507.75,
+            "close": 507.7799,
+            "timestamp": "2024-02-29T12:54:00.912331",
+            "type": "PDHL PDH",
+            "candle_index": 131
+        },
+        {
+            "open": 507.78,
+            "high": 507.89,
+            "low": 507.78,
+            "close": 507.88,
+            "timestamp": "2024-02-29T12:56:00.532292",
+            "type": "PDHL PDH",
+            "candle_index": 132
+        },
+        {
+            "open": 507.88,
+            "high": 507.9,
+            "low": 507.72,
+            "close": 507.8,
+            "timestamp": "2024-02-29T12:58:00.124884",
+            "type": "PDHL PDH",
+            "candle_index": 133
+        },
+        {
+            "open": 507.8,
+            "high": 507.89,
+            "low": 507.8,
+            "close": 507.84,
+            "timestamp": "2024-02-29T13:00:00.114772",
+            "type": "PDHL PDH",
+            "candle_index": 134
+        },
+        {
+            "open": 507.84,
+            "high": 507.92,
+            "low": 507.77,
+            "close": 507.9197,
+            "timestamp": "2024-02-29T13:02:00.227922",
+            "type": "PDHL PDH",
+            "candle_index": 135
+        },
+        {
+            "open": 507.9197,
+            "high": 507.99,
+            "low": 507.83,
+            "close": 507.96,
+            "timestamp": "2024-02-29T13:04:00.528118",
+            "type": "PDHL PDH",
+            "candle_index": 136
+        },
+        {
+            "open": 507.96,
+            "high": 508.0,
+            "low": 507.63,
+            "close": 507.655,
+            "timestamp": "2024-02-29T13:06:00.219185",
+            "type": "PDHL PDH",
+            "candle_index": 137
+        },
+        {
+            "open": 507.65,
+            "high": 507.78,
+            "low": 507.645,
+            "close": 507.775,
+            "timestamp": "2024-02-29T13:08:00.111733",
+            "type": "PDHL PDH",
+            "candle_index": 138
+        },
+        {
+            "open": 507.775,
+            "high": 507.8601,
+            "low": 507.765,
+            "close": 507.8,
+            "timestamp": "2024-02-29T13:10:00.427937",
+            "type": "PDHL PDH",
+            "candle_index": 139
+        },
+        {
+            "open": 507.8,
+            "high": 507.87,
+            "low": 507.775,
+            "close": 507.86,
+            "timestamp": "2024-02-29T13:12:00.209999",
+            "type": "PDHL PDH",
+            "candle_index": 140
+        },
+        {
+            "open": 507.86,
+            "high": 507.93,
+            "low": 507.78,
+            "close": 507.91,
+            "timestamp": "2024-02-29T13:14:00.430207",
+            "type": "PDHL PDH",
+            "candle_index": 141
+        },
+        {
+            "open": 507.91,
+            "high": 508.0,
+            "low": 507.8599,
+            "close": 507.955,
+            "timestamp": "2024-02-29T13:16:00.518159",
+            "type": "PDHL PDH",
+            "candle_index": 142
+        },
+        {
+            "open": 507.96,
+            "high": 508.15,
+            "low": 507.915,
+            "close": 508.11,
+            "timestamp": "2024-02-29T13:18:00.160713",
+            "type": "PDHL PDH",
+            "candle_index": 143
+        },
+        {
+            "open": 508.11,
+            "high": 508.24,
+            "low": 508.104,
+            "close": 508.18,
+            "timestamp": "2024-02-29T13:20:00.182462",
+            "type": "PDHL PDH",
+            "candle_index": 144
+        },
+        {
+            "open": 508.155,
+            "high": 508.29,
+            "low": 508.15,
+            "close": 508.21,
+            "timestamp": "2024-02-29T13:22:01.088002",
+            "type": "PDHL PDH",
+            "candle_index": 145
+        },
+        {
+            "open": 508.21,
+            "high": 508.22,
+            "low": 507.985,
+            "close": 508.04,
+            "timestamp": "2024-02-29T13:24:00.352579",
+            "type": "PDHL PDH",
+            "candle_index": 146
+        },
+        {
+            "open": 508.04,
+            "high": 508.07,
+            "low": 507.775,
+            "close": 507.8087,
+            "timestamp": "2024-02-29T13:26:00.107206",
+            "type": "PDHL PDH",
+            "candle_index": 147
+        },
+        {
+            "open": 507.8087,
+            "high": 507.8399,
+            "low": 507.65,
+            "close": 507.695,
+            "timestamp": "2024-02-29T13:28:00.062643",
+            "type": "PDHL PDH",
+            "candle_index": 148
+        },
+        {
+            "open": 507.7,
+            "high": 507.73,
+            "low": 507.45,
+            "close": 507.704,
+            "timestamp": "2024-02-29T13:30:00.115016",
+            "type": "PDHL PDH",
+            "candle_index": 149
+        },
+        {
+            "open": 507.7099,
+            "high": 507.865,
+            "low": 507.64,
+            "close": 507.835,
+            "timestamp": "2024-02-29T13:32:00.111048",
+            "type": "PDHL PDH",
+            "candle_index": 150
+        },
+        {
+            "open": 507.825,
+            "high": 507.86,
+            "low": 507.58,
+            "close": 507.6108,
+            "timestamp": "2024-02-29T13:34:00.129081",
+            "type": "PDHL PDH",
+            "candle_index": 151
+        },
+        {
+            "open": 507.6108,
+            "high": 507.8112,
+            "low": 507.58,
+            "close": 507.755,
+            "timestamp": "2024-02-29T13:36:00.156784",
+            "type": "PDHL PDH",
+            "candle_index": 152
+        },
+        {
+            "open": 507.755,
+            "high": 507.81,
+            "low": 507.69,
+            "close": 507.79,
+            "timestamp": "2024-02-29T13:38:00.115716",
+            "type": "PDHL PDH",
+            "candle_index": 153
+        },
+        {
+            "open": 507.8,
+            "high": 507.8,
+            "low": 507.68,
+            "close": 507.74,
+            "timestamp": "2024-02-29T13:40:00.412977",
+            "type": "PDHL PDH",
+            "candle_index": 154
+        },
+        {
+            "open": 507.74,
+            "high": 507.7629,
+            "low": 507.55,
+            "close": 507.58,
+            "timestamp": "2024-02-29T13:42:00.604100",
+            "type": "PDHL PDH",
+            "candle_index": 155
+        },
+        {
+            "open": 507.58,
+            "high": 507.63,
+            "low": 507.4,
+            "close": 507.46,
+            "timestamp": "2024-02-29T13:44:00.003741",
+            "type": "PDHL PDH",
+            "candle_index": 156
         }
     ]
 }

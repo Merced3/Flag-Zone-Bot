@@ -1,1 +1,29 @@
-{}
+[
+    {
+        "event_type": "buy",
+        "x": 128,
+        "y": 507.71,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "trim",
+        "x": 143,
+        "y": 508.14,
+        "style": {
+            "marker": "o",
+            "color": "red"
+        }
+    },
+    {
+        "event_type": "sell",
+        "x": 144,
+        "y": 508.1892,
+        "style": {
+            "marker": "v",
+            "color": "red"
+        }
+    }
+]
