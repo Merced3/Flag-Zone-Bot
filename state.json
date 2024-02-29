@@ -2,10 +2,23 @@
     "current_high": null,
     "highest_point": null,
     "lower_highs": [],
-    "current_low": null,
-    "lowest_point": null,
+    "current_low": 508.09,
+    "lowest_point": [
+        19,
+        508.09
+    ],
     "higher_lows": [],
     "slope": null,
     "intercept": null,
-    "previous_candles": []
+    "previous_candles": [
+        {
+            "open": 508.36,
+            "high": 508.39,
+            "low": 508.09,
+            "close": 508.23,
+            "timestamp": "2024-02-29T09:10:00.054822",
+            "type": "resistance_2 Buffer",
+            "candle_index": 19
+        }
+    ]
 }

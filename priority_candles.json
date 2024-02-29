@@ -16,5 +16,14 @@
         "timestamp": "2024-02-29T08:44:00.118554",
         "type": "resistance_2 PDH",
         "candle_index": 6
+    },
+    {
+        "open": 508.36,
+        "high": 508.39,
+        "low": 508.09,
+        "close": 508.23,
+        "timestamp": "2024-02-29T09:10:00.054822",
+        "type": "resistance_2 Buffer",
+        "candle_index": 19
     }
 ]
