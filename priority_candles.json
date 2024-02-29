@@ -322,5 +322,41 @@
         "timestamp": "2024-02-29T10:16:00.238599",
         "type": "resistance_2 Buffer",
         "candle_index": 52
+    },
+    {
+        "open": 507.65,
+        "high": 507.7299,
+        "low": 507.615,
+        "close": 507.69,
+        "timestamp": "2024-02-29T10:18:00.132717",
+        "type": "resistance_2 Buffer",
+        "candle_index": 53
+    },
+    {
+        "open": 507.69,
+        "high": 507.71,
+        "low": 507.56,
+        "close": 507.71,
+        "timestamp": "2024-02-29T10:20:00.162146",
+        "type": "resistance_2 Buffer",
+        "candle_index": 54
+    },
+    {
+        "open": 507.71,
+        "high": 507.725,
+        "low": 507.54,
+        "close": 507.62,
+        "timestamp": "2024-02-29T10:22:00.119629",
+        "type": "resistance_2 Buffer",
+        "candle_index": 55
+    },
+    {
+        "open": 507.62,
+        "high": 507.62,
+        "low": 507.44,
+        "close": 507.51,
+        "timestamp": "2024-02-29T10:24:00.537764",
+        "type": "resistance_2 Buffer",
+        "candle_index": 56
     }
 ]
