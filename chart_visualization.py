@@ -164,26 +164,30 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
         ema_plotted = False
         ema_file_path = Path(__file__).resolve().parent / 'EMAs.json'
         try:
-            with open(ema_file_path, 'r') as f:
-                emas = json.load(f)
-            x_values = [entry['x'] for entry in emas]
-            for ema_config in EMA:
-                window, color = ema_config
-                ema_values = [entry[str(window)] for entry in emas if str(window) in entry]
-                
-                # Check if there are EMA values to plot to avoid errors
-                if ema_values:
-                    ax.plot(x_values, ema_values, label=f'EMA {window}', color=color, linewidth=1)
-                    ema_plotted = True
+            if ema_file_path.stat().st_size > 0:  # Check that file is not empty
+                with open(ema_file_path, 'r') as f:
+                    emas = json.load(f)
+                    # Your existing EMA plotting code...
+                    x_values = [entry['x'] for entry in emas]
+                    for ema_config in EMA:
+                        window, color = ema_config
+                        ema_values = [entry[str(window)] for entry in emas if str(window) in entry]
+                        if ema_values:
+                            ax.plot(x_values, ema_values, label=f'EMA {window}', color=color, linewidth=1)
+                            ema_plotted = True
 
-            # Conditionally add legend
-            if ema_plotted:
-                ax.legend(loc='upper left')
+                    # Conditionally add legend
+                    if ema_plotted:
+                        ax.legend(loc='upper left')
+                    else:
+                        # Plot a dummy line with no data but with a placeholder label
+                        ax.plot([], [], ' ', label="Waiting for EMAs...")
+                        ax.legend(loc='upper left')
             else:
-                # Plot a dummy line with no data but with a placeholder label
+                print("EMA data file is empty. Skipping EMA plot.")
+                # Optionally, plot a dummy line to show a waiting message
                 ax.plot([], [], ' ', label="Waiting for EMAs...")
                 ax.legend(loc='upper left')
-
         except FileNotFoundError:
             print("EMA data file not found.")
 
