@@ -279,6 +279,11 @@ async def identify_flag(candle, num_flags, session, headers):
             lower_highs = []
         else: 
             if candle['high'] == current_high and candle['candle_index'] > highest_point[0]:
+                #Ok, heres what happened we have a slope and intercept available but we had a equal higher high which should have made a buy order.
+                if slope is not None and intercept is not None:
+                    slope, intercept, breakout_detected = await process_breakout_detection(
+                        line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'
+                    ) 
                 highest_point = (candle['candle_index'], current_high)
                 print(f"        [Highest Point] Updated: {highest_point}")
                 lower_highs = []

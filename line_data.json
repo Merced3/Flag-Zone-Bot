@@ -41,14 +41,40 @@
     {
         "name": "flag_3",
         "type": "Bull",
-        "status": "active",
+        "status": "complete",
         "point_1": {
             "x": 93,
             "y": 511.89
         },
         "point_2": {
-            "x": 97,
-            "y": 511.77
+            "x": 103,
+            "y": 511.5899999999999
+        }
+    },
+    {
+        "name": "flag_4",
+        "type": "Bull",
+        "status": "complete",
+        "point_1": {
+            "x": 102,
+            "y": 512.06
+        },
+        "point_2": {
+            "x": 107,
+            "y": 511.7850000000001
+        }
+    },
+    {
+        "name": "flag_5",
+        "type": "Bull",
+        "status": "active",
+        "point_1": {
+            "x": 110,
+            "y": 512.1199
+        },
+        "point_2": {
+            "x": null,
+            "y": null
         }
     }
 ]
