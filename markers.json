@@ -25,5 +25,14 @@
             "marker": "o",
             "color": "red"
         }
+    },
+    {
+        "event_type": "sell",
+        "x": 49,
+        "y": 511.26,
+        "style": {
+            "marker": "v",
+            "color": "red"
+        }
     }
 ]

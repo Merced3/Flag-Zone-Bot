@@ -241,5 +241,23 @@
         "timestamp": "2024-03-01T10:06:00.039537",
         "type": "PDHL PDH",
         "candle_index": 47
+    },
+    {
+        "open": 511.03,
+        "high": 511.2588,
+        "low": 511.03,
+        "close": 511.255,
+        "timestamp": "2024-03-01T10:08:00.212592",
+        "type": "PDHL PDH",
+        "candle_index": 48
+    },
+    {
+        "open": 511.255,
+        "high": 511.38,
+        "low": 511.1,
+        "close": 511.11,
+        "timestamp": "2024-03-01T10:10:00.177333",
+        "type": "PDHL PDH",
+        "candle_index": 49
     }
 ]
