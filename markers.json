@@ -1,1 +1,20 @@
-{}
+[
+    {
+        "event_type": "buy",
+        "x": 160,
+        "y": 513.98,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "sell",
+        "x": 163,
+        "y": 513.9299,
+        "style": {
+            "marker": "v",
+            "color": "red"
+        }
+    }
+]
