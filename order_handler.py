@@ -390,7 +390,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                     current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
                     if current_loss_percentage <= STOP_LOSS_PERCENTAGE:
                         Sell_order_cost = remaining_quantity * (current_bid_price * 100)
-                        print(f"Stop loss triggered at {current_loss_percentage:.2f}% loss. Sold {remaining_quantity} at {current_bid_price}, costing ${Sell_order_cost:.2f}")
+                        print(f"    [STOP LOSS] {current_loss_percentage:.2f}% loss. Sold {remaining_quantity} at {current_bid_price}, costing ${Sell_order_cost:.2f}")
                         await sell_rest_of_active_order(message_ids_dict, "Stop Loss Triggered")
                         break
 
@@ -664,8 +664,8 @@ async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_
                     order_cost_rounded = round(order_cost, precision)
                     all_sells_rounded = round(all_sells, precision)
                     profit_loss = all_sells_rounded - order_cost_rounded
-                    print(f"All Sells: {all_sells_rounded}, Order Cost: {order_cost_rounded}")
-                    print(f"(sell_rest_of_active_order) Profit/Loss: ${profit_loss:.2f}")
+                    print(f"    [ORDER DETIALS] All Sells: {all_sells_rounded}, Order Cost: {order_cost_rounded}")
+                    print(f"    [ORDER DETIALS] Profit/Loss: ${profit_loss:.2f}")
                     todays_orders_profit_loss_list.append(profit_loss)
 
                 total_value = (sold_bid_price * 100) * sell_quantity
