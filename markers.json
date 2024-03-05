@@ -1,1 +1,74 @@
-{}
+[
+    {
+        "event_type": "buy",
+        "x": 35,
+        "y": 507.7793,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "sell",
+        "x": 35,
+        "y": 508.0901,
+        "style": {
+            "marker": "v",
+            "color": "red"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 40,
+        "y": 507.58,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "sell",
+        "x": 40,
+        "y": 507.91,
+        "style": {
+            "marker": "v",
+            "color": "red"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 47,
+        "y": 507.88,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "sell",
+        "x": 48,
+        "y": 508.17,
+        "style": {
+            "marker": "v",
+            "color": "red"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 51,
+        "y": 507.65,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "sell",
+        "x": 53,
+        "y": 507.9,
+        "style": {
+            "marker": "v",
+            "color": "red"
+        }
+    }
+]

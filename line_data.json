@@ -1,1 +1,67 @@
-[]
+[
+    {
+        "name": "flag_0",
+        "type": "Bear",
+        "status": "complete",
+        "point_1": {
+            "x": 31,
+            "y": 507.73
+        },
+        "point_2": {
+            "x": 34,
+            "y": 507.84999999999997
+        }
+    },
+    {
+        "name": "flag_1",
+        "type": "Bear",
+        "status": "complete",
+        "point_1": {
+            "x": 34,
+            "y": 507.68
+        },
+        "point_2": {
+            "x": 39,
+            "y": 507.9175
+        }
+    },
+    {
+        "name": "flag_2",
+        "type": "Bear",
+        "status": "complete",
+        "point_1": {
+            "x": 40,
+            "y": 507.52
+        },
+        "point_2": {
+            "x": 46,
+            "y": 508.02684999999997
+        }
+    },
+    {
+        "name": "flag_3",
+        "type": "Bear",
+        "status": "complete",
+        "point_1": {
+            "x": 40,
+            "y": 507.52
+        },
+        "point_2": {
+            "x": 50,
+            "y": 507.993
+        }
+    },
+    {
+        "name": "flag_4",
+        "type": "Bear",
+        "status": "active",
+        "point_1": {
+            "x": 127,
+            "y": 506.86
+        },
+        "point_2": {
+            "x": null,
+            "y": null
+        }
+    }
+]
