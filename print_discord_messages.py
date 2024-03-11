@@ -56,49 +56,52 @@ async def get_message_content(message_id, line=None):
         print("Channel not found.")
         return None
 
-async def print_discord(message1, message2=None, button_data=None, delete_last_message=None, show_print_statement=None):
+async def print_discord(message1, message2=None, button_data=None, delete_last_message=None, show_print_statement=None, retries=3, backoff_factor=1):
     message_channel = bot.get_channel(cred.DISCORD_CHANNEL_ID)
     if message_channel is None:
         print(f"Error: Could not find a channel with ID {cred.DISCORD_CHANNEL_ID}.")
-        print("Listing all channels:")
-        for guild in bot.guilds:
-            for channel in guild.channels:
-                print(f"Channel ID: {channel.id}, Channel Name: {channel.name}")
         return
-
-    message_channel_id = message_channel.id
-
-    if message_channel_id:
-        message_channel = bot.get_channel(message_channel_id)
 
     if delete_last_message:
         async for old_message in message_channel.history(limit=1):
-            await old_message.delete()
-        
+            try:
+                await old_message.delete()
+            except discord.NotFound:
+                print("Previous message not found for deletion.")
+            except discord.HTTPException as e:
+                print(f"Failed to delete previous message due to an HTTP error: {str(e)}")
+
     view = await create_view(button_data) if button_data else None
 
-    sent_message = None  # initialize sent_message as None
-    if message2:
-        sent_message = await message_channel.send(content=message2, view=view) if button_data else await message_channel.send(message2)
-    else:
-        sent_message = await message_channel.send(content=message1, view=view) if button_data else await message_channel.send(message1)
+    for attempt in range(retries):
+        try:
+            if message2:
+                sent_message = await message_channel.send(content=message2, view=view) if button_data else await message_channel.send(message2)
+            else:
+                sent_message = await message_channel.send(content=message1, view=view) if button_data else await message_channel.send(message1)
+            return sent_message
+        except (discord.HTTPException, discord.NotFound) as e:
+            print(f"Discord API error on attempt {attempt+1}: {str(e)}")
+            if attempt < retries - 1:  # If it's not the last attempt, wait before retrying
+                await asyncio.sleep(backoff_factor * (2 ** attempt))
+    print("Failed to send message after retries.")
+    return None
 
-    if message1 is None:
-        print(f"This function was called from line {inspect.currentframe().f_back.f_lineno}")
-    #else:
-        #print(message1)
-    
-    return sent_message  # return the sent message
-
-async def send_file_discord(file_path_to_image):
+async def send_file_discord(file_path,  retries=3, backoff_factor=1):
     channel = bot.get_channel(cred.DISCORD_CHANNEL_ID)
-    if channel:
-        with open(file_path_to_image, 'rb') as f:
-            # Extract just the file name from the file path
-            file_name = os.path.basename(file_path_to_image)
-            # Create a discord.File object with only the file name
-            image_file = discord.File(f, filename=file_name)
-            # Send the file to the Discord channel
-            await channel.send(file=image_file)
-    else:
+    if channel is None:
         print(f"Could not find channel with ID {cred.DISCORD_CHANNEL_ID}")
+        return
+    
+    for attempt in range(retries):
+        try:
+            with open(file_path, 'rb') as f:
+                file_name = os.path.basename(file_path)
+                image_file = discord.File(f, filename=file_name)
+                await channel.send(file=image_file)
+                return
+        except (discord.HTTPException, discord.NotFound) as e:
+            print(f"Discord API error on attempt {attempt+1}: {str(e)}")
+            if attempt < retries - 1:  # If it's not the last attempt, wait before retrying
+                await asyncio.sleep(backoff_factor * (2 ** attempt))
+    print("Failed to send file after retries.")

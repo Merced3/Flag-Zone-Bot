@@ -79,20 +79,21 @@ async def ws_connect(queue, symbol):
             await error_log_and_discord_message(e, "data_acquisition", "ws_connect", "An error occurred. Re-establishing connection...")
             await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
 
-def get_session_id():
+def get_session_id(retry_attempts=3, backoff_factor=1):
     url = "https://api.tradier.com/v1/markets/events/session"
-    
     headers = {
         "Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}",
         "Accept": "application/json"
     }
-    
-    response = requests.post(url, data={}, headers=headers)
-    if response.status_code == 200:
-        return response.json()["stream"]["sessionid"]
-    else:
-        print(f"Error: Unable to get session ID: {response.text}")
-        return None
+    for attempt in range(retry_attempts):
+        response = requests.post(url, data={}, headers=headers)
+        if response.status_code == 200:
+            return response.json()["stream"]["sessionid"]
+        else:
+            print(f"Error: Unable to get session ID: {response.text}, retrying...")
+            time.sleep(backoff_factor * (2 ** attempt))  # Exponential backoff
+    print("Failed to get a new session ID after retries.")
+    return None
 
 def save_to_csv(df, filename):
     df.to_csv(filename, index=False)
