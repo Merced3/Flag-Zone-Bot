@@ -638,6 +638,7 @@ def update_state(state_file_path, current_high, highest_point, lower_highs, curr
         state['lower_highs'] = list(unique_new_lower_highs)
     else:
         state['lower_highs'] = []
+        state['previous_candles'] = []
 
     state['current_low'] = current_low
     state['lowest_point'] = lowest_point
@@ -650,6 +651,7 @@ def update_state(state_file_path, current_high, highest_point, lower_highs, curr
         state['higher_lows'] = list(unique_new_higher_lows)
     else:
         state['higher_lows'] = []
+        state['previous_candles'] = []
 
     state['slope'] = slope
     state['intercept'] = intercept
