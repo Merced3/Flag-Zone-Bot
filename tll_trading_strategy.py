@@ -34,6 +34,7 @@ TIMEFRAMES = config["TIMEFRAMES"]
 ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
 MIN_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MIN_NUM_CANDLES"]
 MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
+OPTION_EXPIRATION_DTE = config["OPTION_EXPIRATION_DTE"]
 
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
 LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{SYMBOL}_{TIMEFRAMES[0]}.log')  # Adjust the path accordingly
@@ -122,7 +123,7 @@ async def execute_trading_strategy(zones):
 
     candle_list = []  # Stores candles for the first 15 minutes
     # Flag to check if initial candles have been processed
-    has_calculated = False #TODO False
+    has_calculated_emas = False #TODO False
 
     MARKET_OPEN_TIME = get_market_open_time()  # Get today's market open time
     market_open_plus_15 = MARKET_OPEN_TIME + timedelta(minutes=15)
@@ -169,7 +170,7 @@ async def execute_trading_strategy(zones):
                     
                     # Calculate/Save EMAs
                     if current_time >= market_open_plus_15:
-                        if not has_calculated and candle_list:
+                        if not has_calculated_emas and candle_list:
                             await get_candle_data_and_merge(aftermarket_file, premarket_file, candle_interval, candle_timescale, AM, PM, merged_file_name) 
                             #i need to change this for loop
                             for _candle in reversed(candle_list):
@@ -178,13 +179,13 @@ async def execute_trading_strategy(zones):
                             #calculate the current candle after the list has been processed
                             await calculate_save_EMAs(candle, get_current_candle_index())
                             print("    [EMA] Calculated EMA list")
-                            has_calculated = True
-                        elif has_calculated:
+                            has_calculated_emas = True
+                        elif has_calculated_emas:
                             await calculate_save_EMAs(candle, get_current_candle_index())
                             print("    [EMA] Calculated EMA candle")
                     else:
                         candle_list.append(candle)
-                        has_calculated = False
+                        has_calculated_emas = False
 
                     #Handle the zones
                     for box_name, (count, high_low_of_day, buffer) in zones.items(): 
@@ -759,7 +760,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, header
         bid = None
         side = "buy_to_open"
         order_type = "market"  # order_type = "limit" if bid else "market"
-        expiration_date = get_expiration("not specified")
+        expiration_date = get_expiration(OPTION_EXPIRATION_DTE)
         strike_price, strike_ask_bid = await find_what_to_buy(ticker_symbol, cp, NUM_OUT_MONEY, expiration_date, session, headers)
         #print(f"Strike, Price: {strike_price}, {strike_ask_bid}")
         

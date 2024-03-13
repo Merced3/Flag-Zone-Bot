@@ -8,6 +8,12 @@
     "TIMEFRAMES": [
         "2M"
     ],
+    "TAKE_PROFIT_PERCENTAGES": [
+        20,
+        35,
+        55,
+        70
+    ],
     "STOP_LOSS_PERCENTAGE": -20,
     "PAST_DAYS": 20,
     "NUM_OUT_OF_MONEY": 5,
@@ -38,5 +44,6 @@
         "BULL_MAX_ANGLE": -1.5,
         "BEAR_MIN_ANGLE": 1.5,
         "BEAR_MAX_ANGLE": 16
-    }
+    },
+    "OPTION_EXPIRATION_DTE": "not specified"
 }

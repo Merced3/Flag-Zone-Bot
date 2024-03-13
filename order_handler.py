@@ -24,6 +24,7 @@ config = read_config()
 SYMBOL = config["SYMBOL"]
 IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 STOP_LOSS_PERCENTAGE = config["STOP_LOSS_PERCENTAGE"]
+TAKE_PROFIT_PERCENTAGES = config["TAKE_PROFIT_PERCENTAGES"]
 RETRY_COUNT = 3
 RETRY_DELAY = 3  # seconds
 
@@ -35,6 +36,7 @@ current_order_active = False
 global partial_exits
 todays_orders_profit_loss_list = [] #added the variable here instead of tll_trading_strategy.py
 
+"""
 # Define sell targets based on order quantity
 sell_targets = {
     1: [20],
@@ -102,8 +104,39 @@ sell_quantities = {
     29: [23, 4, 1, 1],
     30: [24, 4, 1, 1]
 }
-#sell_quantities = 10: [5, 3, 1, 1]
-#sell_targets = 10: [20, 35, 55, 70]
+"""
+def generate_sell_info(take_profit_percentages, max_contracts=30):
+    sell_targets = {}
+    sell_quantities = {}
+    
+    for i in range(1, max_contracts + 1):
+        # Initial sell targets and quantities for i contracts
+        targets = []
+        quantities = []
+        
+        # For every target percentage, decide how many contracts to sell
+        for j, percentage in enumerate(take_profit_percentages, start=1):
+            # Define logic based on your sell strategy
+            if i <= 5:
+                targets.append(percentage)
+                quantities.append(i if j == 1 else 0)  # Sell all at first target
+            elif 6 <= i <= 11:
+                if j <= 2:  # For two sell targets
+                    targets.append(percentage)
+                    quantities.append(i - 5 if j == 1 else 1)
+            elif 12 <= i <= 20:
+                if j <= 3:  # For three sell targets
+                    targets.append(percentage)
+                    quantities.append(10 if j == 1 else (i - 10 if j == 2 else 1))
+            else:  # i > 20
+                targets.append(percentage)
+                quantities.append(17 if j == 1 else (3 if j == 2 else (i - 20 if j == 3 else 1)))
+        
+        # Update the sell_targets and sell_quantities dictionaries
+        sell_targets[i] = targets
+        sell_quantities[i] = quantities
+    
+    return sell_targets, sell_quantities
 
 def get_unique_order_id_and_is_active():
     #print(f"\nget_unique_order_id_and_is_active():\nunique_order_id: {unique_order_id}\ncurrent_order_active: {current_order_active}\n")
@@ -171,11 +204,10 @@ async def manage_active_order(active_order_details, message_ids_dict):
 
         buy_entry_price =   active_order_details["entry_price"]
         order_quantity  =   active_order_details["quantity"]
-        targets = sell_targets.get(order_quantity, [])
-        quantities_to_sell = sell_quantities.get(order_quantity, [])
-        
+        sell_targets, sell_quantities = generate_sell_info(TAKE_PROFIT_PERCENTAGES, order_quantity)
         partial_exits = active_order_details["partial_exits"]
-        sell_points = calculate_sell_points(buy_entry_price, targets)
+        # Use sell_targets directly for calculate_sell_points()
+        sell_points = calculate_sell_points(buy_entry_price, sell_targets[order_quantity])
 
         print_once_flag = True
         current_order_active = True
@@ -249,7 +281,7 @@ async def manage_active_order(active_order_details, message_ids_dict):
                 # Check if this target has already been hit and part of the order sold
                 already_sold = any(sale['target'] == sell_point for sale in partial_exits)
                 if current_bid_price >= sell_point and not already_sold:
-                    sell_quantity = min(quantities_to_sell[i], remaining_quantity)
+                    sell_quantity = min(sell_quantities[order_quantity][i], remaining_quantity)
 
                     # Unpack the returned values from the sell function
                     sold_bid_price, sold_quantity, success = await sell(
@@ -323,10 +355,9 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
     unique_order_id = active_order_details["order_id"]
     buy_entry_price = active_order_details["entry_price"]
     order_quantity = active_order_details["quantity"]
-    targets = sell_targets.get(order_quantity, [])
-    quantities_to_sell = sell_quantities.get(order_quantity, [])
+    sell_targets, sell_quantities = generate_sell_info(TAKE_PROFIT_PERCENTAGES, order_quantity)
     partial_exits = active_order_details.get("partial_exits", [])
-    sell_points = calculate_sell_points(buy_entry_price, targets)
+    sell_points = calculate_sell_points(buy_entry_price, sell_targets[order_quantity])
     
     print_once_flag = True
     current_order_active = True
@@ -399,7 +430,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                     # Check if this target has already been hit and part of the order sold
                     already_sold = any(sale['target'] == sell_point for sale in partial_exits)
                     if current_bid_price >= sell_point and not already_sold:
-                        sell_quantity = min(quantities_to_sell[i], remaining_quantity)
+                        sell_quantity = min(sell_quantities[order_quantity][i], remaining_quantity)
 
                         sale_info = {
                             "target": sell_point,
