@@ -1,73 +1,11 @@
 {
-    "current_high": 520.62,
-    "highest_point": [
-        181,
-        520.62
-    ],
-    "lower_highs": [
-        [
-            189,
-            519.595
-        ],
-        [
-            192,
-            520.08
-        ],
-        [
-            183,
-            520.23
-        ],
-        [
-            193,
-            520.07
-        ],
-        [
-            182,
-            520.46
-        ],
-        [
-            184,
-            520.2
-        ],
-        [
-            186,
-            520.08
-        ],
-        [
-            188,
-            519.86
-        ],
-        [
-            185,
-            520.21
-        ],
-        [
-            191,
-            519.96
-        ],
-        [
-            187,
-            519.87
-        ],
-        [
-            190,
-            519.74
-        ]
-    ],
+    "current_high": null,
+    "highest_point": null,
+    "lower_highs": [],
     "current_low": null,
     "lowest_point": null,
     "higher_lows": [],
-    "slope": -0.10249999999999204,
-    "intercept": 539.1724999999985,
-    "previous_candles": [
-        {
-            "open": 519.79,
-            "high": 520.07,
-            "low": 519.7,
-            "close": 520.03,
-            "timestamp": "2024-03-20T14:58:00.207950",
-            "type": "resistance_7 PDH",
-            "candle_index": 193
-        }
-    ]
+    "slope": null,
+    "intercept": null,
+    "previous_candles": []
 }
