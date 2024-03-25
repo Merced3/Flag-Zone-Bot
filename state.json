@@ -2,10 +2,23 @@
     "current_high": null,
     "highest_point": null,
     "lower_highs": [],
-    "current_low": null,
-    "lowest_point": null,
+    "current_low": 519.675,
+    "lowest_point": [
+        191,
+        519.675
+    ],
     "higher_lows": [],
     "slope": null,
     "intercept": null,
-    "previous_candles": []
+    "previous_candles": [
+        {
+            "open": 519.82,
+            "high": 519.87,
+            "low": 519.675,
+            "close": 519.7999,
+            "timestamp": "2024-03-25T14:58:00.226254",
+            "type": "PDHL Buffer",
+            "candle_index": 191
+        }
+    ]
 }
