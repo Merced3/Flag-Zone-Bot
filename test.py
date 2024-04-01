@@ -48,8 +48,6 @@ async def simulation():
     await testing_add_markers('trim')
     await testing_add_markers('sell')
 
-
-
 async def testing_add_markers(event_type):
     
     log_file_path = Path(__file__).resolve().parent / 'logs/Example_SPY_2M.log'
@@ -110,9 +108,6 @@ async def testing_plotting_new_data():
         chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, candle_2m_data, Boxes, SYMBOL))
         chart_thread.start()
         already_ran = True
-
-
-
 
 async def testing_identify_flags():
     Testing_Box = {'resistance_1': (244, 475.38, 474.92)}
