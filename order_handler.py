@@ -105,38 +105,75 @@ sell_quantities = {
     30: [24, 4, 1, 1]
 }
 """
-def generate_sell_info(take_profit_percentages, max_contracts=30):
+def distribute_remaining_contracts(remaining, n_targets):
+    proportions = {
+        1: [1.0],  # If only 1 target, put everything on it
+        2: [0.7, 0.3],  # 70% on the first target, 30% on the second
+        3: [0.6, 0.3, 0.1],  # Distribution across three targets
+        4: [0.5, 0.25, 0.15, 0.1]  # Distribution across four targets
+    }
+    if n_targets > len(proportions):
+        n_targets = len(proportions) # Limit num of proportions
+
+    distribution = []
+    allocated = 0
+
+    for proportion in proportions.get(n_targets, []):
+        contracts_for_target = int(remaining * proportion + 0.5)  # Round up if .5 or more
+        allocated += contracts_for_target
+        distribution.append(contracts_for_target)
+
+    # Handle any discrepancies due to rounding
+    while allocated < remaining:
+        for i in range(len(distribution)):
+            distribution[i] += 1
+            allocated += 1
+            if allocated == remaining:
+                break
+
+    while allocated > remaining:  # In case of over-allocation
+        for i in range(len(distribution)):
+            if distribution[i] > 0:
+                distribution[i] -= 1
+                allocated -= 1
+                if allocated == remaining:
+                    break
+
+    return distribution
+
+def calculate_sell_points(buy_entry_price, percentages):
+    return [buy_entry_price * (1 + p / 100) for p in percentages]
+
+def generate_sell_info(order_quantity, buy_entry_price, total_cost):
     sell_targets = {}
     sell_quantities = {}
-    
-    for i in range(1, max_contracts + 1):
-        # Initial sell targets and quantities for i contracts
-        targets = []
-        quantities = []
-        
-        # For every target percentage, decide how many contracts to sell
-        for j, percentage in enumerate(take_profit_percentages, start=1):
-            # Define logic based on your sell strategy
-            if i <= 5:
-                targets.append(percentage)
-                quantities.append(i if j == 1 else 0)  # Sell all at first target
-            elif 6 <= i <= 11:
-                if j <= 2:  # For two sell targets
-                    targets.append(percentage)
-                    quantities.append(i - 5 if j == 1 else 1)
-            elif 12 <= i <= 20:
-                if j <= 3:  # For three sell targets
-                    targets.append(percentage)
-                    quantities.append(10 if j == 1 else (i - 10 if j == 2 else 1))
-            else:  # i > 20
-                targets.append(percentage)
-                quantities.append(17 if j == 1 else (3 if j == 2 else (i - 20 if j == 3 else 1)))
-        
-        # Update the sell_targets and sell_quantities dictionaries
-        sell_targets[i] = targets
-        sell_quantities[i] = quantities
-    
-    return sell_targets, sell_quantities
+
+    # Helper function to calculate the total cost at a given profit target for a specific number of contracts
+    def calculate_cost_at_target(n_contracts, target_percentage):
+        profit_per_contract = buy_entry_price * (1 + target_percentage / 100)
+        return n_contracts * profit_per_contract * 100
+
+    for i in range(1, order_quantity + 1):
+        cost_at_first_target = calculate_cost_at_target(i, TAKE_PROFIT_PERCENTAGES[0])
+        if cost_at_first_target >= total_cost:
+            sell_targets[order_quantity] = [TAKE_PROFIT_PERCENTAGES[0]]
+            sell_quantities[order_quantity] = [i]
+
+            #calculate remaining contracts
+            remaining_contracts = order_quantity - i
+            if remaining_contracts >= 1:
+                distribution = distribute_remaining_contracts(remaining_contracts, len(TAKE_PROFIT_PERCENTAGES) - 1)
+                sell_targets[order_quantity] = TAKE_PROFIT_PERCENTAGES[:1 + len(distribution)]
+                sell_quantities[order_quantity] = [i] + distribution
+            
+            # Cleanup zeros from sell_quantities and adjust sell_targets accordingly
+            # For example: converting this {6: [5, 1, 0, 0]} to this {6: [5, 1]}
+            for qty, quantities in sell_quantities.items():
+                valid_indexes = [i for i, q in enumerate(quantities) if q > 0]
+                sell_quantities[qty] = [quantities[i] for i in valid_indexes]
+                sell_targets[qty] = [TAKE_PROFIT_PERCENTAGES[i] for i in valid_indexes]
+
+            return sell_targets, sell_quantities
 
 def get_unique_order_id_and_is_active():
     #print(f"\nget_unique_order_id_and_is_active():\nunique_order_id: {unique_order_id}\ncurrent_order_active: {current_order_active}\n")
@@ -204,9 +241,9 @@ async def manage_active_order(active_order_details, message_ids_dict):
 
         buy_entry_price =   active_order_details["entry_price"]
         order_quantity  =   active_order_details["quantity"]
-        sell_targets, sell_quantities = generate_sell_info(TAKE_PROFIT_PERCENTAGES, order_quantity)
+        total_cost = order_quantity * (buy_entry_price * 100)
+        sell_targets, sell_quantities = generate_sell_info(order_quantity, buy_entry_price, total_cost)
         partial_exits = active_order_details["partial_exits"]
-        # Use sell_targets directly for calculate_sell_points()
         sell_points = calculate_sell_points(buy_entry_price, sell_targets[order_quantity])
 
         print_once_flag = True
@@ -355,7 +392,8 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
     unique_order_id = active_order_details["order_id"]
     buy_entry_price = active_order_details["entry_price"]
     order_quantity = active_order_details["quantity"]
-    sell_targets, sell_quantities = generate_sell_info(TAKE_PROFIT_PERCENTAGES, order_quantity)
+    total_cost = order_quantity * (buy_entry_price * 100)
+    sell_targets, sell_quantities = generate_sell_info(order_quantity, buy_entry_price, total_cost)
     partial_exits = active_order_details.get("partial_exits", [])
     sell_points = calculate_sell_points(buy_entry_price, sell_targets[order_quantity])
     
