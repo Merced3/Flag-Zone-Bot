@@ -114,17 +114,17 @@ def initialize_ema_json(json_path):
 async def execute_trading_strategy(zones):
     print("Starting execute_trading_strategy()...")
     global last_processed_candle
-
     message_ids_dict = load_message_ids()
     print("message_ids_dict: ", message_ids_dict)
 
-    what_type_of_candle = None #TODO None
+    #Testing While Running: 'resistance PDH' or 'support Buffer'
+    what_type_of_candle = None #TODO None 
+    #Testing While Running: True
     havent_cleared = None #TODO None
-
-    candle_list = []  # Stores candles for the first 15 minutes
-    # Flag to check if initial candles have been processed
+    #Testing While Running: True
     has_calculated_emas = False #TODO False
 
+    candle_list = []  # Stores candles for the first 15 minutes
     MARKET_OPEN_TIME = get_market_open_time()  # Get today's market open time
     market_open_plus_15 = MARKET_OPEN_TIME + timedelta(minutes=15)
     market_open_plus_15 = market_open_plus_15.time()
@@ -396,6 +396,8 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
                 )
                 if success:
                     return None, None, True
+                else:
+                    return slope, intercept, False
             else:
                 # Test new slope and intercept
                 new_slope = (hl[1] - lowest_point[1]) / (hl[0] - lowest_point[0])
@@ -424,6 +426,8 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
             )
             if success:
                 return None, None, True
+            else:
+                return slope, intercept, False
     return slope, intercept, False
 
 async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, session, headers):
@@ -441,6 +445,8 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
                 )
                 if success:
                     return None, None, True
+                else:
+                    return slope, intercept, False
             else:
                 # Test new slope and intercept
                 new_slope = (lh[1] - highest_point[1]) / (lh[0] - highest_point[0])
@@ -470,6 +476,8 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
             )
             if success:
                 return None, None, True
+            else:
+                return slope, intercept, False
     return slope, intercept, False
 
 async def process_breakout_detection(line_name, points, highest_or_lowest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'):
@@ -540,17 +548,17 @@ def check_valid_points(line_name):
                 if flag['name'] == line_name:
                     # Check and print point_1's x, y if available
                     point_1 = flag.get('point_1')
-                    if point_1:
-                        print(f"        [LINE CHECK] Point 1: x={point_1.get('x')}, y={point_1.get('y')}")
-                    else:
-                        print("        [LINE CHECK] Point 1: None")
+                    #if point_1:
+                    #    print(f"        [LINE CHECK] Point 1: x={point_1.get('x')}, y={point_1.get('y')}")
+                    #else:
+                    #    print("        [LINE CHECK] Point 1: None")
 
                     # Check and print point_2's x, y if available
                     point_2 = flag.get('point_2')
-                    if point_2:
-                        print(f"        [LINE CHECK] Point 2: x={point_2.get('x')}, y={point_2.get('y')}")
-                    else:
-                        print("        [LINE CHECK] Point 2: None")
+                    #if point_2:
+                    #    print(f"        [LINE CHECK] Point 2: x={point_2.get('x')}, y={point_2.get('y')}")
+                    #else:
+                    #    print("        [LINE CHECK] Point 2: None")
 
                     # Ensure both point_1 and point_2 exist and have non-null x and y
                     point_1_valid = point_1 and point_1.get('x') is not None and point_1.get('y') is not None
@@ -600,7 +608,14 @@ async def handle_breakout_and_order(candle, trendline_y, line_name, point, sessi
         update_line_data(line_name=line_name, line_type=line_type, status="complete")
         return True
     else:
-        reason = "Not above EMAs" if not condition_met else "Invalid points"
+        if not condition_met and (not vp_1 or not vp_2):
+            point = "Point 1 None" if not vp_1 else "Point 2 None"
+            reason = f"Not above EMAs and Invalid Points; {point}"
+        elif not condition_met:
+            reason = "Not above EMAs"
+        elif not vp_1 or not vp_2:
+            point = "Point 1 None" if not vp_1 else "Point 2 None"
+            reason = f"Invalid points; {point}"
         action = 'CALL' if line_type == 'Bull' else 'PUT'
         print(f"    [ORDER CANCELED] Buy Signal ({action}); {reason}.")
         #if any of the vp_1 or vp_2 are false, don't go through. but if vp_1 and vp_2 are both true and not condition_met is true then go through
@@ -764,7 +779,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, header
         strike_price, strike_ask_bid = await find_what_to_buy(ticker_symbol, cp, NUM_OUT_MONEY, expiration_date, session, headers)
         #print(f"Strike, Price: {strike_price}, {strike_ask_bid}")
         
-        quantity = calculate_quantity(strike_ask_bid, 0.1, 30)    
+        quantity = calculate_quantity(strike_ask_bid, 0.1)    
         #order math, making sure we have enough buying power to fulfill order
         if real_money_activated:
             buying_power = await get_account_balance(real_money_activated, bp=True)

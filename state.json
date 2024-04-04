@@ -1,8 +1,8 @@
 {
-    "current_high": 518.0,
+    "current_high": 519.295,
     "highest_point": [
-        88,
-        518.0
+        172,
+        519.295
     ],
     "lower_highs": [],
     "current_low": null,
@@ -12,13 +12,13 @@
     "intercept": null,
     "previous_candles": [
         {
-            "open": 517.5005,
-            "high": 518.0,
-            "low": 517.5,
-            "close": 517.9,
-            "timestamp": "2024-04-02T11:50:00.010031",
-            "type": "resistance_12 PDH",
-            "candle_index": 88
+            "open": 519.055,
+            "high": 519.295,
+            "low": 519.035,
+            "close": 519.22,
+            "timestamp": "2024-04-03T14:58:00.112193",
+            "type": "PDHL PDH",
+            "candle_index": 172
         }
     ]
 }
