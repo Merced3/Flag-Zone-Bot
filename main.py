@@ -309,7 +309,7 @@ async def main():
                     already_ran = True
                     #save boxes into log file for later use
                     boxes_info = f"15m) Start and End days: {start_date}, {end_date}\n{Boxes}\n"
-                    write_to_log(boxes_info, SYMBOL, f"{TIMEFRAMES[0]}_Boxes")
+                    write_log_data_as_string(boxes_info, SYMBOL, f"{TIMEFRAMES[0]}_Boxes")
 
                 elif candle_15m_data is None or candle_15m_data.empty or 'timestamp' not in candle_15m_data.columns:
                     print(f"    [ERROR] Error loading or invalid data in {SYMBOL}_15_minute_candles.csv")
