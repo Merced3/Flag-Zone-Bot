@@ -7,7 +7,7 @@ from submit_order import find_what_to_buy, submit_option_order, submit_option_or
 from order_handler import get_profit_loss_orders_list, get_unique_order_id_and_is_active, manage_active_order, sell_rest_of_active_order, manage_active_fake_order
 from print_discord_messages import print_discord
 from error_handler import error_log_and_discord_message
-from data_acquisition import get_account_balance, add_markers, get_current_candle_index, calculate_save_EMAs, get_current_price, get_candle_data_and_merge
+from data_acquisition import get_account_balance, add_markers, get_current_candle_index, calculate_save_EMAs, get_current_price, get_candle_data_and_merge, above_below_ema, load_json_df
 from pathlib import Path
 import pandas as pd
 import math
@@ -82,11 +82,6 @@ new_york_tz = pytz.timezone('America/New_York')
 MARKET_CLOSE = time(16, 0)
 MARKET_OPEN = time(9, 30)
 used_buying_power = {}
-
-def load_json_df(file_path):
-    with open(file_path, 'r') as file:
-        data = json.load(file)
-    return pd.DataFrame(data)
 
 def get_papertrade_BP():
     #get every orders cost that is in USED_BUYING_POWER, calculate how much all of it added togther costs
@@ -515,29 +510,7 @@ async def process_breakout_detection(line_name, points, highest_or_lowest_point,
             break  # Optional: break if you only care about the first detected breakout
     return slope, intercept, breakout_detected
 
-async def above_below_ema(state):
-    # This will return true or false, state has to be either 'above' or 'below'
-    # It will get an instant price of what the stock is trading at
-    # Then it will see if the price is above or below the EMAs.
-    # The state tells us what we're looking for
 
-    # Get current price
-    price = await get_current_price(SYMBOL)
-
-    # Access EMAs.json, get the last EMA values
-    EMAs = load_json_df('EMAs.json')
-    last_EMA = EMAs.iloc[-1]
-    last_EMA_dict = last_EMA.to_dict()
-    print(f"        [EMA] Last EMA Values: {last_EMA_dict}, Price: {price}")
-    # Check if price is above or below the EMAs
-    for ema in last_EMA_dict:
-        if ema != 'x':  # Assuming 'x' is not an EMA value but an index or timestamp
-            if state == 'above' and price <= last_EMA_dict[ema]:
-                return False
-            if state == 'below' and price >= last_EMA_dict[ema]:
-                return False
-
-    return True
 
 def check_valid_points(line_name):
     line_data_path = Path('line_data.json')

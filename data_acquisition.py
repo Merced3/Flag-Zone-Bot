@@ -518,3 +518,32 @@ def to_unix_timestamp(year, month, day, hour, minute, second=0):
 def convert_unix_timestamp_to_time(unix_timestamp, timezone_offset=-5):
     time = datetime.utcfromtimestamp(unix_timestamp / 1000) + timedelta(hours=timezone_offset)
     return time.strftime('%m/%d %H:%M:%S')
+
+def load_json_df(file_path):
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    return pd.DataFrame(data)
+
+async def above_below_ema(state):
+    # This will return true or false, state has to be either 'above' or 'below'
+    # It will get an instant price of what the stock is trading at
+    # Then it will see if the price is above or below the EMAs.
+    # The state tells us what we're looking for
+
+    # Get current price
+    price = await get_current_price(SYMBOL)
+
+    # Access EMAs.json, get the last EMA values
+    EMAs = load_json_df('EMAs.json')
+    last_EMA = EMAs.iloc[-1]
+    last_EMA_dict = last_EMA.to_dict()
+    print(f"        [EMA] Last EMA Values: {last_EMA_dict}, Price: {price}")
+    # Check if price is above or below the EMAs
+    for ema in last_EMA_dict:
+        if ema != 'x':  # Assuming 'x' is not an EMA value but an index or timestamp
+            if state == 'above' and price <= last_EMA_dict[ema]:
+                return False
+            if state == 'below' and price >= last_EMA_dict[ema]:
+                return False
+
+    return True

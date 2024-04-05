@@ -80,6 +80,21 @@ def clear_log(symbol, timeframe):
     if filepath.exists():
         filepath.unlink() 
 
+def read_log_file(log_file_path):
+    try:
+        with open(log_file_path, 'r') as file:
+            return file.read()
+    except FileNotFoundError:
+        print(f"File {log_file_path} not found.")
+        return ""
+
+def write_log_data_as_string(data, symbol, timeframe):
+    filepath = LOGS_DIR / f"{symbol}_{timeframe}.log"
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+    with filepath.open("a") as file:
+        file.write(data + "\n")
+
 current_candle = {
     "open": None,
     "high": None,
@@ -223,7 +238,6 @@ async def process_data(queue):
                     if (f_now in timestamps[timeframe]) or (f_now in buffer_timestamps[timeframe]):
                         current_candle["timestamp"] = datetime.now().isoformat()
                         write_to_log(current_candle, SYMBOL, timeframe)
-
                         # Reset the current candle and start time
                         current_candles[timeframe] = {
                             "open": None,
@@ -293,11 +307,14 @@ async def main():
                     chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, candle_2m_data, Boxes, SYMBOL))
                     chart_thread.start()
                     already_ran = True
+                    #save boxes into log file for later use
+                    boxes_info = f"15m) Start and End days: {start_date}, {end_date}\n{Boxes}\n"
+                    write_to_log(boxes_info, SYMBOL, f"{TIMEFRAMES[0]}_Boxes")
 
                 elif candle_15m_data is None or candle_15m_data.empty or 'timestamp' not in candle_15m_data.columns:
-                    print(f"Error loading or invalid data in {SYMBOL}_15_minute_candles.csv")
+                    print(f"    [ERROR] Error loading or invalid data in {SYMBOL}_15_minute_candles.csv")
                 else:
-                    print("No candle data was retrieved or 'timestamp' column is missing.")
+                    print("    [ERROR] No candle data was retrieved or 'timestamp' column is missing.")
             
             if market_open_time <= current_time <= market_close_time:
                 if websocket_connection is None:  # Only create a new connection if there isn't one
@@ -404,6 +421,13 @@ async def reseting_values():
     for file in csv_files:
         print(f"[RESET] Deleting File: {file.name}")
         file.unlink()  # Delete the file
+
+    
+    #save new data in dicord, send log file, with boxes in the file,
+    whole_log = read_log_file(LOGS_DIR / f"{SYMBOL}_{TIMEFRAMES[0]}.log")
+    write_log_data_as_string(whole_log, SYMBOL, f"{TIMEFRAMES[0]}_Boxes")
+    new_log_file_path = LOGS_DIR / f"{SYMBOL}_{TIMEFRAMES[0]}_Boxes.log"
+    await send_file_discord(new_log_file_path) #Send file
 
     #clear the Logs, logs/[ticker_symbol]_2M.log file. Don't delete it just clear it.
     #this deleted the file, but we want to keep the file and just clear it.
