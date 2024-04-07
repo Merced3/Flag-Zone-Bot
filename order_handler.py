@@ -22,6 +22,7 @@ def read_config():
 config = read_config()
 
 SYMBOL = config["SYMBOL"]
+TIMEFRAMES = config["TIMEFRAMES"]
 IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 STOP_LOSS_PERCENTAGE = config["STOP_LOSS_PERCENTAGE"]
 TAKE_PROFIT_PERCENTAGES = config["TAKE_PROFIT_PERCENTAGES"]
@@ -36,75 +37,6 @@ current_order_active = False
 global partial_exits
 todays_orders_profit_loss_list = [] #added the variable here instead of tll_trading_strategy.py
 
-"""
-# Define sell targets based on order quantity
-sell_targets = {
-    1: [20],
-    2: [20],
-    3: [20],
-    4: [20],
-    5: [20],
-    6: [20, 35], 
-    7: [20, 35],
-    8: [20, 35],
-    9: [20, 35],
-    10: [20, 35],
-    11: [20, 35],
-    12: [20, 35, 55],
-    13: [20, 35, 55],
-    14: [20, 35, 55],
-    15: [20, 35, 55],
-    16: [20, 35, 55],
-    17: [20, 35, 55],
-    18: [20, 35, 55],
-    19: [20, 35, 55],
-    20: [20, 35, 55],
-    21: [20, 35, 55, 70],
-    22: [20, 35, 55, 70],
-    23: [20, 35, 55, 70],
-    24: [20, 35, 55, 70],
-    25: [20, 35, 55, 70],
-    26: [20, 35, 55, 70],
-    27: [20, 35, 55, 70],
-    28: [20, 35, 55, 70],
-    29: [20, 35, 55, 70],
-    30: [20, 35, 55, 70]
-}
-
-#do this, unless you find a adaptible solution that can handle all-use cases. 
-sell_quantities = {
-    1: [1],
-    2: [2],
-    3: [3],
-    4: [4],
-    5: [5],
-    6: [5, 1],
-    7: [6, 1],
-    8: [7, 1],
-    9: [8, 1],
-    10: [9, 1],
-    11: [10, 1],
-    12: [10, 1, 1],
-    13: [11, 1, 1],
-    14: [12, 1, 1],
-    15: [13, 1, 1],
-    16: [14, 1, 1],
-    17: [15, 1, 1],
-    18: [15, 2, 1],
-    19: [16, 2, 1],
-    20: [17, 2, 1],
-    21: [17, 2, 1, 1],
-    22: [17, 3, 1, 1],
-    23: [18, 3, 1, 1],
-    24: [19, 3, 1, 1],
-    25: [20, 3, 1, 1],
-    26: [20, 4, 1, 1],
-    27: [21, 4, 1, 1],
-    28: [22, 4, 1, 1],
-    29: [23, 4, 1, 1],
-    30: [24, 4, 1, 1]
-}
-"""
 def distribute_remaining_contracts(remaining, n_targets):
     proportions = {
         1: [1.0],  # If only 1 target, put everything on it
@@ -467,7 +399,11 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                 for i, sell_point in enumerate(sell_points):
                     # Check if this target has already been hit and part of the order sold
                     already_sold = any(sale['target'] == sell_point for sale in partial_exits)
-                    if current_bid_price >= sell_point and not already_sold:
+
+                    # Identify last sell target in list, lets keep it simple for now
+                    is_runner = (i == len(sell_points) - 1)
+
+                    if current_bid_price >= sell_point and not already_sold and not is_runner:
                         sell_quantity = min(sell_quantities[order_quantity][i], remaining_quantity)
 
                         sale_info = {
@@ -525,6 +461,11 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                             current_order_active = False
                             unique_order_id = None
                             break
+                    elif is_runner:
+                        if is_ema_broke("13", SYMBOL, TIMEFRAMES[0]):
+                            await sell_rest_of_active_order(message_ids_dict, "Stop Loss Triggered")
+                        print("Runner detected. Implement 13 EMA check here.")
+                
                 if remaining_quantity <= 0:
                     all_sells = 0
                     for sells in partial_exits:
@@ -536,6 +477,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                     todays_orders_profit_loss_list.append(profit_loss)
                     unique_order_id = None
                     break
+                
                 # Wait before checking again
                 await asyncio.sleep(.5)
             except aiohttp.ClientOSError as e:
@@ -546,6 +488,45 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                 else:
                     print("Maximum retry attempts reached. Exiting the loop.")
                     break
+
+def is_ema_broke(ema_type, symbol, timeframe):
+    # Load the latest EMA values
+    try:
+        with open("EMAs.json", "r") as file:
+            emas = json.load(file)
+            latest_ema = emas[-1][ema_type]  # Assuming 'ema_type' is a string like "13", "48", or "200"
+    except FileNotFoundError:
+        print("EMAs.json file not found.")
+        return False
+    except KeyError:
+        print(f"EMA type {ema_type} not found in the latest entry.")
+        return False
+    
+    filepath = LOGS_DIR / f"{symbol}_{timeframe}.log"
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(filepath, "r") as file:
+            lines = file.readlines()
+            latest_candle = json.loads(lines[-1])
+    except FileNotFoundError:
+        print(f"{symbol}_{timeframe}.log file not found.")
+        return False
+    except json.JSONDecodeError:
+        print(f"Error decoding the last candle from {symbol}_{timeframe}.log")
+        return False
+
+    open_price = latest_candle["open"]
+    close_price = latest_candle["close"]
+
+    # Check conditions based on option type
+    if close_price > latest_ema and open_price < latest_ema:
+        print("        [ORDER] Sell the rest of call.")
+        return True
+    elif open_price > latest_ema and close_price < latest_ema:
+        print("        [ORDER] Sell rest of put.")
+        return True
+
+    return False
 
 async def sell(quantity, unique_order_key, message_ids_dict, reason_for_selling):
     #selling logic here
