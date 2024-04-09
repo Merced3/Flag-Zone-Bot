@@ -432,6 +432,7 @@ async def reseting_values():
     #clear the Logs, logs/[ticker_symbol]_2M.log file. Don't delete it just clear it.
     #this deleted the file, but we want to keep the file and just clear it.
     clear_log(SYMBOL, "2M")
+    clear_log(SYMBOL, "2M_Boxes")
 
     # Find all the files that have 'order_log' in them and delete them
     order_log_files = glob.glob('./*order_log*')

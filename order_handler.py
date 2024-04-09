@@ -37,6 +37,8 @@ current_order_active = False
 global partial_exits
 todays_orders_profit_loss_list = [] #added the variable here instead of tll_trading_strategy.py
 
+LOGS_DIR = Path(__file__).resolve().parent / 'logs'
+
 def distribute_remaining_contracts(remaining, n_targets):
     proportions = {
         1: [1.0],  # If only 1 target, put everything on it
