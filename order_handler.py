@@ -401,10 +401,11 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                 for i, sell_point in enumerate(sell_points):
                     # Check if this target has already been hit and part of the order sold
                     already_sold = any(sale['target'] == sell_point for sale in partial_exits)
-
+                    print(f"        [ORDER] already_sold: {already_sold}")
+                    print(f"        [ORDER] sell_points: {sell_points}")
                     # Identify last sell target in list, lets keep it simple for now
                     is_runner = (i == len(sell_points) - 1)
-
+                    print(f"        [ORDER] sell_points: {is_runner}")
                     if current_bid_price >= sell_point and not already_sold and not is_runner:
                         sell_quantity = min(sell_quantities[order_quantity][i], remaining_quantity)
 
@@ -465,8 +466,8 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                             break
                     elif is_runner:
                         if is_ema_broke("13", SYMBOL, TIMEFRAMES[0]):
-                            await sell_rest_of_active_order(message_ids_dict, "Stop Loss Triggered")
-                        print("Runner detected. Implement 13 EMA check here.")
+                            await sell_rest_of_active_order(message_ids_dict, "13ema Hit")
+                        
                 
                 if remaining_quantity <= 0:
                     all_sells = 0
@@ -522,10 +523,10 @@ def is_ema_broke(ema_type, symbol, timeframe):
 
     # Check conditions based on option type
     if close_price > latest_ema and open_price < latest_ema:
-        print("        [ORDER] Sell the rest of call.")
+        print(f"        [ORDER] {ema_type}ema Hit, Sell rest of call.")
         return True
     elif open_price > latest_ema and close_price < latest_ema:
-        print("        [ORDER] Sell rest of put.")
+        print(f"        [ORDER] {ema_type}ema Hit, Sell rest of put.")
         return True
 
     return False
