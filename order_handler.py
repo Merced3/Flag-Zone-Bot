@@ -532,10 +532,10 @@ def is_ema_broke(ema_type, symbol, timeframe):
 
     # Check conditions based on option type
     if close_price > latest_ema and open_price < latest_ema:
-        print(f"        [ORDER] {ema_type}ema Hit, Sell rest of call.")
+        print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call.")
         return True
     elif open_price > latest_ema and close_price < latest_ema:
-        print(f"        [ORDER] {ema_type}ema Hit, Sell rest of put.")
+        print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put.")
         return True
 
     return False
