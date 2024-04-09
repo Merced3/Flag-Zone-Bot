@@ -406,6 +406,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                     # Identify last sell target in list, lets keep it simple for now
                     is_runner = (i == len(sell_points) - 1)
                     print(f"        [ORDER] sell_points: {is_runner}")
+
                     if current_bid_price >= sell_point and not already_sold and not is_runner:
                         sell_quantity = min(sell_quantities[order_quantity][i], remaining_quantity)
 
