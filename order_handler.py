@@ -399,14 +399,15 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
 
                 #this handles the sell targets
                 for i, sell_point in enumerate(sell_points):
-                    # Print the current bid price at the start of each loop iteration
-                    print(f"        [ORDER] Current bid price: {current_bid_price}")
-
                     # Determine if this sell target has already been hit
                     already_sold = any(sale['target'] == sell_point for sale in partial_exits)
                     
-                    # Identify if the current sell point is the last one, indicating a potential runner
-                    is_runner = (i == len(sell_points) - 1)
+                    # Check if all previous sell points (if any) have been sold
+                    # This is True if for all sell points before the current one, there exists a corresponding sale in partial_exits
+                    all_previous_sold = all(any(sale['target'] == sp for sale in partial_exits) for sp in sell_points[:i])
+                    
+                    # Identify if the current sell point is the last one, and all previous sell points have been sold
+                    is_runner = (i == len(sell_points) - 1) and all_previous_sold
                     
                     # Detailed evaluation prints
                     print(f"        [ORDER] Evaluating sell point: {sell_point}, Index: {i}")

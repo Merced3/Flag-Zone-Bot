@@ -183,8 +183,85 @@ async def execute_trading_strategy(zones):
                         has_calculated_emas = False
 
                     #Handle the zones
-                    for box_name, (count, high_low_of_day, buffer) in zones.items(): 
-                        # More code...
+                    for box_name, (x_pos, high_low_of_day, buffer) in zones.items(): 
+                        # Determine zone type
+                        zone_type = "support" if "support" in box_name else "resistance" if "resistance" in box_name else "PDHL"
+                        PDH_or_PDL = high_low_of_day  # PDH for resistance, PDL for support
+                        box_top = PDH_or_PDL if zone_type in ["resistance", "PDHL"] else buffer  # PDH or Buffer as top for resistance/PDHL
+                        box_bottom = buffer if zone_type in ["resistance", "PDHL"] else PDH_or_PDL  # Buffer as bottom for resistance/PDHL
+                        check_is_in_another_zone = False
+                        # Check if the candle shoots through the zone
+                        if candle['open'] < box_bottom:
+                            if candle['close'] > box_top:
+                                # Candle shoots up through the zone
+                                #END 1 was wrong, changed it to start.
+                                action = "[START 1]"
+                                check_is_in_another_zone = True
+                            elif box_bottom < candle['close'] < box_top:
+                                #went up, closed Inside of box
+                                action = '[END 2]'
+                            else:
+                                #seeing what happened if this occured
+                                action = '[START 3]'
+                        elif candle['open'] > box_top:
+                            if candle['close'] < box_bottom:
+                                # Candle shoots down through the zone
+                                action = "[START 4]"
+                                check_is_in_another_zone = True
+                            elif box_top > candle['close'] > box_bottom:
+                                #went down, closed Inside of box
+                                action = "[END 5]"
+                            else:
+                                #seeing what happened if this occured
+                                action = '[START 6]'
+                        elif candle['close'] > box_top and candle['open'] <= box_top:
+                            # Candle closes above the zone, potentially starting an upward trend
+                            action = "[START 7]" # CALLS
+                        elif candle['close'] < box_bottom and candle['open'] >= box_bottom:
+                            # Candle closes below the zone, potentially starting a downward trend
+                            action = "[START 8]" # PUTS
+                        else:
+                            print("    [INFO] action is none")
+                            action = None
+                        
+                        if check_is_in_another_zone:
+                            # Additional checks to refine action based on closing inside any other zone
+                            for other_box_name, (_, other_high_low_of_day, other_buffer) in zones.items():
+                                if other_box_name != box_name:  # Ensure we're not checking the same zone
+                                    other_box_top = other_high_low_of_day if "resistance" in other_box_name or "PDHL" in other_box_name else other_buffer
+                                    other_box_bottom = other_buffer if "resistance" in other_box_name or "PDHL" in other_box_name else other_high_low_of_day
+                                    
+                                    # Check if the candle closed inside this other zone
+                                    if other_box_bottom <= candle['close'] <= other_box_top:
+                                        # Modify action to [END #] since we closed inside of another zone
+                                        action = "[END 9]"
+                                        print(f"    [MODIFIED ACTION] Candle closed inside another zone ({other_box_name}), changing action to {action}.")
+                                        break  # Exit the loop since we've found a zone that modifies the action
+
+                        if action:
+                            print(f"    {action} Recording Priority Candles; type = {box_name}")
+                            #havent_cleared = True if "START" in action else False
+                            
+                            # Determine candle_type based on zone interaction
+                            if zone_type in ["support", "PDHL"] and candle['close'] > box_top and candle['open'] <= box_top:
+                                # Candle closes above the zone, potentially starting an upward trend from within the zone
+                                candle_type = "Buffer"  # For support zones, closing above buffer indicates moving away from PDL
+                            elif zone_type == "resistance" and candle['close'] < box_bottom and candle['open'] >= box_bottom:
+                                # Candle closes below the zone, potentially starting a downward trend from within the zone
+                                candle_type = "Buffer"  # For resistance zones, closing below buffer indicates moving away from PDH
+                            elif candle['close'] <= box_top and candle['open'] >= box_bottom:
+                                # Candle is within the zone, indicating potential action at PDH/PDL depending on zone type
+                                candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "PDL"
+                            else:
+                                # For other scenarios, default to the most significant zone boundary interaction
+                                candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "PDL"
+                            
+                            what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
+                            print(f"    [INFO] what_type_of_candle = {what_type_of_candle}; havent_cleared = {havent_cleared}")
+
+
+
+                        """
                         if "support" in box_name:
                             PDL = high_low_of_day #Previous Day Low
                             # if price goes back into zone, then stop recording candles and delete the data in priority_candles.json
@@ -203,7 +280,7 @@ async def execute_trading_strategy(zones):
                             elif candle['open'] <= PDL and candle['close'] >= PDL:
                                 print(f"    [END 4] Recording Priority Candles; type = {what_type_of_candle}")
                                 what_type_of_candle = None
-                              
+
                         elif ("resistance" in box_name) or ("PDHL" in box_name):
                             PDH = high_low_of_day #Previous Day High
                             if candle['open'] >= buffer and candle['close'] <= buffer:
@@ -221,6 +298,9 @@ async def execute_trading_strategy(zones):
                             elif candle['open'] >= PDH and candle['close'] <= PDH:
                                 print(f"    [END 8] Recording Priority Candles; type = {what_type_of_candle}")
                                 what_type_of_candle = None
+                        """                   
+                    
+                    # i want to keep this
                     if what_type_of_candle is not None:
                         #record the candle data
                         await record_priority_candle(candle, what_type_of_candle)
@@ -844,6 +924,11 @@ async def record_priority_candle(candle, type_candles, json_file='priority_candl
     try:
         with open(json_file, 'r') as file:
             candles_data = json.load(file)
+        # Check if 'type' of the last candle exists and does not equal 'type_candles'
+        if candles_data and candles_data[-1]['type'] != type_candles:
+            # If the types don't match, clear the priority candles
+            clear_priority_candles(True, type_candles, json_file)
+            candles_data = []  # Reset candles_data to be an empty list after clearing
     except (FileNotFoundError, json.JSONDecodeError):
         candles_data = []
 
