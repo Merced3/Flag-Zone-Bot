@@ -1,11 +1,539 @@
 {
-    "current_high": null,
-    "highest_point": null,
-    "lower_highs": [],
-    "current_low": null,
-    "lowest_point": null,
-    "higher_lows": [],
-    "slope": null,
-    "intercept": null,
-    "previous_candles": []
+    "current_high": 519.48,
+    "highest_point": [
+        153,
+        519.48
+    ],
+    "lower_highs": [
+        [
+            159,
+            518.97
+        ],
+        [
+            166,
+            519.23
+        ],
+        [
+            161,
+            518.97
+        ],
+        [
+            174,
+            519.01
+        ],
+        [
+            179,
+            518.99
+        ],
+        [
+            187,
+            519.09
+        ],
+        [
+            154,
+            519.41
+        ],
+        [
+            177,
+            519.0
+        ],
+        [
+            158,
+            519.04
+        ],
+        [
+            169,
+            518.95
+        ],
+        [
+            165,
+            519.09
+        ],
+        [
+            163,
+            519.01
+        ],
+        [
+            156,
+            519.26
+        ],
+        [
+            157,
+            519.1
+        ],
+        [
+            160,
+            518.92
+        ],
+        [
+            185,
+            519.355
+        ],
+        [
+            176,
+            519.055
+        ],
+        [
+            173,
+            518.8401
+        ],
+        [
+            186,
+            519.31
+        ],
+        [
+            178,
+            518.99
+        ],
+        [
+            190,
+            518.7599
+        ],
+        [
+            189,
+            518.715
+        ],
+        [
+            155,
+            519.39
+        ],
+        [
+            162,
+            518.97
+        ],
+        [
+            170,
+            518.83
+        ],
+        [
+            180,
+            518.99
+        ],
+        [
+            183,
+            519.12
+        ],
+        [
+            181,
+            518.95
+        ],
+        [
+            172,
+            518.9
+        ],
+        [
+            168,
+            519.16
+        ],
+        [
+            164,
+            518.865
+        ],
+        [
+            171,
+            518.785
+        ],
+        [
+            188,
+            518.82
+        ],
+        [
+            191,
+            518.68
+        ],
+        [
+            175,
+            518.99
+        ],
+        [
+            167,
+            519.1999
+        ],
+        [
+            182,
+            518.96
+        ],
+        [
+            184,
+            519.105
+        ]
+    ],
+    "current_low": 515.7,
+    "lowest_point": [
+        105,
+        515.7
+    ],
+    "higher_lows": [
+        [
+            108,
+            516.5275
+        ],
+        [
+            107,
+            516.47
+        ],
+        [
+            128,
+            517.69
+        ],
+        [
+            106,
+            516.19
+        ]
+    ],
+    "slope": 0.27583333333332877,
+    "intercept": 486.7375000000005,
+    "previous_candles": [
+        {
+            "open": 519.45,
+            "high": 519.48,
+            "low": 519.18,
+            "close": 519.25,
+            "timestamp": "2024-04-11T13:42:00.095035",
+            "type": "support_2 Buffer",
+            "candle_index": 153
+        },
+        {
+            "open": 519.26,
+            "high": 519.41,
+            "low": 519.21,
+            "close": 519.395,
+            "timestamp": "2024-04-11T13:44:00.058588",
+            "type": "support_2 Buffer",
+            "candle_index": 154
+        },
+        {
+            "open": 519.39,
+            "high": 519.39,
+            "low": 519.07,
+            "close": 519.09,
+            "timestamp": "2024-04-11T13:46:00.056244",
+            "type": "support_2 Buffer",
+            "candle_index": 155
+        },
+        {
+            "open": 519.11,
+            "high": 519.26,
+            "low": 518.99,
+            "close": 519.08,
+            "timestamp": "2024-04-11T13:48:00.172966",
+            "type": "support_2 Buffer",
+            "candle_index": 156
+        },
+        {
+            "open": 519.08,
+            "high": 519.1,
+            "low": 518.835,
+            "close": 518.975,
+            "timestamp": "2024-04-11T13:50:00.016277",
+            "type": "support_2 Buffer",
+            "candle_index": 157
+        },
+        {
+            "open": 518.9421,
+            "high": 519.04,
+            "low": 518.88,
+            "close": 518.97,
+            "timestamp": "2024-04-11T13:52:00.055304",
+            "type": "support_2 Buffer",
+            "candle_index": 158
+        },
+        {
+            "open": 518.97,
+            "high": 518.97,
+            "low": 518.55,
+            "close": 518.64,
+            "timestamp": "2024-04-11T13:54:00.108667",
+            "type": "support_2 Buffer",
+            "candle_index": 159
+        },
+        {
+            "open": 518.62,
+            "high": 518.92,
+            "low": 518.6,
+            "close": 518.87,
+            "timestamp": "2024-04-11T13:56:00.029071",
+            "type": "support_2 Buffer",
+            "candle_index": 160
+        },
+        {
+            "open": 518.87,
+            "high": 518.97,
+            "low": 518.78,
+            "close": 518.955,
+            "timestamp": "2024-04-11T13:58:00.109773",
+            "type": "support_2 Buffer",
+            "candle_index": 161
+        },
+        {
+            "open": 518.96,
+            "high": 518.97,
+            "low": 518.689,
+            "close": 518.69,
+            "timestamp": "2024-04-11T14:00:00.124487",
+            "type": "support_2 Buffer",
+            "candle_index": 162
+        },
+        {
+            "open": 518.73,
+            "high": 519.01,
+            "low": 518.69,
+            "close": 518.73,
+            "timestamp": "2024-04-11T14:02:00.529346",
+            "type": "support_2 Buffer",
+            "candle_index": 163
+        },
+        {
+            "open": 518.73,
+            "high": 518.865,
+            "low": 518.68,
+            "close": 518.865,
+            "timestamp": "2024-04-11T14:04:00.090486",
+            "type": "support_2 Buffer",
+            "candle_index": 164
+        },
+        {
+            "open": 518.865,
+            "high": 519.09,
+            "low": 518.725,
+            "close": 519.08,
+            "timestamp": "2024-04-11T14:06:00.029572",
+            "type": "support_2 Buffer",
+            "candle_index": 165
+        },
+        {
+            "open": 519.08,
+            "high": 519.23,
+            "low": 518.99,
+            "close": 519.18,
+            "timestamp": "2024-04-11T14:08:00.098880",
+            "type": "support_2 Buffer",
+            "candle_index": 166
+        },
+        {
+            "open": 519.18,
+            "high": 519.1999,
+            "low": 518.97,
+            "close": 519.015,
+            "timestamp": "2024-04-11T14:10:00.030122",
+            "type": "support_2 Buffer",
+            "candle_index": 167
+        },
+        {
+            "open": 519.015,
+            "high": 519.16,
+            "low": 518.9201,
+            "close": 518.9299,
+            "timestamp": "2024-04-11T14:12:00.204923",
+            "type": "support_2 Buffer",
+            "candle_index": 168
+        },
+        {
+            "open": 518.9432,
+            "high": 518.95,
+            "low": 518.76,
+            "close": 518.795,
+            "timestamp": "2024-04-11T14:14:00.587252",
+            "type": "support_2 Buffer",
+            "candle_index": 169
+        },
+        {
+            "open": 518.795,
+            "high": 518.83,
+            "low": 518.51,
+            "close": 518.59,
+            "timestamp": "2024-04-11T14:16:00.103941",
+            "type": "support_2 Buffer",
+            "candle_index": 170
+        },
+        {
+            "open": 518.59,
+            "high": 518.785,
+            "low": 518.53,
+            "close": 518.78,
+            "timestamp": "2024-04-11T14:18:00.005386",
+            "type": "support_2 Buffer",
+            "candle_index": 171
+        },
+        {
+            "open": 518.78,
+            "high": 518.9,
+            "low": 518.58,
+            "close": 518.63,
+            "timestamp": "2024-04-11T14:20:00.035708",
+            "type": "support_2 Buffer",
+            "candle_index": 172
+        },
+        {
+            "open": 518.66,
+            "high": 518.8401,
+            "low": 518.545,
+            "close": 518.775,
+            "timestamp": "2024-04-11T14:22:00.480129",
+            "type": "support_2 Buffer",
+            "candle_index": 173
+        },
+        {
+            "open": 518.78,
+            "high": 519.01,
+            "low": 518.78,
+            "close": 518.86,
+            "timestamp": "2024-04-11T14:24:00.984431",
+            "type": "support_2 Buffer",
+            "candle_index": 174
+        },
+        {
+            "open": 518.84,
+            "high": 518.99,
+            "low": 518.78,
+            "close": 518.94,
+            "timestamp": "2024-04-11T14:26:00.492202",
+            "type": "support_2 Buffer",
+            "candle_index": 175
+        },
+        {
+            "open": 518.9401,
+            "high": 519.055,
+            "low": 518.72,
+            "close": 518.75,
+            "timestamp": "2024-04-11T14:28:00.195599",
+            "type": "support_2 Buffer",
+            "candle_index": 176
+        },
+        {
+            "open": 518.75,
+            "high": 519.0,
+            "low": 518.725,
+            "close": 518.88,
+            "timestamp": "2024-04-11T14:30:00.156853",
+            "type": "support_2 Buffer",
+            "candle_index": 177
+        },
+        {
+            "open": 518.86,
+            "high": 518.99,
+            "low": 518.75,
+            "close": 518.96,
+            "timestamp": "2024-04-11T14:32:00.102797",
+            "type": "support_2 Buffer",
+            "candle_index": 178
+        },
+        {
+            "open": 518.97,
+            "high": 518.99,
+            "low": 518.71,
+            "close": 518.78,
+            "timestamp": "2024-04-11T14:34:00.191744",
+            "type": "support_2 Buffer",
+            "candle_index": 179
+        },
+        {
+            "open": 518.79,
+            "high": 518.99,
+            "low": 518.79,
+            "close": 518.91,
+            "timestamp": "2024-04-11T14:36:00.539878",
+            "type": "support_2 Buffer",
+            "candle_index": 180
+        },
+        {
+            "open": 518.91,
+            "high": 518.95,
+            "low": 518.82,
+            "close": 518.85,
+            "timestamp": "2024-04-11T14:38:00.080496",
+            "type": "support_2 Buffer",
+            "candle_index": 181
+        },
+        {
+            "open": 518.8725,
+            "high": 518.96,
+            "low": 518.815,
+            "close": 518.9301,
+            "timestamp": "2024-04-11T14:40:00.202203",
+            "type": "support_2 Buffer",
+            "candle_index": 182
+        },
+        {
+            "open": 518.935,
+            "high": 519.12,
+            "low": 518.935,
+            "close": 519.09,
+            "timestamp": "2024-04-11T14:42:00.374278",
+            "type": "support_2 Buffer",
+            "candle_index": 183
+        },
+        {
+            "open": 519.09,
+            "high": 519.105,
+            "low": 518.88,
+            "close": 519.005,
+            "timestamp": "2024-04-11T14:44:00.100257",
+            "type": "support_2 Buffer",
+            "candle_index": 184
+        },
+        {
+            "open": 519.005,
+            "high": 519.355,
+            "low": 518.99,
+            "close": 519.2901,
+            "timestamp": "2024-04-11T14:46:00.094625",
+            "type": "support_2 Buffer",
+            "candle_index": 185
+        },
+        {
+            "open": 519.2901,
+            "high": 519.31,
+            "low": 519.07,
+            "close": 519.075,
+            "timestamp": "2024-04-11T14:48:00.199447",
+            "type": "support_2 Buffer",
+            "candle_index": 186
+        },
+        {
+            "open": 519.0778,
+            "high": 519.09,
+            "low": 518.74,
+            "close": 518.74,
+            "timestamp": "2024-04-11T14:50:00.883913",
+            "type": "support_2 Buffer",
+            "candle_index": 187
+        },
+        {
+            "open": 518.74,
+            "high": 518.82,
+            "low": 518.4,
+            "close": 518.71,
+            "timestamp": "2024-04-11T14:52:00.058557",
+            "type": "support_2 Buffer",
+            "candle_index": 188
+        },
+        {
+            "open": 518.71,
+            "high": 518.715,
+            "low": 518.47,
+            "close": 518.56,
+            "timestamp": "2024-04-11T14:54:00.010052",
+            "type": "support_2 Buffer",
+            "candle_index": 189
+        },
+        {
+            "open": 518.58,
+            "high": 518.7599,
+            "low": 518.5,
+            "close": 518.64,
+            "timestamp": "2024-04-11T14:56:00.073025",
+            "type": "support_2 Buffer",
+            "candle_index": 190
+        },
+        {
+            "open": 518.645,
+            "high": 518.68,
+            "low": 518.425,
+            "close": 518.565,
+            "timestamp": "2024-04-11T14:58:00.064740",
+            "type": "support_2 Buffer",
+            "candle_index": 191
+        }
+    ]
 }
