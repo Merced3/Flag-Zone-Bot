@@ -196,7 +196,8 @@ async def execute_trading_strategy(zones):
                             if candle['close'] > box_top:
                                 # Candle shoots up through the zone
                                 #END 1 was wrong, changed it to start.
-                                action = "[START 1]"
+                                action = "[START 1]" # CALLS
+                                candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
                                 check_is_in_another_zone = True
                             elif box_bottom < candle['close'] < box_top:
                                 #went up, closed Inside of box
@@ -204,7 +205,8 @@ async def execute_trading_strategy(zones):
                         elif candle['open'] > box_top:
                             if candle['close'] < box_bottom:
                                 # Candle shoots down through the zone
-                                action = "[START 4]"
+                                action = "[START 4]" # PUTS
+                                candle_type = "PDL" if zone_type in ["support", "PDHL"] else "Buffer" #buffer if resistance
                                 check_is_in_another_zone = True
                             elif box_top > candle['close'] > box_bottom:
                                 #went down, closed Inside of box
@@ -212,9 +214,12 @@ async def execute_trading_strategy(zones):
                         elif candle['close'] > box_top and candle['open'] <= box_top:
                             # Candle closes above the zone, potentially starting an upward trend
                             action = "[START 7]" # CALLS
+                            candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
+                            candle_type = "PDH"
                         elif candle['close'] < box_bottom and candle['open'] >= box_bottom:
                             # Candle closes below the zone, potentially starting a downward trend
                             action = "[START 8]" # PUTS
+                            candle_type = "PDL" if zone_type in ["support", "PDHL"] else "Buffer" #buffer if resistance
                         
                         if check_is_in_another_zone:
                             # Additional checks to refine action based on closing inside any other zone
@@ -229,11 +234,15 @@ async def execute_trading_strategy(zones):
                                         action = "[END 9]"
                                         print(f"    [MODIFIED ACTION] Candle closed inside another zone ({other_box_name}), changing action to {action}.")
                                         break  # Exit the loop since we've found a zone that modifies the action
-
+                        if action:
+                            what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
+                            print(f"    [INFO] what_type_of_candle = {what_type_of_candle}; havent_cleared = {havent_cleared}")
+                        
+                        """
                         if action:
                             print(f"    {action} Recording Priority Candles; type = {box_name}")
                             havent_cleared = True# if "START" in action else False
-                            
+                            #TODO: 
                             # Determine candle_type based on zone interaction
                             if zone_type in ["support", "PDHL"] and candle['close'] > box_top and candle['open'] <= box_top:
                                 # Candle closes above the zone, potentially starting an upward trend from within the zone
@@ -241,7 +250,7 @@ async def execute_trading_strategy(zones):
                             elif zone_type == "resistance" and candle['close'] < box_bottom and candle['open'] >= box_bottom:
                                 # Candle closes below the zone, potentially starting a downward trend from within the zone
                                 candle_type = "Buffer"  # For resistance zones, closing below buffer indicates moving away from PDH
-                            elif candle['close'] <= box_top and candle['open'] >= box_bottom:
+                            elif candle['close'] < box_top and candle['open'] >= box_bottom:
                                 # Candle is within the zone, indicating potential action at PDH/PDL depending on zone type
                                 candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "PDL"
                             else:
@@ -250,13 +259,10 @@ async def execute_trading_strategy(zones):
                             
                             what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
                             print(f"    [INFO] what_type_of_candle = {what_type_of_candle}; havent_cleared = {havent_cleared}")
-                        #else:
+                        else:
                             #TODO: Delete this once done developement.
-                            #print(f"    [INFO] action: {action}; check_is_in_another_zone: {check_is_in_another_zone}; {box_name};")
+                            print(f"    [INFO] action: {action}; check_is_in_another_zone: {check_is_in_another_zone}; {box_name};")
 
-
-
-                        """
                         if "support" in box_name:
                             PDL = high_low_of_day #Previous Day Low
                             # if price goes back into zone, then stop recording candles and delete the data in priority_candles.json
