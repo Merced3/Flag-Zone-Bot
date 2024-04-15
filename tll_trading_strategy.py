@@ -215,7 +215,6 @@ async def execute_trading_strategy(zones):
                             # Candle closes above the zone, potentially starting an upward trend
                             action = "[START 7]" # CALLS
                             candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
-                            candle_type = "PDH"
                         elif candle['close'] < box_bottom and candle['open'] >= box_bottom:
                             # Candle closes below the zone, potentially starting a downward trend
                             action = "[START 8]" # PUTS
@@ -236,7 +235,7 @@ async def execute_trading_strategy(zones):
                                         break  # Exit the loop since we've found a zone that modifies the action
                         if action:
                             what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
-                            print(f"    [INFO] what_type_of_candle = {what_type_of_candle}; havent_cleared = {havent_cleared}")
+                            print(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}; havent_cleared = {havent_cleared}")
                         
                         """
                         if action:
@@ -396,7 +395,7 @@ async def identify_flag(candle, num_flags, session, headers):
                 line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, breakout_type='bullish'
             )
     
-    elif ('support' in candle['type'] and 'PDL' in candle['type']) or ('resistance' in candle['type'] and 'Buffer' in candle['type']) or ('PDHL Buffer' in candle['type']):
+    elif ('support' in candle['type'] and 'PDL' in candle['type']) or ('resistance' in candle['type'] and 'Buffer' in candle['type']) or ('PDHL PDL' in candle['type']):
         #now Lets work on Bear Candles, instead of Higher highs we will be looking at lower lows
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high

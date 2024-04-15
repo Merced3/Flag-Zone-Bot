@@ -410,6 +410,8 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                     is_runner = (i == len(sell_points) - 1) and all_previous_sold
                     
                     # Detailed evaluation prints
+                    #TODO: Put in log file instead of flooding terminal.
+                    print(f"        [ORDER] Bid Price: {current_bid_price}")
                     print(f"        [ORDER] Evaluating sell point: {sell_point}, Index: {i}")
                     print(f"        [ORDER] already_sold: {already_sold}")
                     print(f"        [ORDER] Runner condition met: {is_runner}, Sell point index: {i}, Total sell points: {len(sell_points)}")
