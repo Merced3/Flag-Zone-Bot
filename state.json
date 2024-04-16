@@ -1,206 +1,65 @@
 {
-    "current_high": 506.49,
-    "highest_point": [
-        154,
-        506.49
-    ],
-    "lower_highs": [
-        [
-            155,
-            506.12
-        ],
-        [
-            156,
-            506.0
-        ]
-    ],
-    "current_low": 503.585,
+    "current_high": null,
+    "highest_point": null,
+    "lower_highs": [],
+    "current_low": 502.27,
     "lowest_point": [
-        174,
-        503.585
+        121,
+        502.27
     ],
     "higher_lows": [
         [
-            178,
-            504.39
+            129,
+            503.35
         ],
         [
-            177,
-            504.52
+            146,
+            502.8199
         ],
         [
-            183,
-            504.502
+            130,
+            503.04
         ],
         [
-            182,
-            504.73
+            135,
+            503.49
         ],
         [
-            188,
-            504.295
+            151,
+            503.0201
         ],
         [
-            186,
-            504.28
+            145,
+            502.61
         ],
         [
-            191,
-            504.635
+            148,
+            503.11
         ],
         [
-            190,
-            504.67
+            131,
+            502.64
         ],
         [
-            187,
-            504.26
+            150,
+            502.99
         ],
         [
-            175,
-            503.67
-        ],
-        [
-            176,
-            504.35
-        ],
-        [
-            185,
-            504.475
-        ],
-        [
-            179,
-            504.185
+            149,
+            502.7
         ]
     ],
-    "slope": -0.24500000000000455,
-    "intercept": 544.2200000000007,
+    "slope": 0.037499999999999055,
+    "intercept": 501.19250000000005,
     "previous_candles": [
         {
-            "open": 503.81,
-            "high": 503.83,
-            "low": 503.585,
-            "close": 503.67,
-            "timestamp": "2024-04-15T14:20:00.037535",
-            "type": "support_27 PDL",
-            "candle_index": 174
-        },
-        {
-            "open": 503.67,
-            "high": 504.53,
-            "low": 503.67,
-            "close": 504.52,
-            "timestamp": "2024-04-15T14:22:00.424603",
-            "type": "support_27 PDL",
-            "candle_index": 175
-        },
-        {
-            "open": 504.53,
-            "high": 504.67,
-            "low": 504.35,
-            "close": 504.67,
-            "timestamp": "2024-04-15T14:24:00.079899",
-            "type": "support_27 PDL",
-            "candle_index": 176
-        },
-        {
-            "open": 504.79,
-            "high": 504.845,
-            "low": 504.52,
-            "close": 504.75,
-            "timestamp": "2024-04-15T14:26:00.679084",
-            "type": "support_27 PDL",
-            "candle_index": 177
-        },
-        {
-            "open": 504.75,
-            "high": 504.755,
-            "low": 504.39,
-            "close": 504.51,
-            "timestamp": "2024-04-15T14:28:00.930797",
-            "type": "support_27 PDL",
-            "candle_index": 178
-        },
-        {
-            "open": 504.51,
-            "high": 504.55,
-            "low": 504.185,
-            "close": 504.31,
-            "timestamp": "2024-04-15T14:30:00.844740",
-            "type": "support_27 PDL",
-            "candle_index": 179
-        },
-        {
-            "open": 504.93,
-            "high": 505.06,
-            "low": 504.73,
-            "close": 504.88,
-            "timestamp": "2024-04-15T14:36:00.963167",
-            "type": "support_27 PDL",
-            "candle_index": 182
-        },
-        {
-            "open": 504.895,
-            "high": 505.01,
-            "low": 504.502,
-            "close": 504.535,
-            "timestamp": "2024-04-15T14:38:00.606937",
-            "type": "support_27 PDL",
-            "candle_index": 183
-        },
-        {
-            "open": 504.955,
-            "high": 505.02,
-            "low": 504.475,
-            "close": 504.52,
-            "timestamp": "2024-04-15T14:42:00.677740",
-            "type": "support_27 PDL",
-            "candle_index": 185
-        },
-        {
-            "open": 504.51,
-            "high": 504.71,
-            "low": 504.28,
-            "close": 504.565,
-            "timestamp": "2024-04-15T14:44:00.080364",
-            "type": "support_27 PDL",
-            "candle_index": 186
-        },
-        {
-            "open": 504.57,
-            "high": 504.58,
-            "low": 504.26,
-            "close": 504.57,
-            "timestamp": "2024-04-15T14:46:00.936202",
-            "type": "support_27 PDL",
-            "candle_index": 187
-        },
-        {
-            "open": 504.58,
-            "high": 504.62,
-            "low": 504.295,
-            "close": 504.415,
-            "timestamp": "2024-04-15T14:48:00.234539",
-            "type": "support_27 PDL",
-            "candle_index": 188
-        },
-        {
-            "open": 505.16,
-            "high": 505.22,
-            "low": 504.67,
-            "close": 504.88,
-            "timestamp": "2024-04-15T14:52:00.024353",
-            "type": "support_27 PDL",
-            "candle_index": 190
-        },
-        {
-            "open": 504.89,
-            "high": 505.0989,
-            "low": 504.635,
-            "close": 504.7499,
-            "timestamp": "2024-04-15T14:54:00.013841",
-            "type": "support_27 PDL",
-            "candle_index": 191
+            "open": 503.235,
+            "high": 503.43,
+            "low": 503.0201,
+            "close": 503.33,
+            "timestamp": "2024-04-16T13:34:00.137439",
+            "type": "PDHL PDL",
+            "candle_index": 151
         }
     ]
 }
