@@ -510,6 +510,7 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
         with open("EMAs.json", "r") as file:
             emas = json.load(file)
             latest_ema = emas[-1][ema_type]  # Assuming 'ema_type' is a string like "13", "48", or "200"
+            index_ema = emas[-1]['x']
     except FileNotFoundError:
         print("EMAs.json file not found.")
         return False
@@ -522,6 +523,7 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
     try:
         with open(filepath, "r") as file:
             lines = file.readlines()
+            index_candle = len(lines) - 1
             latest_candle = json.loads(lines[-1])
     except FileNotFoundError:
         print(f"{symbol}_{timeframe}.log file not found.")
@@ -531,18 +533,22 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
         return False
     
     #TODO: check if last ema index matches with candle index, we don't want it to get mixed up
-    #if 
-
-    open_price = latest_candle["open"]
-    close_price = latest_candle["close"]
+    print(f"        [EMA TESTING] candle: {index_candle}; ema: {index_ema}.")
+    if index_candle == index_ema:
+        open_price = latest_candle["open"]
+        close_price = latest_candle["close"]
+    else:
+        open_price = None
+        close_price = None  
 
     # Check conditions based on option type
-    if cp == 'call' and latest_ema > close_price: #close_price > latest_ema and open_price < latest_ema:
-        print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call. [OC]: {open_price}, {close_price}; [Last EMA]: {latest_ema}")
-        return True
-    elif cp == 'put' and latest_ema :#(open_price > latest_ema and close_price < latest_ema):
-        print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put. [OC]: {open_price}, {close_price}; [Last EMA]: {latest_ema}")
-        return True
+    if open_price and close_price:
+        if cp == 'call' and latest_ema > close_price: #close_price > latest_ema and open_price < latest_ema:
+            print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call. [CLOSE]: {close_price}; [Last EMA]: {latest_ema}; [OPEN]: {open_price}")
+            return True
+        elif cp == 'put' and latest_ema < close_price:
+            print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put. [OPEN]: {open_price}; [EMA {ema_type}]: {latest_ema}; [CLOSE] {close_price}")
+            return True
 
     return False
 
