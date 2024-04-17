@@ -477,7 +477,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                             break
                     elif is_runner:
                         print(f"        [RUNNER DETECTED] Preparing to check runner conditions for sell point {sell_point}")
-                        if is_ema_broke("13", SYMBOL, TIMEFRAMES[0]):
+                        if is_ema_broke("13", SYMBOL, TIMEFRAMES[0], option_type):
                             await sell_rest_of_active_order(message_ids_dict, "13ema Hit")
                         
                 
@@ -504,7 +504,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                     print("Maximum retry attempts reached. Exiting the loop.")
                     break
 
-def is_ema_broke(ema_type, symbol, timeframe):
+def is_ema_broke(ema_type, symbol, timeframe, cp):
     # Load the latest EMA values
     try:
         with open("EMAs.json", "r") as file:
@@ -529,16 +529,19 @@ def is_ema_broke(ema_type, symbol, timeframe):
     except json.JSONDecodeError:
         print(f"Error decoding the last candle from {symbol}_{timeframe}.log")
         return False
+    
+    #TODO: check if last ema index matches with candle index, we don't want it to get mixed up
+    #if 
 
     open_price = latest_candle["open"]
     close_price = latest_candle["close"]
 
     # Check conditions based on option type
-    if close_price > latest_ema and open_price < latest_ema:
-        print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call.")
+    if cp == 'call' and latest_ema > close_price: #close_price > latest_ema and open_price < latest_ema:
+        print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call. [OC]: {open_price}, {close_price}; [Last EMA]: {latest_ema}")
         return True
-    elif open_price > latest_ema and close_price < latest_ema:
-        print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put.")
+    elif cp == 'put' and latest_ema :#(open_price > latest_ema and close_price < latest_ema):
+        print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put. [OC]: {open_price}, {close_price}; [Last EMA]: {latest_ema}")
         return True
 
     return False
