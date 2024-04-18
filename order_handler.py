@@ -389,14 +389,14 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                                 #log_file.flush()  # Ensure the data is written to the file
 
                 # Check for stop loss condition
-                if isinstance(STOP_LOSS_PERCENTAGE, str):
+                if isinstance(STOP_LOSS_PERCENTAGE, str): # if STOP_LOSS_PERCENTAGE is string
                     # Handling string type STOP_LOSS_PERCENTAGE, e.g., "EMA 13"
                     if "EMA" in STOP_LOSS_PERCENTAGE:
-                        ema_value = STOP_LOSS_PERCENTAGE.split()[-1]
+                        ema_value = STOP_LOSS_PERCENTAGE.split(' ')[-1]
                         if is_ema_broke(ema_value, SYMBOL, TIMEFRAMES[0], option_type):
                                 await sell_rest_of_active_order(message_ids_dict, "13ema Trailing stop Hit")
                                 break
-                elif isinstance(STOP_LOSS_PERCENTAGE, (int, float)):
+                elif isinstance(STOP_LOSS_PERCENTAGE, (int, float)): # if STOP_LOSS_PERCENTAGE is number
                     if current_bid_price is not None and buy_entry_price is not None:
                         current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
                         if current_loss_percentage <= STOP_LOSS_PERCENTAGE:
