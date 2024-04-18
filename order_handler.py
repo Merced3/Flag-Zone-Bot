@@ -424,14 +424,6 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                     
                     # Identify if the current sell point is the last one, and all previous sell points have been sold
                     is_runner = (i == len(sell_points) - 1) and all_previous_sold
-                    
-                    # Detailed evaluation prints
-                    #TODO: Put in log file instead of flooding terminal.
-                    print(f"        [ORDER] Bid Price: {current_bid_price}")
-                    print(f"        [ORDER] Evaluating sell point: {sell_point}, Index: {i}")
-                    print(f"        [ORDER] already_sold: {already_sold}")
-                    print(f"        [ORDER] Runner condition met: {is_runner}, Sell point index: {i}, Total sell points: {len(sell_points)}")
-                    print(f"        [ORDER] Sell quantities: {sell_quantities[order_quantity]}")
 
                     if current_bid_price >= sell_point and not already_sold and not is_runner:
                         print(f"        [SELL ACTION] Selling at sell point {sell_point}. Sell quantities: {sell_quantities[order_quantity][i]}")
