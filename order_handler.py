@@ -541,8 +541,6 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
         print(f"Error decoding the last candle from {symbol}_{timeframe}.log")
         return False
     
-    #TODO: check if last ema index matches with candle index, we don't want it to get mixed up
-    print(f"        [EMA TESTING] candle: {index_candle}; ema: {index_ema}.")
     if index_candle == index_ema:
         open_price = latest_candle["open"]
         close_price = latest_candle["close"]
