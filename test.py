@@ -4,6 +4,8 @@ from chart_visualization import plot_candles_and_boxes
 import chart_visualization
 from tll_trading_strategy import buy_option_cp, message_ids_dict, load_message_ids
 from print_discord_messages import bot, print_discord, get_message_content, send_file_discord
+from error_handler import error_log_and_discord_message
+from ema_strategy import execute_200ema_strategy
 import cred
 import asyncio
 import aiohttp
@@ -169,6 +171,14 @@ async def testing_Buys():
             await buy_option_cp(IS_REAL_MONEY, SYMBOL, "put", session, headers)
             await asyncio.sleep(5)
 
+async def main():
+    try:
+        while True:
+            await asyncio.gather(
+                execute_200ema_strategy()
+            )
+    except Exception as e:
+            await error_log_and_discord_message(e, "ema_strategy", "execute_200ema_strategy")
 
 
 if __name__ == "__main__":
@@ -176,7 +186,7 @@ if __name__ == "__main__":
     
     # Start the bot and the main coroutine
     loop.create_task(bot_start())
-    loop.create_task(simulation())
+    loop.create_task(main())
 
     try:
         loop.run_forever()

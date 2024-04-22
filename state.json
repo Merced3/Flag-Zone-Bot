@@ -1,11 +1,115 @@
 {
-    "current_high": null,
-    "highest_point": null,
-    "lower_highs": [],
-    "current_low": null,
-    "lowest_point": null,
-    "higher_lows": [],
-    "slope": null,
-    "intercept": null,
-    "previous_candles": []
+    "current_high": 502.0287,
+    "highest_point": [
+        144,
+        502.0287
+    ],
+    "lower_highs": [
+        [
+            188,
+            500.3
+        ],
+        [
+            187,
+            500.09
+        ],
+        [
+            189,
+            499.97
+        ],
+        [
+            185,
+            499.75
+        ],
+        [
+            186,
+            499.83
+        ],
+        [
+            184,
+            499.78
+        ]
+    ],
+    "current_low": 499.24,
+    "lowest_point": [
+        181,
+        499.24
+    ],
+    "higher_lows": [
+        [
+            182,
+            499.27
+        ],
+        [
+            183,
+            499.25
+        ]
+    ],
+    "slope": 0.045000000000015916,
+    "intercept": 495.4349999999977,
+    "previous_candles": [
+        {
+            "open": 499.4,
+            "high": 499.49,
+            "low": 499.25,
+            "close": 499.3,
+            "timestamp": "2024-04-22T14:40:00.286421",
+            "type": "support_3 PDL",
+            "candle_index": 183
+        },
+        {
+            "open": 499.3,
+            "high": 499.78,
+            "low": 499.19,
+            "close": 499.7,
+            "timestamp": "2024-04-22T14:42:00.063006",
+            "type": "PDHL PDH",
+            "candle_index": 184
+        },
+        {
+            "open": 499.7,
+            "high": 499.75,
+            "low": 499.4,
+            "close": 499.445,
+            "timestamp": "2024-04-22T14:44:00.016327",
+            "type": "PDHL PDH",
+            "candle_index": 185
+        },
+        {
+            "open": 499.445,
+            "high": 499.83,
+            "low": 499.445,
+            "close": 499.76,
+            "timestamp": "2024-04-22T14:46:00.069854",
+            "type": "PDHL PDH",
+            "candle_index": 186
+        },
+        {
+            "open": 499.76,
+            "high": 500.09,
+            "low": 499.73,
+            "close": 499.94,
+            "timestamp": "2024-04-22T14:48:00.072801",
+            "type": "PDHL PDH",
+            "candle_index": 187
+        },
+        {
+            "open": 499.92,
+            "high": 500.3,
+            "low": 499.8501,
+            "close": 500.0499,
+            "timestamp": "2024-04-22T14:50:00.344634",
+            "type": "PDHL PDH",
+            "candle_index": 188
+        },
+        {
+            "open": 499.97,
+            "high": 499.97,
+            "low": 499.61,
+            "close": 499.635,
+            "timestamp": "2024-04-22T14:52:00.174918",
+            "type": "PDHL PDH",
+            "candle_index": 189
+        }
+    ]
 }

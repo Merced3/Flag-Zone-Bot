@@ -3,19 +3,17 @@ import os
 import json
 import asyncio
 from datetime import datetime, timedelta, time
-from submit_order import find_what_to_buy, submit_option_order, submit_option_order_v2, get_order_status, get_expiration, calculate_quantity
-from order_handler import get_profit_loss_orders_list, get_unique_order_id_and_is_active, manage_active_order, sell_rest_of_active_order, manage_active_fake_order
-from print_discord_messages import print_discord
+from buy_option import buy_option_cp
+from order_handler import get_profit_loss_orders_list, sell_rest_of_active_order
 from error_handler import error_log_and_discord_message
-from data_acquisition import get_account_balance, add_markers, get_current_candle_index, calculate_save_EMAs, get_current_price, get_candle_data_and_merge, above_below_ema, load_json_df
+from data_acquisition import get_current_candle_index, calculate_save_EMAs, get_candle_data_and_merge, above_below_ema, load_json_df, read_last_n_lines, load_message_ids
 from pathlib import Path
-import pandas as pd
 import math
 import pytz
 import cred
 import aiohttp
 
-STRATEGY_NAME = "CASEY FLAG/ZONE STRAT" #"TEMPORAL LATTICE LEAP"
+STRATEGY_NAME = "CASEY FLAG/ZONE STRAT"
 
 STRATEGY_DESCRIPTION = """ """
 
@@ -48,47 +46,11 @@ active_order = {
 }
 
 last_processed_candle = None 
-
-MESSAGE_IDS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'message_ids.json')
-message_ids_dict = {}
-
-def load_message_ids():
-    if os.path.exists(MESSAGE_IDS_FILE_PATH):
-        with open(MESSAGE_IDS_FILE_PATH, 'r') as f:
-            try:
-                return json.load(f)
-            except json.JSONDecodeError:
-                return {}
-    else:
-        return {}
-
-def read_last_n_lines(file_path, n): #code from a previous ema tradegy, thought it may help. pls edit if need be.
-    # Ensure the logs directory exists
-    if not os.path.exists(LOGS_DIR):
-        os.makedirs(LOGS_DIR)
-
-    # Check if the file exists, if not, create an empty file
-    if not os.path.isfile(file_path):
-        with open(file_path, 'w') as file:
-            pass
-
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-        last_n_lines = lines[-n:]
-        return [json.loads(line.strip()) for line in last_n_lines]
     
 new_york_tz = pytz.timezone('America/New_York')
 
 MARKET_CLOSE = time(16, 0)
 MARKET_OPEN = time(9, 30)
-used_buying_power = {}
-
-def get_papertrade_BP():
-    #get every orders cost that is in USED_BUYING_POWER, calculate how much all of it added togther costs
-    all_order_costs = sum(used_buying_power.values())
-    current_balance = config["ACCOUNT_BALANCES"][0]
-    current_bp_left = current_balance - all_order_costs
-    return current_bp_left
 
 def get_market_open_time():
     today = datetime.now(new_york_tz).date()
@@ -236,70 +198,7 @@ async def execute_trading_strategy(zones):
                         if action:
                             what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
                             print(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}; havent_cleared = {havent_cleared}")
-                        
-                        """
-                        if action:
-                            print(f"    {action} Recording Priority Candles; type = {box_name}")
-                            havent_cleared = True# if "START" in action else False
-                            #TODO: 
-                            # Determine candle_type based on zone interaction
-                            if zone_type in ["support", "PDHL"] and candle['close'] > box_top and candle['open'] <= box_top:
-                                # Candle closes above the zone, potentially starting an upward trend from within the zone
-                                candle_type = "Buffer"  # For support zones, closing above buffer indicates moving away from PDL
-                            elif zone_type == "resistance" and candle['close'] < box_bottom and candle['open'] >= box_bottom:
-                                # Candle closes below the zone, potentially starting a downward trend from within the zone
-                                candle_type = "Buffer"  # For resistance zones, closing below buffer indicates moving away from PDH
-                            elif candle['close'] < box_top and candle['open'] >= box_bottom:
-                                # Candle is within the zone, indicating potential action at PDH/PDL depending on zone type
-                                candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "PDL"
-                            else:
-                                # For other scenarios, default to the most significant zone boundary interaction
-                                candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "PDL"
-                            
-                            what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
-                            print(f"    [INFO] what_type_of_candle = {what_type_of_candle}; havent_cleared = {havent_cleared}")
-                        else:
-                            #TODO: Delete this once done developement.
-                            print(f"    [INFO] action: {action}; check_is_in_another_zone: {check_is_in_another_zone}; {box_name};")
-
-                        if "support" in box_name:
-                            PDL = high_low_of_day #Previous Day Low
-                            # if price goes back into zone, then stop recording candles and delete the data in priority_candles.json
-                            if candle['open'] <= buffer and candle['close'] >= buffer: 
-                                what_type_of_candle = f"{box_name} Buffer"
-                                print(f"    [START 1] Recording SUPPORT Priority Candles; type = {what_type_of_candle}") #simulate recording data...
-                                havent_cleared = True
-                            elif candle['open'] >= buffer and candle['close'] <= buffer:
-                                print(f"    [END 2] Recording Priority Candles; type = {what_type_of_candle}")
-                                what_type_of_candle = None
-                                
-                            if candle['open'] >= PDL and candle['close'] <= PDL: 
-                                what_type_of_candle = f"{box_name} PDL"
-                                print(f"    [Start 3] Recording Priority Candles; type = {what_type_of_candle}")
-                                havent_cleared = True
-                            elif candle['open'] <= PDL and candle['close'] >= PDL:
-                                print(f"    [END 4] Recording Priority Candles; type = {what_type_of_candle}")
-                                what_type_of_candle = None
-
-                        elif ("resistance" in box_name) or ("PDHL" in box_name):
-                            PDH = high_low_of_day #Previous Day High
-                            if candle['open'] >= buffer and candle['close'] <= buffer:
-                                what_type_of_candle = f"{box_name} Buffer"
-                                print(f"    [START 5] Recording RESISTANCE Priority Candles; type = {what_type_of_candle}") #simulate recording data...
-                                havent_cleared = True
-                            elif candle['open'] <= buffer and candle['close'] >= buffer:
-                                print(f"    [END 6] Recording Priority Candles; type = {what_type_of_candle}")
-                                what_type_of_candle = None
-                            
-                            if candle['open'] <= PDH and candle['close'] >= PDH: 
-                                what_type_of_candle = f"{box_name} PDH"
-                                print(f"    [START 7] Recording RESISTANCE Priority Candles; type = {what_type_of_candle}")
-                                havent_cleared = True
-                            elif candle['open'] >= PDH and candle['close'] <= PDH:
-                                print(f"    [END 8] Recording Priority Candles; type = {what_type_of_candle}")
-                                what_type_of_candle = None
-                        """                   
-                    
+                
                     # i want to keep this
                     if what_type_of_candle is not None:
                         #record the candle data
@@ -657,7 +556,7 @@ async def handle_breakout_and_order(candle, trendline_y, line_name, point, sessi
     if condition_met and vp_1 and vp_2:
         action = 'call' if line_type == 'Bull' else 'put'
         print(f"    [ORDER CONFIRMED] Buy Signal ({action.upper()})")
-        await buy_option_cp(is_real_money, symbol, action, session, headers)
+        await buy_option_cp(is_real_money, symbol, action, session, headers, STRATEGY_NAME)
         update_line_data(line_name=line_name, line_type=line_type, status="complete")
         return True
     else:
@@ -809,108 +708,6 @@ def resolve_flags(json_file='line_data.json'):
     # Save the updated data back to the JSON file
     with open(line_data_path, 'w') as file:
         json.dump(updated_line_data, file, indent=4)
-
-#right now i have real_money_activated == false
-async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, headers):
-    # Extract previous option type from the unique_order_id
-    unique_order_id, current_order_active = get_unique_order_id_and_is_active()
-    prev_option_type = unique_order_id.split('-')[1] if unique_order_id else None
-
-    # Check if there's an active order of the same type
-    if current_order_active and prev_option_type == cp:
-        print(f"Canceling buy Order, same order type '{cp}' is already active.")
-        return
-    elif current_order_active and prev_option_type != cp:
-        # Sell the current active order if it's of a different type
-        await sell_rest_of_active_order(message_ids_dict, "Switching option type.")
-
-    try:
-        bid = None
-        side = "buy_to_open"
-        order_type = "market"  # order_type = "limit" if bid else "market"
-        expiration_date = get_expiration(OPTION_EXPIRATION_DTE)
-        strike_price, strike_ask_bid = await find_what_to_buy(ticker_symbol, cp, NUM_OUT_MONEY, expiration_date, session, headers)
-        #print(f"Strike, Price: {strike_price}, {strike_ask_bid}")
-        
-        quantity = calculate_quantity(strike_ask_bid, 0.1)    
-        #order math, making sure we have enough buying power to fulfill order
-        if real_money_activated:
-            buying_power = await get_account_balance(real_money_activated, bp=True)
-        else:
-            buying_power = get_papertrade_BP()
-        commission_fee = 0.35
-        buffer = 0.25
-        strike_bid_cost = strike_ask_bid * 100 # 0.32 is actually 32$ when dealing with option contracts
-        order_cost = (strike_bid_cost + commission_fee) * quantity
-        order_cost_buffer = ((strike_bid_cost+buffer) + commission_fee) * quantity
-        f_order_cost = "{:,.2f}".format(order_cost) # 'f_' means formatted
-        f_order_cost_buffer = "{:,.2f}".format(order_cost_buffer) # formatted
-        #print(f"order_cost_buffer: {order_cost_buffer}\nbuying_power: {buying_power}")
-
-        # If contract cost more than what buying power we
-        # have left, cancel the buy and send discord message.
-        if order_cost_buffer >= buying_power:
-            message = f"""
-**NOT ENOUGH BUYING POWER LEFT**
------
-Canceling Order for Strategy: 
-**{STRATEGY_NAME}**
------
-**Buying Power:** ${buying_power}
-**Order Cost Buffer:** ${f_order_cost_buffer}
-Order Cost Buffer exceded BP
------
-**Strike Price:** {strike_price}
-**Option Type:** {cp}
-**Quantity:** {quantity} contracts
-**Price:** ${strike_ask_bid}
-**Total Cost:** ${f_order_cost}
-"""
-            await print_discord(message)
-            return
-
-        if strike_price is None:
-            # If no appropriate strike price found, cancel the buy operation
-            await print_discord(f"**Appropriate strike was not found**\nstrike_price = None, Canceling buy.\n(Since not enough info)")
-            return
-
-        if real_money_activated: 
-            #stuff...
-            order_result = await submit_option_order(real_money_activated, ticker_symbol, strike_price, cp, bid, expiration_date, quantity, side, order_type)
-            if order_result:
-                await add_markers("buy")
-                timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')
-                unique_order_ID, order_bid_entry_price, order_quantity = await get_order_status(STRATEGY_NAME, real_money_activated, order_result['order_id'], "buy", ticker_symbol, cp, strike_price, expiration_date, timestamp, message_ids_dict)
-
-                # Whenever you decide to start managing an active order
-                # send orders to active order script, to constantly read
-                active_order = {# Your active order details
-                    'order_id': unique_order_ID,
-                    'order_retrieval': order_result['order_id'],
-                    'entry_price': order_bid_entry_price,
-                    'quantity': order_quantity,
-                    'partial_exits': []
-                }
-
-                loop = asyncio.get_event_loop()
-                task = loop.create_task(manage_active_order(active_order, message_ids_dict))
-                if task.done():
-                    print("Task completed.")
-        else:
-            active_order = await submit_option_order_v2(STRATEGY_NAME, ticker_symbol, strike_price, cp, expiration_date, session, headers, message_ids_dict, buying_power)
-            if active_order is not None:
-                await add_markers("buy")
-                order_cost = (active_order["entry_price"] * 100) * active_order["quantity"]
-                used_buying_power[active_order['order_id']] = order_cost
-                loop = asyncio.get_event_loop()
-                task = loop.create_task(manage_active_fake_order(active_order, message_ids_dict))
-                if task.done():
-                    print("Task completed.")
-            else:
-                print("Canceled Trade")
-
-    except Exception as e:
-        await error_log_and_discord_message(e, "tll_trading_strategy", "buy_option_cp")
 
 def clear_priority_candles(havent_cleared, type_candle, json_file='priority_candles.json'):
     if havent_cleared:

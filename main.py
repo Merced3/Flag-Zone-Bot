@@ -1,7 +1,9 @@
 #main.py
 from chart_visualization import plot_candles_and_boxes, initiate_shutdown
 from data_acquisition import get_candle_data, get_dates
-from tll_trading_strategy import message_ids_dict, used_buying_power, execute_trading_strategy
+from tll_trading_strategy import execute_trading_strategy
+from buy_option import message_ids_dict, used_buying_power
+from ema_strategy import execute_200ema_strategy
 from print_discord_messages import bot, print_discord, get_message_content, send_file_discord
 from error_handler import error_log_and_discord_message
 import data_acquisition
@@ -338,8 +340,8 @@ async def main():
 
                 await asyncio.gather(
                     process_data(queue),
-                    execute_trading_strategy(Boxes)
-                    # manage_active_order()
+                    execute_trading_strategy(Boxes),
+                    #execute_200ema_strategy()
                 )
             else:
                 

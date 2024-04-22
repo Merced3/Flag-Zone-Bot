@@ -5,15 +5,14 @@ import pandas_market_calendars as mcal
 import numpy as np
 from error_handler import error_log_and_discord_message
 import websockets
-from websockets.exceptions import InvalidStatusCode, ConnectionClosedError
+from websockets.exceptions import InvalidStatusCode
 import asyncio
 import cred
 import aiohttp
 import json
-from typing import Optional
 import pytz
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 import os
 from pathlib import Path
 
@@ -21,7 +20,7 @@ RETRY_INTERVAL = 1  # Seconds between reconnection attempts
 should_close = False  # Global variable to signal if the WebSocket should close
 
 config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
-
+LOGS_DIR = Path(__file__).resolve().parent / 'logs'
 def read_config():
     with open(config_path, 'r') as f:
         config = json.load(f)
@@ -31,6 +30,18 @@ config = read_config()
 IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 SYMBOL = config["SYMBOL"]
 EMA = config["EMAS"]
+
+MESSAGE_IDS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'message_ids.json')
+
+def load_message_ids():
+    if os.path.exists(MESSAGE_IDS_FILE_PATH):
+        with open(MESSAGE_IDS_FILE_PATH, 'r') as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return {}
+    else:
+        return {}
 
 async def ws_connect(queue, symbol):
     global should_close
@@ -547,3 +558,87 @@ async def above_below_ema(state):
                 return False
 
     return True
+
+async def read_ema_json(position):
+    try:
+        with open("EMAs.json", "r") as file:
+            emas = json.load(file)
+            latest_ema = emas[position]
+            return latest_ema
+    except FileNotFoundError:
+        print("EMAs.json file not found.")
+        return None
+    except KeyError:
+        print(f"EMA type [{position}] not found in the latest entry.")
+        return None
+    except Exception as e:
+        await error_log_and_discord_message(e, "ema_strategy", "read_last_ema_json")
+        return None
+    
+def is_ema_broke(ema_type, symbol, timeframe, cp):
+    # Load the latest EMA values
+    try:
+        with open("EMAs.json", "r") as file:
+            emas = json.load(file)
+            latest_ema = emas[-1][ema_type]  # Assuming 'ema_type' is a string like "13", "48", or "200"
+            index_ema = emas[-1]['x']
+    except FileNotFoundError:
+        print("EMAs.json file not found.")
+        return False
+    except KeyError:
+        print(f"EMA type {ema_type} not found in the latest entry.")
+        return False
+    
+    filepath = LOGS_DIR / f"{symbol}_{timeframe}.log"
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(filepath, "r") as file:
+            lines = file.readlines()
+            index_candle = len(lines) - 1
+            latest_candle = json.loads(lines[-1])
+    except FileNotFoundError:
+        print(f"{symbol}_{timeframe}.log file not found.")
+        return False
+    except json.JSONDecodeError:
+        print(f"Error decoding the last candle from {symbol}_{timeframe}.log")
+        return False
+    
+    if index_candle == index_ema:
+        open_price = latest_candle["open"]
+        close_price = latest_candle["close"]
+    else:
+        open_price = None
+        close_price = None  
+
+    # Check conditions based on option type
+    if open_price and close_price:
+        if cp == 'call' and latest_ema > close_price: #close_price > latest_ema and open_price < latest_ema:
+            print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call. [CLOSE]: {close_price}; [Last EMA]: {latest_ema}; [OPEN]: {open_price}")
+            return True
+        elif cp == 'put' and latest_ema < close_price:
+            print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put. [OPEN]: {open_price}; [EMA {ema_type}]: {latest_ema}; [CLOSE] {close_price}")
+            return True
+
+    return False
+
+
+def read_last_n_lines(file_path, n): #code from a previous ema tradegy, thought it may help. pls edit if need be.
+    # Ensure the logs directory exists
+    if not os.path.exists(LOGS_DIR):
+        os.makedirs(LOGS_DIR)
+
+    # Check if the file exists, if not, create an empty file
+    if not os.path.isfile(file_path):
+        with open(file_path, 'w') as file:
+            pass
+
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+        last_n_lines = lines[-n:]
+        return [json.loads(line.strip()) for line in last_n_lines]
+
+
+
+
+
+
