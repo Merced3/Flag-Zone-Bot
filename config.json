@@ -1,7 +1,7 @@
 {
     "REAL_MONEY_ACTIVATED": false,
     "ACCOUNT_BALANCES": [
-        5891.0,
+        5914.0,
         0
     ],
     "SYMBOL": "SPY",
@@ -45,5 +45,6 @@
         "BEAR_MIN_ANGLE": 1.5,
         "BEAR_MAX_ANGLE": 16
     },
-    "OPTION_EXPIRATION_DTE": "not specified"
+    "OPTION_EXPIRATION_DTE": "not specified",
+    "ORDERS_ZONE_THRESHOLD": 2
 }

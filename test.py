@@ -2,7 +2,8 @@ from main import get_dates, main, load_from_csv
 from data_acquisition import get_candle_data, ws_connect, get_current_price, get_current_candle_index
 from chart_visualization import plot_candles_and_boxes
 import chart_visualization
-from tll_trading_strategy import buy_option_cp, message_ids_dict, load_message_ids
+from buy_option import buy_option_cp, message_ids_dict, used_buying_power
+from tll_trading_strategy import load_message_ids
 from print_discord_messages import bot, print_discord, get_message_content, send_file_discord
 from error_handler import error_log_and_discord_message
 from ema_strategy import execute_200ema_strategy

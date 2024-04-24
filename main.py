@@ -399,6 +399,8 @@ async def reseting_values():
     reset_json('markers.json', {})
     #clear line_data_TEST.json
     reset_json('line_data.json', [])
+    #clear order_candle_type.json
+    reset_json('order_candle_type.json', [])
     #clear priority_candles.json
     reset_json('priority_candles.json', [])
     #clear EMAs.json

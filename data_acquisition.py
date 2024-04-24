@@ -21,6 +21,7 @@ should_close = False  # Global variable to signal if the WebSocket should close
 
 config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
 LOGS_DIR = Path(__file__).resolve().parent / 'logs'
+
 def read_config():
     with open(config_path, 'r') as f:
         config = json.load(f)
@@ -30,6 +31,7 @@ config = read_config()
 IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 SYMBOL = config["SYMBOL"]
 EMA = config["EMAS"]
+ORDERS_ZONE_THRESHOLD = config["ORDERS_ZONE_THRESHOLD"]
 
 MESSAGE_IDS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'message_ids.json')
 
@@ -205,7 +207,6 @@ async def filter_data(df, exclude_today=True):
     
     return corrected_df
 
-
 async def get_account_balance(is_real_money, bp=None):
     if is_real_money:
         endpoint = f'{cred.TRADIER_BROKERAGE_BASE_URL}accounts/{cred.TRADIER_BROKERAGE_ACCOUNT_NUMBER}/balances'
@@ -243,7 +244,7 @@ async def get_account_balance(is_real_money, bp=None):
     except Exception as err:
         await error_log_and_discord_message(err, "data_acquisition","get_account_balance")
         return None
-
+    
 def get_current_candle_index(log_file_path = Path(__file__).resolve().parent / 'logs/SPY_2M.log'):
     with open(log_file_path, 'r') as file:
         lines = file.readlines()
@@ -621,7 +622,6 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
 
     return False
 
-
 def read_last_n_lines(file_path, n): #code from a previous ema tradegy, thought it may help. pls edit if need be.
     # Ensure the logs directory exists
     if not os.path.exists(LOGS_DIR):
@@ -637,8 +637,37 @@ def read_last_n_lines(file_path, n): #code from a previous ema tradegy, thought 
         last_n_lines = lines[-n:]
         return [json.loads(line.strip()) for line in last_n_lines]
 
+def check_order_type_json(candle_type, file_path = "order_candle_type.json"):
+    try:
+        with open(file_path, 'r') as file:
+            candle_types = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        print("Error reading the file or file not found. Assuming no orders have been placed.")
+        candle_types = []
 
+    # Count how many times the given candle_type appears in the list
+    num_of_matches = candle_types.count(candle_type)
+    print(num_of_matches)
+    # Compare the count with the threshold
+    if num_of_matches >= ORDERS_ZONE_THRESHOLD:
+        return False  # More or equal matches than the threshold, do not allow more orders
 
+    return True  # Fewer matches than the threshold, allow more orders
 
+def add_candle_type_to_json(candle_type, file_path = "order_candle_type.json"):
+    # Read the current contents of the file, or initialize an empty list if file does not exist
+    try:
+        with open(file_path, 'r') as file:
+            candle_types = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        print("File not found or is empty. Starting a new list.")
+        candle_types = []
+
+    # Append the new candle_type to the list
+    candle_types.append(candle_type)
+
+    # Write the updated list back to the file
+    with open(file_path, 'w') as file:
+        json.dump(candle_types, file, indent=4)  # Using indent for better readability of the JSON file
 
 

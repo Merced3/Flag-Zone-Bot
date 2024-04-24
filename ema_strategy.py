@@ -59,13 +59,13 @@ async def execute_200ema_strategy():
                     if candle['open'] < desired_ema < candle['close']:
                         #candle closed over ema
                         print("Buy Call")
-                        if await above_below_ema('above'):
+                        if await above_below_ema('above'): # i think this will help with alternating between orders.
                             await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'call', session, headers, STRATEGY_NAME)
 
                     elif candle['close'] < desired_ema < candle['open']:
                         #candle closed below ema
                         print("Buy Put")
-                        if await above_below_ema('below'):
+                        if await above_below_ema('below'): # i think this will help with alternating between orders.
                             await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'put', session, headers, STRATEGY_NAME)
 
                 else:
