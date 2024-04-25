@@ -92,7 +92,7 @@ async def execute_trading_strategy(zones):
     market_open_plus_15 = MARKET_OPEN_TIME + timedelta(minutes=15)
     market_open_plus_15 = market_open_plus_15.time()
 
-    restart_state_json("state.json", True)
+    restart_state_json(True)
 
     candle_interval = 2
     candle_timescale = "minute"
@@ -203,6 +203,7 @@ async def execute_trading_strategy(zones):
                                         break  # Exit the loop since we've found a zone that modifies the action
                         if action:
                             what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
+                            havent_cleared = True if what_type_of_candle is not None else False
                             print(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}; havent_cleared = {havent_cleared}")
                 
                     # i want to keep this
@@ -216,7 +217,7 @@ async def execute_trading_strategy(zones):
                         await identify_flag(last_candle_dict, num_flags, session, headers, what_type_of_candle)
                     else:
                         clear_priority_candles(havent_cleared, what_type_of_candle)
-                        restart_state_json("state.json", havent_cleared)
+                        restart_state_json(havent_cleared)
                         resolve_flags()  
                 else:
                     await asyncio.sleep(1)  # Wait for new candle data
@@ -243,9 +244,11 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     slope = state.get('slope', None)
     intercept = state.get('intercept', None)
 
-
+    candle_type = None
     # Check if the 'type' key exists in the candle dictionary
     if 'type' in candle and ('support' in candle['type'] and 'Buffer' in candle['type']) or ('resistance' in candle['type'] and 'PDH' in candle['type']) or ('PDHL PDH' in candle['type']):
+        # Bull Candles, We look at Higher Highs
+        candle_type = "bullish"
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high
         if current_high is None or candle['high'] > current_high:
@@ -301,7 +304,8 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
             )
     
     elif ('support' in candle['type'] and 'PDL' in candle['type']) or ('resistance' in candle['type'] and 'Buffer' in candle['type']) or ('PDHL PDL' in candle['type']):
-        #now Lets work on Bear Candles, instead of Higher highs we will be looking at lower lows
+        # Bear Candles, we look at lower lows
+        candle_type = "bearish"
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high
         if current_low is None or candle['low'] < current_low:
@@ -358,6 +362,23 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     # Write the updated state back to the JSON file
     with open(state_file_path, 'w') as file:
         json.dump(state, file, indent=4)
+    
+    #TODO Test this to see if it might be useful
+    """
+    if (slope is None) and (intercept is None):
+        #restart_state_json(True) if the code below ends up doing the same thing as this line then we will remove the code below
+        
+        if candle_type == "bullish":
+            print("        [RESET] Slope and Intercept are None, RESET current_high, highest_point, lower_highs")
+            current_high = None
+            highest_point = None
+            lower_highs = []
+        elif candle_type == "bearish":
+            print("        [RESET] Slope and Intercept are None, RESET current_low, lowest_point, higher_lows")
+            current_low = None
+            lowest_point = None
+            higher_lows = []
+    """
 
     update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle)
 
@@ -377,7 +398,8 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
                 if success:
                     return None, None, True
                 else:
-                    return slope, intercept, False
+                    print(f"        [BREAKOUT] Failure; slope, intercept: {slope}, {intercept}, False")
+                    return None, None, False #TODO: See if this works, if not then go back to this: slope, intercept, False 
             else:
                 # Test new slope and intercept
                 new_slope = (hl[1] - lowest_point[1]) / (hl[0] - lowest_point[0])
@@ -426,7 +448,8 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
                 if success:
                     return None, None, True
                 else:
-                    return slope, intercept, False
+                    print(f"        [BREAKOUT] Failure; slope, intercept: {slope}, {intercept}, False")
+                    return None, None, False #TODO: See if this works, if not then go back to this: slope, intercept, False 
             else:
                 # Test new slope and intercept
                 new_slope = (lh[1] - highest_point[1]) / (lh[0] - highest_point[0])
@@ -647,7 +670,7 @@ def update_state(state_file_path, current_high, highest_point, lower_highs, curr
     with open(state_file_path, 'w') as file:
         json.dump(state, file, indent=4)
 
-def restart_state_json(state_file_path, havent_cleared):
+def restart_state_json(havent_cleared, state_file_path="state.json"):
     """
     Initializes or resets the state.json file to default values.
 
