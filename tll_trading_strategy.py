@@ -80,10 +80,10 @@ async def execute_trading_strategy(zones):
     message_ids_dict = load_message_ids()
     print("message_ids_dict: ", message_ids_dict)
 
-    #Testing While Running: 'resistance PDH' or 'support Buffer'
+    #Testing While Running: 'resistance PDH' or 'support Buffer' or "support_1 Buffer"
     what_type_of_candle = None #TODO None 
     #Testing While Running: True
-    havent_cleared = None #TODO None
+    havent_cleared = False #TODO None
     #Testing While Running: True
     has_calculated_emas = False #TODO False
 
@@ -203,7 +203,7 @@ async def execute_trading_strategy(zones):
                                         break  # Exit the loop since we've found a zone that modifies the action
                         if action:
                             what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
-                            havent_cleared = True if what_type_of_candle is not None else False
+                            #havent_cleared = True if what_type_of_candle is not None else False
                             print(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}; havent_cleared = {havent_cleared}")
                 
                     # i want to keep this
@@ -217,8 +217,8 @@ async def execute_trading_strategy(zones):
                         await identify_flag(last_candle_dict, num_flags, session, headers, what_type_of_candle)
                     else:
                         clear_priority_candles(havent_cleared, what_type_of_candle)
-                        restart_state_json(havent_cleared)
-                        resolve_flags()  
+                        #restart_state_json(True) #havent_cleared
+                        #resolve_flags()
                 else:
                     await asyncio.sleep(1)  # Wait for new candle data
 
@@ -393,13 +393,13 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
             # Check if the candle associated with this higher low completely closes below the trendline
             if candle['close'] < trendline_y:
                 success = await handle_breakout_and_order(
-                    what_type_of_candle, trendline_y, line_name, hl[0], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bear"
+                    what_type_of_candle, lowest_point, trendline_y, line_name, hl[0], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bear"
                 )
                 if success:
                     return None, None, True
                 else:
                     print(f"        [BREAKOUT] Failure; slope, intercept: {slope}, {intercept}, False")
-                    return None, None, False #TODO: See if this works, if not then go back to this: slope, intercept, False 
+                    return slope, intercept, False 
             else:
                 # Test new slope and intercept
                 new_slope = (hl[1] - lowest_point[1]) / (hl[0] - lowest_point[0])
@@ -424,7 +424,7 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
         
         if candle['close'] < trendline_y:
             success = await handle_breakout_and_order(
-                what_type_of_candle, trendline_y, line_name, candle['candle_index'], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bear", calculate_new_trendline=True, slope=slope, intercept=intercept
+                what_type_of_candle, lowest_point, trendline_y, line_name, candle['candle_index'], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bear", calculate_new_trendline=True, slope=slope, intercept=intercept
             )
             if success:
                 return None, None, True
@@ -443,13 +443,13 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
             # Check if the candle associated with this lower high closes over the slope intercept (trendline_y)
             if candle['close'] > trendline_y:
                 success = await handle_breakout_and_order(
-                    what_type_of_candle, trendline_y, line_name, lh[0], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bull"
+                    what_type_of_candle, highest_point, trendline_y, line_name, lh[0], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bull"
                 )
                 if success:
                     return None, None, True
                 else:
                     print(f"        [BREAKOUT] Failure; slope, intercept: {slope}, {intercept}, False")
-                    return None, None, False #TODO: See if this works, if not then go back to this: slope, intercept, False 
+                    return slope, intercept, False 
             else:
                 # Test new slope and intercept
                 new_slope = (lh[1] - highest_point[1]) / (lh[0] - highest_point[0])
@@ -475,7 +475,7 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
         #this is incase the candle is the one that breaks above the whole trendline, making a new highest high
         if candle['close'] > trendline_y:
             success = await handle_breakout_and_order(
-                what_type_of_candle, trendline_y, line_name, candle['candle_index'], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bull", calculate_new_trendline=True, slope=slope, intercept=intercept
+                what_type_of_candle, highest_point, trendline_y, line_name, candle['candle_index'], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bull", calculate_new_trendline=True, slope=slope, intercept=intercept
             )
             if success:
                 return None, None, True
@@ -548,12 +548,13 @@ def check_valid_points(line_name):
                     return point_1_valid, point_2_valid
     return False
 
-async def handle_breakout_and_order(what_type_of_candle, trendline_y, line_name, point, session, headers, is_real_money, symbol, line_type, calculate_new_trendline=False, slope=None, intercept=None):
+async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_name, point, session, headers, is_real_money, symbol, line_type, calculate_new_trendline=False, slope=None, intercept=None):
     """
     Handle the breakout logic and conditional order execution, with an optional calculation of a new trendline.
 
     Args:
     - candle: The current candle data.
+    - hlp: Means highest_lowest_point, so that we always have a line when plotting. testing this new feature
     - trendline_y: The y-value of the trendline at the x-position of the current candle.
     - line_name: The name of the line associated with the current analysis.
     - point: The point associated with the current breakout analysis. Can be lh or candle['candle_index'] based on the context.
@@ -572,7 +573,7 @@ async def handle_breakout_and_order(what_type_of_candle, trendline_y, line_name,
         trendline_y = slope * point + intercept  # Recalculate trendline_y with new slope and intercept
     
     print(f"        [FLAG] UPDATE LINE DATA: {line_name}")
-    update_line_data(line_name=line_name, line_type=line_type, status="active", point_2=(point, trendline_y))
+    update_line_data(line_name=line_name, line_type=line_type, status="active", point_1=(hlp[0], hlp[1]), point_2=(point, trendline_y))
     
     #Check emas
     if line_type == 'Bull':
@@ -591,8 +592,9 @@ async def handle_breakout_and_order(what_type_of_candle, trendline_y, line_name,
     if ema_condition_met and vp_1 and vp_2 and multi_order_condition_met:
         action = 'call' if line_type == 'Bull' else 'put'
         print(f"    [ORDER CONFIRMED] Buy Signal ({action.upper()})")
-        await buy_option_cp(is_real_money, symbol, action, session, headers, STRATEGY_NAME)
-        add_candle_type_to_json(what_type_of_candle)
+        success = await buy_option_cp(is_real_money, symbol, action, session, headers, STRATEGY_NAME)
+        if success: #incase order was canceled because of another active
+            add_candle_type_to_json(what_type_of_candle)
         update_line_data(line_name=line_name, line_type=line_type, status="complete")
         return True
     else:
@@ -610,7 +612,7 @@ async def handle_breakout_and_order(what_type_of_candle, trendline_y, line_name,
         action = 'CALL' if line_type == 'Bull' else 'PUT'
         print(f"    [ORDER CANCELED] Buy Signal ({action}); {reason}.")
         #if any of the vp_1 or vp_2 are false, don't go through. but if vp_1 and vp_2 are both true and not ema_condition_met is true then go through
-        if not ema_condition_met and vp_1 and vp_2:
+        if not ema_condition_met and vp_1 and vp_2 and not multi_order_condition_met:
             update_line_data(line_name=line_name, line_type=line_type, status="complete") #test this out next day to see if this fixes the wait-until above/below emas to buy error.
         return False
     

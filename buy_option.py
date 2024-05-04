@@ -44,7 +44,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, header
     # Check if there's an active order of the same type
     if current_order_active and prev_option_type == cp:
         print(f"Canceling buy Order, same order type '{cp}' is already active.")
-        return
+        return False
     elif current_order_active and prev_option_type != cp:
         # Sell the current active order if it's of a different type
         await sell_rest_of_active_order(message_ids_dict, "Switching option type.")
@@ -92,12 +92,12 @@ Order Cost Buffer exceded BP
 **Total Cost:** ${f_order_cost}
 """
             await print_discord(message)
-            return
+            return False
 
         if strike_price is None:
             # If no appropriate strike price found, cancel the buy operation
             await print_discord(f"**Appropriate strike was not found**\nstrike_price = None, Canceling buy.\n(Since not enough info)")
-            return
+            return False
 
         if real_money_activated: 
             #stuff...
@@ -116,7 +116,6 @@ Order Cost Buffer exceded BP
                     'quantity': order_quantity,
                     'partial_exits': []
                 }
-
                 loop = asyncio.get_event_loop()
                 task = loop.create_task(manage_active_order(active_order, message_ids_dict))
                 if task.done():
@@ -133,6 +132,7 @@ Order Cost Buffer exceded BP
                     print("Task completed.")
             else:
                 print("Canceled Trade")
+        return True
 
     except Exception as e:
         await error_log_and_discord_message(e, "tll_trading_strategy", "buy_option_cp")
