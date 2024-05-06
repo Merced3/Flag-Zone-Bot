@@ -244,11 +244,11 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     slope = state.get('slope', None)
     intercept = state.get('intercept', None)
 
-    candle_type = None
+    candle_direction = None
     # Check if the 'type' key exists in the candle dictionary
     if 'type' in candle and ('support' in candle['type'] and 'Buffer' in candle['type']) or ('resistance' in candle['type'] and 'PDH' in candle['type']) or ('PDHL PDH' in candle['type']):
         # Bull Candles, We look at Higher Highs
-        candle_type = "bullish"
+        candle_direction = "bullish"
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high
         if current_high is None or candle['high'] > current_high:
@@ -305,7 +305,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     
     elif ('support' in candle['type'] and 'PDL' in candle['type']) or ('resistance' in candle['type'] and 'Buffer' in candle['type']) or ('PDHL PDL' in candle['type']):
         # Bear Candles, we look at lower lows
-        candle_type = "bearish"
+        candle_direction = "bearish"
         line_name = f"flag_{num_flags}"
         # Update the current high to the new candle's high if it's higher than the current high
         if current_low is None or candle['low'] < current_low:
@@ -362,7 +362,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     # Write the updated state back to the JSON file
     with open(state_file_path, 'w') as file:
         json.dump(state, file, indent=4)
-    
+    print(f"    [CANDLE DIR] {candle_direction}")
     #TODO Test this to see if it might be useful
     """
     if (slope is None) and (intercept is None):
@@ -571,6 +571,7 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
     # Calculate new trendline if required, needed for both line types
     if calculate_new_trendline and slope is not None and intercept is not None:
         trendline_y = slope * point + intercept  # Recalculate trendline_y with new slope and intercept
+        print(f"        [TRENDLINE] UPDATE: {trendline_y}")
     
     print(f"        [FLAG] UPDATE LINE DATA: {line_name}")
     update_line_data(line_name=line_name, line_type=line_type, status="active", point_1=(hlp[0], hlp[1]), point_2=(point, trendline_y))
