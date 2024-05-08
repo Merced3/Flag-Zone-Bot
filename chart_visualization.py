@@ -29,6 +29,14 @@ IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 BOX_SIZE_THRESHOLDS = config["BOX_SIZE_THRESHOLDS"]
 EMA = config["EMAS"]
 
+root = None
+canvas = None
+
+def setup_globals(tk_root, tk_canvas):
+    global root, canvas
+    root = tk_root
+    canvas = tk_canvas
+
 def update_chart_periodically(root, canvas, boxes, symbol, log_file_path):
     global df_2_min, should_close
     last_timestamp = None  # Initialize with None
@@ -214,6 +222,17 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
     canvas.draw()
     canvas.figure.savefig(f"{symbol}_{timescale_type}_chart.png")
 
+def update_2_min():
+    global df_2_min, boxes
+    if df_2_min is not None and boxes is not None:
+        try:
+            # Post the update task to the Tkinter main loop
+            root.after(0, lambda: update_plot(canvas, df_2_min, boxes, SYMBOL, "2-min"))
+        except Exception as e:
+            print(f"Error updating 2-min chart: {e}")
+    else:
+        print("[update_2_min] Data or boxes are not initialized.")
+
 def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
     global df_15_min, df_2_min, should_close
     df_15_min, df_2_min, boxes = df_15, df_2, box_data
@@ -228,7 +247,7 @@ def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
     canvas = FigureCanvasTkAgg(fig, master=root)
     canvas_widget = canvas.get_tk_widget()
     canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
+    # setup_globals(root, canvas)
     # Initial plot with 15-minute data
     update_plot(canvas, df_15_min, boxes, symbol, "15-min")
 
@@ -254,3 +273,4 @@ def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
 def initiate_shutdown():
     global should_close
     should_close = True
+    # boxes = None

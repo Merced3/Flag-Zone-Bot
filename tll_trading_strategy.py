@@ -260,7 +260,9 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
             current_high = candle['high']
             highest_point = (candle['candle_index'], current_high)
             print(f"        [Highest Point] New: {highest_point}")
-            lower_highs = []
+            lower_highs = [] #resetting values
+            slope, intercept = None, None #resetting values
+            #clear_priority_candles(True, type_candles) #resetting priority candle values because previous candles before the highest one serves no purpose
         else: 
             if candle['high'] == current_high and candle['candle_index'] > highest_point[0]:
                 #Ok, heres what happened we have a slope and intercept available but we had a equal higher high which should have made a buy order.
@@ -270,7 +272,9 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                     ) 
                 highest_point = (candle['candle_index'], current_high)
                 print(f"        [Highest Point] Updated: {highest_point}")
-                lower_highs = []
+                lower_highs = [] #resetting values
+                slope, intercept = None, None #resetting values
+                #clear_priority_candles(True, type_candles) #resetting priority candle values because previous candles before the highest one serves no purpose
             else:
                 lower_highs.append((candle['candle_index'], candle['high']))
         # This block calculates the slope and intercept for a potential flag, updating line data if valid points are found.
@@ -282,7 +286,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                     print("        [VALID SLOPE] Angle within valid range.")
                     
                     print(f"        [FLAG] UPDATE LINE DATA 1: {line_name}")
-                    update_line_data(line_name, "Bull", "active", highest_point)
+                    update_line_data(line_name, "Bull", "active", highest_point, [None, None])
                     #check if there are any points above the line
                     if slope is not None and intercept is not None:
                         slope, intercept, breakout_detected = await process_breakout_detection(
@@ -297,6 +301,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
             slope, intercept, breakout_detected = await process_breakout_detection(
                 line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bullish'
             )
+
         # Check for breakout
         if slope is not None and intercept is not None:
             slope, intercept, breakout_detected = await process_breakout_detection(
@@ -316,12 +321,16 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
             current_low = candle['low']
             lowest_point = (candle['candle_index'], current_low)
             print(f"        [Lowest Point] New: {lowest_point}")
-            higher_lows = []
+            higher_lows = [] #resetting values
+            slope, intercept = None, None #resetting values
+            #clear_priority_candles(True, type_candles) #resetting priority candle values because previous candles before the Lowest one serves no purpose
         else: 
             if candle['low'] == current_low and candle['candle_index'] > lowest_point[0]:
                 lowest_point = (candle['candle_index'], current_low)
                 print(f"        [Lowest Point] Updated: {current_low}")
-                higher_lows = []
+                higher_lows = [] #resetting values
+                slope, intercept = None, None #resetting values
+                #clear_priority_candles(True, type_candles) #resetting priority candle values because previous candles before the lowest one serves no purpose
             else:
                 higher_lows.append((candle['candle_index'], candle['low']))
 
@@ -334,7 +343,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                     print("        [VALID SLOPE] Angle within valid range.")
                     
                     print(f"        [FLAG] UPDATE LINE DATA 2: {line_name}")
-                    update_line_data(line_name, "Bear", "active", lowest_point)
+                    update_line_data(line_name, "Bear", "active", lowest_point, [None, None]) #lets see if the [None, None] fixes the ongoing flag problem
                     #check if there are any points above the line
                     if slope is not None and intercept is not None:
                         slope, intercept, breakout_detected = await process_breakout_detection(
