@@ -506,6 +506,7 @@ async def process_breakout_detection(line_name, points, highest_or_lowest_point,
         config (dict): Configuration settings.
         session: The HTTP session.
         headers: HTTP headers for requests.
+        what_type_of_candle: passes it through to breakout functions, this is to know what zone a possible order is being made out of, to track if were in threshold
         breakout_type (str): 'bullish' or 'bearish' to determine the type of breakout to check.
 
     Returns:
