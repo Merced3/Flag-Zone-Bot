@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import pandas_market_calendars as mcal
 import numpy as np
+from chart_visualization import update_2_min
 from error_handler import error_log_and_discord_message
 import websockets
 from websockets.exceptions import InvalidStatusCode
@@ -328,6 +329,8 @@ async def add_markers(event_type):
     markers.append(marker)
     with open(markers_file_path, 'w') as f:
         json.dump(markers, f, indent=4)
+    
+    update_2_min()
 
 def get_dates(num_of_days, use_todays_date=False):
     nyse = mcal.get_calendar('NYSE')
@@ -483,6 +486,8 @@ def update_ema_json(json_path, new_ema_values):
     # Write the updated list back to the file
     with open(json_path, 'w') as file:
         json.dump(ema_data, file, indent=4)
+
+    update_2_min()
 
 #the functions below were a test to see if i could get the realtime ema data from polygon
 async def get_ema_data(timespan, adjusted, window, series_type, order):

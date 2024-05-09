@@ -32,10 +32,12 @@ EMA = config["EMAS"]
 root = None
 canvas = None
 
-def setup_globals(tk_root, tk_canvas):
-    global root, canvas
+def setup_globals(tk_root, tk_canvas, _boxes):
+    global root, canvas, boxes
     root = tk_root
     canvas = tk_canvas
+    boxes = _boxes
+    print("    [setup_globals] setting global root and canvas")
 
 def update_chart_periodically(root, canvas, boxes, symbol, log_file_path):
     global df_2_min, should_close
@@ -223,15 +225,16 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
     canvas.figure.savefig(f"{symbol}_{timescale_type}_chart.png")
 
 def update_2_min():
-    global df_2_min, boxes
-    if df_2_min is not None and boxes is not None:
+    global root, df_2_min
+    print("    [update_2_min] function called")
+    if root and df_2_min is not None:
         try:
             # Post the update task to the Tkinter main loop
             root.after(0, lambda: update_plot(canvas, df_2_min, boxes, SYMBOL, "2-min"))
         except Exception as e:
-            print(f"Error updating 2-min chart: {e}")
+            print(f"    [update_2_min] Error updating 2-min chart: {e}")
     else:
-        print("[update_2_min] Data or boxes are not initialized.")
+        print("    [update_2_min] GUI or data not initialized.")
 
 def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
     global df_15_min, df_2_min, should_close
@@ -247,7 +250,7 @@ def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
     canvas = FigureCanvasTkAgg(fig, master=root)
     canvas_widget = canvas.get_tk_widget()
     canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-    # setup_globals(root, canvas)
+    setup_globals(root, canvas, box_data)
     # Initial plot with 15-minute data
     update_plot(canvas, df_15_min, boxes, symbol, "15-min")
 

@@ -1,5 +1,6 @@
 # tll_trading_strategy.py, meaning 'Temporal Lattice Leap Trading Strategy'
 import os
+from chart_visualization import update_2_min
 import json
 import asyncio
 from datetime import datetime, timedelta, time
@@ -835,3 +836,5 @@ def update_line_data(line_name, line_type, status=None, point_1=None, point_2=No
 
     with open(json_file, 'w') as file:
         json.dump(lines, file, indent=4)
+
+    update_2_min()
