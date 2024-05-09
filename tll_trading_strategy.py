@@ -381,23 +381,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     with open(state_file_path, 'w') as file:
         json.dump(state, file, indent=4)
     print(f"    [CANDLE DIR] {candle_direction}")
-    #TODO Test this to see if it might be useful
-    """
-    if (slope is None) and (intercept is None):
-        #restart_state_json(True) if the code below ends up doing the same thing as this line then we will remove the code below
-        
-        if candle_type == "bullish":
-            print("        [RESET] Slope and Intercept are None, RESET current_high, highest_point, lower_highs")
-            current_high = None
-            highest_point = None
-            lower_highs = []
-        elif candle_type == "bearish":
-            print("        [RESET] Slope and Intercept are None, RESET current_low, lowest_point, higher_lows")
-            current_low = None
-            lowest_point = None
-            higher_lows = []
-    """
-
+    
     update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle)
 
 async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, what_type_of_candle):
