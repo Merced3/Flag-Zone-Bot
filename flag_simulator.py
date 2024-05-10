@@ -1,26 +1,8 @@
-# tll_trading_strategy.py, meaning 'Temporal Lattice Leap Trading Strategy'
+#flag_simulator.py; it's purpopse is to simulate different Logs/Zones To make sure that my flags are redundent and reliable.
 import os
-from chart_visualization import update_2_min
 import json
+from data_acquisition import read_last_n_lines, restart_state_json, determine_order_cancel_reason, record_priority_candle, clear_priority_candles, add_markers, update_state, check_valid_points, check_order_type_json, is_angle_valid
 import asyncio
-from datetime import datetime, timedelta, time
-from buy_option import buy_option_cp
-from order_handler import get_profit_loss_orders_list, sell_rest_of_active_order
-from error_handler import error_log_and_discord_message
-from data_acquisition import get_current_candle_index, calculate_save_EMAs, get_candle_data_and_merge, above_below_ema, load_json_df, read_last_n_lines, load_message_ids, check_order_type_json, add_candle_type_to_json, determine_order_cancel_reason, initialize_ema_json, restart_state_json, record_priority_candle, clear_priority_candles, update_state, check_valid_points, is_angle_valid
-from pathlib import Path
-import pytz
-import cred
-import aiohttp
-
-STRATEGY_NAME = "CASEY FLAG/ZONE STRAT"
-
-STRATEGY_DESCRIPTION = """
-Desctiption: 
-    1) We wait until we break out of a zone, that zone dictates if we use bear or bull flags.
-    2) When we break out of those flags, we check if were above or below all the emas. if were not, we do not buy
-    3) If evreything checks out, we buy and use the 13ema as trailing stoploss and we trim along the way up.
-"""
 
 config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
 
@@ -31,190 +13,101 @@ def read_config():
 
 config = read_config()
 IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
-NUM_OUT_MONEY = config["NUM_OUT_OF_MONEY"]
 SYMBOL = config["SYMBOL"]
 TIMEFRAMES = config["TIMEFRAMES"]
-ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
 MIN_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MIN_NUM_CANDLES"]
 MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
-OPTION_EXPIRATION_DTE = config["OPTION_EXPIRATION_DTE"]
 
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
 LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{SYMBOL}_{TIMEFRAMES[0]}.log')  # Adjust the path accordingly
 
-active_order = {
-    'order_id': None,
-    'order_retrieval': None,
-    'entry_price': None,
-    'quantity': None,
-    'partial_exits': []
-}
+#TODO: IMPORTANT TO CHANGE
+zones = {}
 
-last_processed_candle = None 
-    
-new_york_tz = pytz.timezone('America/New_York')
-
-MARKET_CLOSE = time(16, 0)
-MARKET_OPEN = time(9, 30)
-
-def get_market_open_time():
-    today = datetime.now(new_york_tz).date()
-    market_open_time = datetime.combine(today, time(9, 30))
-    return new_york_tz.localize(market_open_time)
-
-
-async def execute_trading_strategy(zones):
-    print("Starting execute_trading_strategy()...")
-    global last_processed_candle
-    message_ids_dict = load_message_ids()
-    print("message_ids_dict: ", message_ids_dict)
+async def testing_new_flag_process():
 
     #Testing While Running: 'resistance PDH' or 'support Buffer' or "support_1 Buffer"
     what_type_of_candle = None #TODO None 
     #Testing While Running: True
     havent_cleared = False #TODO False
-    #Testing While Running: True
-    has_calculated_emas = False #TODO False
-
-    candle_list = []  # Stores candles for the first 15 minutes
-    MARKET_OPEN_TIME = get_market_open_time()  # Get today's market open time
-    market_open_plus_15 = MARKET_OPEN_TIME + timedelta(minutes=15)
-    market_open_plus_15 = market_open_plus_15.time()
 
     restart_state_json(True)
 
-    candle_interval = 2
-    candle_timescale = "minute"
-    AM = "AFTERMARKET"
-    PM = "PREMARKET"
-    aftermarket_file = f"{SYMBOL}_{candle_interval}_{candle_timescale}_{AM}.csv"
-    premarket_file = f"{SYMBOL}_{candle_interval}_{candle_timescale}_{PM}.csv"
-    json_EMA_path = 'EMAs.json'
-    merged_file_name = f"{SYMBOL}_MERGED.csv"
+    try:
+        while True:
 
-    initialize_ema_json(json_EMA_path)
+            #somehow cycle through candles in SPY_2M.log file. simulating candles coming in one by one
 
-    async with aiohttp.ClientSession() as session:  # Initialize HTTP session
-        headers = {"Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", "Accept": "application/json"}
-        try:
-            while True:
-                # Check if current time is within one minute of market close
-                current_time = datetime.now(new_york_tz).time()
-                if current_time >= (datetime.combine(datetime.today(), MARKET_CLOSE) - timedelta(minutes=1)).time():
-                    # If within one minute of market close, exit all positions
-                    await sell_rest_of_active_order(message_ids_dict, "Market closing soon. Exiting all positions.")
-                    todays_profit_loss = sum(get_profit_loss_orders_list()) #returns todays_orders_profit_loss_list
-                    end_of_day_account_balance = ACCOUNT_BALANCE[0] + todays_profit_loss
-                    print(f"ACCOUNT_BALANCE[0]: {ACCOUNT_BALANCE[0]}, todays_profit_loss: {todays_profit_loss}\nend_of_day_account_balance: {end_of_day_account_balance}")
-                    
-                    with open(config_path, 'r') as f: # Read existing config
-                        config = json.load(f)
-                    config["ACCOUNT_BALANCES"][1] = end_of_day_account_balance # Update the ACCOUNT_BALANCES
-                    with open(config_path, 'w') as f: # Write back the updated config
-                        json.dump(config, f, indent=4)  # Using indent for better readability
-                    break
+            current_last_candle = read_last_n_lines(LOG_FILE_PATH, 1)
 
-                current_last_candle = read_last_n_lines(LOG_FILE_PATH, 1)  # Read the latest candle
-                if current_last_candle and current_last_candle != last_processed_candle:
-                    last_processed_candle = current_last_candle
-                    #get that candle, look at its OHLC values
-                    candle = last_processed_candle[0]
-                    
-                    # Calculate/Save EMAs
-                    if current_time >= market_open_plus_15:
-                        if not has_calculated_emas and candle_list:
-                            await get_candle_data_and_merge(aftermarket_file, premarket_file, candle_interval, candle_timescale, AM, PM, merged_file_name) 
-                            #i need to change this for loop
-                            for _candle in reversed(candle_list):
-                                index_val_in_list = len(candle_list) - candle_list.index(_candle) - 1
-                                await calculate_save_EMAs(_candle, index_val_in_list)
-                            #calculate the current candle after the list has been processed
-                            await calculate_save_EMAs(candle, get_current_candle_index())
-                            print("    [EMA] Calculated EMA list")
-                            has_calculated_emas = True
-                        elif has_calculated_emas:
-                            await calculate_save_EMAs(candle, get_current_candle_index())
-                            print("    [EMA] Calculated EMA candle")
-                    else:
-                        candle_list.append(candle)
-                        has_calculated_emas = False
+            if current_last_candle and current_last_candle != last_processed_candle:
+                last_processed_candle = current_last_candle
+                #get that candle, look at its OHLC values
+                candle = last_processed_candle[0]
 
-                    #Handle the zones
-                    for box_name, (x_pos, high_low_of_day, buffer) in zones.items(): 
-                        # Determine zone type
-                        zone_type = "support" if "support" in box_name else "resistance" if "resistance" in box_name else "PDHL"
-                        PDH_or_PDL = high_low_of_day  # PDH for resistance, PDL for support
-                        box_top = PDH_or_PDL if zone_type in ["resistance", "PDHL"] else buffer  # PDH or Buffer as top for resistance/PDHL
-                        box_bottom = buffer if zone_type in ["resistance", "PDHL"] else PDH_or_PDL  # Buffer as bottom for resistance/PDHL
-                        check_is_in_another_zone = False
-                        action = None # Initialize action to None or any default value
-                        # Check if the candle shoots through the zone
-                        if candle['open'] < box_bottom:
-                            if candle['close'] > box_top:
-                                # Candle shoots up through the zone
-                                #END 1 was wrong, changed it to start.
-                                action = "[START 1]" # CALLS
-                                candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
-                                check_is_in_another_zone = True
-                            elif box_bottom < candle['close'] < box_top:
-                                #went up, closed Inside of box
-                                action = '[END 2]'
-                        elif candle['open'] > box_top:
-                            if candle['close'] < box_bottom:
-                                # Candle shoots down through the zone
-                                action = "[START 4]" # PUTS
-                                candle_type = "PDL" if zone_type in ["support", "PDHL"] else "Buffer" #buffer if resistance
-                                check_is_in_another_zone = True
-                            elif box_top > candle['close'] > box_bottom:
-                                #went down, closed Inside of box
-                                action = "[END 5]"
-                        elif candle['close'] > box_top and candle['open'] <= box_top:
-                            # Candle closes above the zone, potentially starting an upward trend
-                            action = "[START 7]" # CALLS
+                #Handle the zones
+                for box_name, (x_pos, high_low_of_day, buffer) in zones.items(): 
+                    # Determine zone type
+                    zone_type = "support" if "support" in box_name else "resistance" if "resistance" in box_name else "PDHL"
+                    PDH_or_PDL = high_low_of_day  # PDH for resistance, PDL for support
+                    box_top = PDH_or_PDL if zone_type in ["resistance", "PDHL"] else buffer  # PDH or Buffer as top for resistance/PDHL
+                    box_bottom = buffer if zone_type in ["resistance", "PDHL"] else PDH_or_PDL  # Buffer as bottom for resistance/PDHL
+                    check_is_in_another_zone = False
+                    action = None # Initialize action to None or any default value
+                    # Check if the candle shoots through the zone
+                    if candle['open'] < box_bottom:
+                        if candle['close'] > box_top:
+                            # Candle shoots up through the zone
+                            #END 1 was wrong, changed it to start.
+                            action = "[START 1]" # CALLS
                             candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
-                        elif candle['close'] < box_bottom and candle['open'] >= box_bottom:
-                            # Candle closes below the zone, potentially starting a downward trend
-                            action = "[START 8]" # PUTS
+                            check_is_in_another_zone = True
+                        elif box_bottom < candle['close'] < box_top:
+                            #went up, closed Inside of box
+                            action = '[END 2]'
+                    elif candle['open'] > box_top:
+                        if candle['close'] < box_bottom:
+                            # Candle shoots down through the zone
+                            action = "[START 4]" # PUTS
                             candle_type = "PDL" if zone_type in ["support", "PDHL"] else "Buffer" #buffer if resistance
+                            check_is_in_another_zone = True
+                        elif box_top > candle['close'] > box_bottom:
+                            #went down, closed Inside of box
+                            action = "[END 5]"
+                    elif candle['close'] > box_top and candle['open'] <= box_top:
+                        # Candle closes above the zone, potentially starting an upward trend
+                        action = "[START 7]" # CALLS
+                        candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
+                    elif candle['close'] < box_bottom and candle['open'] >= box_bottom:
+                        # Candle closes below the zone, potentially starting a downward trend
+                        action = "[START 8]" # PUTS
+                        candle_type = "PDL" if zone_type in ["support", "PDHL"] else "Buffer" #buffer if resistance
                         
-                        if check_is_in_another_zone:
-                            # Additional checks to refine action based on closing inside any other zone
-                            for other_box_name, (_, other_high_low_of_day, other_buffer) in zones.items():
-                                if other_box_name != box_name:  # Ensure we're not checking the same zone
-                                    other_box_top = other_high_low_of_day if "resistance" in other_box_name or "PDHL" in other_box_name else other_buffer
-                                    other_box_bottom = other_buffer if "resistance" in other_box_name or "PDHL" in other_box_name else other_high_low_of_day
+                    if check_is_in_another_zone:
+                        # Additional checks to refine action based on closing inside any other zone
+                        for other_box_name, (_, other_high_low_of_day, other_buffer) in zones.items():
+                            if other_box_name != box_name:  # Ensure we're not checking the same zone
+                                other_box_top = other_high_low_of_day if "resistance" in other_box_name or "PDHL" in other_box_name else other_buffer
+                                other_box_bottom = other_buffer if "resistance" in other_box_name or "PDHL" in other_box_name else other_high_low_of_day
                                     
-                                    # Check if the candle closed inside this other zone
-                                    if other_box_bottom <= candle['close'] <= other_box_top:
-                                        # Modify action to [END #] since we closed inside of another zone
-                                        action = "[END 9]"
-                                        print(f"    [MODIFIED ACTION] Candle closed inside another zone ({other_box_name}), changing action to {action}.")
-                                        break  # Exit the loop since we've found a zone that modifies the action
-                        if action:
-                            what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
-                            #havent_cleared = True if what_type_of_candle is not None else False
-                            print(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}; havent_cleared = {havent_cleared}")
-                
-                    # i want to keep this
-                    if what_type_of_candle is not None:
-                        #record the candle data
-                        await record_priority_candle(candle, what_type_of_candle)
-                        priority_candles = load_json_df('priority_candles.json')
-                        num_flags = count_flags_in_json()
-                        last_candle = priority_candles.iloc[-1]
-                        last_candle_dict = last_candle.to_dict()
-                        await identify_flag(last_candle_dict, num_flags, session, headers, what_type_of_candle)
-                    else:
-                        clear_priority_candles(havent_cleared, what_type_of_candle)
-                        #restart_state_json(True) #havent_cleared
-                        #resolve_flags()
-                else:
-                    await asyncio.sleep(1)  # Wait for new candle data
+                                # Check if the candle closed inside this other zone
+                                if other_box_bottom <= candle['close'] <= other_box_top:
+                                    # Modify action to [END #] since we closed inside of another zone
+                                    action = "[END 9]"
+                                    print(f"    [MODIFIED ACTION] Candle closed inside another zone ({other_box_name}), changing action to {action}.")
+                                    break  # Exit the loop since we've found a zone that modifies the action
+                    if action:
+                        what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
+                        #havent_cleared = True if what_type_of_candle is not None else False
+                        print(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}; havent_cleared = {havent_cleared}")
 
-        except Exception as e:
-            await error_log_and_discord_message(e, "tll_trading_strategy", "execute_trading_strategy")
+            else:
+                await asyncio.sleep(1)  # Wait for new candle data
+    except Exception as e:
+        print(f"[ERROR] {e}")
 
-async def identify_flag(candle, num_flags, session, headers, what_type_of_candle):
+
+async def identify_flag(candle, num_flags, what_type_of_candle):
     print(f"    [Candle {candle['candle_index']}] OHLC: {candle['open']}, {candle['high']}, {candle['low']}, {candle['close']}")
     state_file_path = "state.json" 
     
@@ -244,7 +137,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
             # NEW CODE: Somehow check if there already is a flag and if current candle is higher then slopes highest high, if it is it should buy
             if slope is not None and intercept is not None:
                 slope, intercept, breakout_detected = await process_breakout_detection(
-                    line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bullish'
+                    line_name, lower_highs, highest_point, slope, intercept, candle, config, what_type_of_candle, breakout_type='bullish'
                 )   
             current_high = candle['high']
             highest_point = (candle['candle_index'], current_high)
@@ -258,7 +151,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                 #Ok, heres what happened we have a slope and intercept available but we had a equal higher high which should have made a buy order.
                 if slope is not None and intercept is not None:
                     slope, intercept, breakout_detected = await process_breakout_detection(
-                        line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bullish'
+                        line_name, lower_highs, highest_point, slope, intercept, candle, config, what_type_of_candle, breakout_type='bullish'
                     ) 
                 highest_point = (candle['candle_index'], current_high)
                 print(f"        [Highest Point] Updated: {highest_point}")
@@ -281,7 +174,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                     #check if there are any points above the line
                     if slope is not None and intercept is not None:
                         slope, intercept, breakout_detected = await process_breakout_detection(
-                            line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bullish'
+                            line_name, lower_highs, highest_point, slope, intercept, candle, config, what_type_of_candle, breakout_type='bullish'
                         )
                 else:
                     print("        [INVALID SLOPE] First point is later than second point.")
@@ -290,13 +183,13 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                 print("        [SLOPE] calculation failed or not applicable.")
         elif slope is not None and intercept is not None:
             slope, intercept, breakout_detected = await process_breakout_detection(
-                line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bullish'
+                line_name, lower_highs, highest_point, slope, intercept, candle, config, what_type_of_candle, breakout_type='bullish'
             )
 
         # Check for breakout
         if slope is not None and intercept is not None:
             slope, intercept, breakout_detected = await process_breakout_detection(
-                line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bullish'
+                line_name, lower_highs, highest_point, slope, intercept, candle, config, what_type_of_candle, breakout_type='bullish'
             )
     
     elif ('support' in candle['type'] and 'PDL' in candle['type']) or ('resistance' in candle['type'] and 'Buffer' in candle['type']) or ('PDHL PDL' in candle['type']):
@@ -307,7 +200,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
         if current_low is None or candle['low'] < current_low:
             if slope is not None and intercept is not None:
                 slope, intercept, breakout_detected = await process_breakout_detection(
-                    line_name, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bearish'
+                    line_name, higher_lows, lowest_point, slope, intercept, candle, config, what_type_of_candle, breakout_type='bearish'
                 )
             current_low = candle['low']
             lowest_point = (candle['candle_index'], current_low)
@@ -320,7 +213,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
             if candle['low'] == current_low and candle['candle_index'] > lowest_point[0]:
                 if slope is not None and intercept is not None:
                     slope, intercept, breakout_detected = await process_breakout_detection(
-                        line_name, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bearish'
+                        line_name, higher_lows, lowest_point, slope, intercept, candle, config, what_type_of_candle, breakout_type='bearish'
                     )
                 lowest_point = (candle['candle_index'], current_low)
                 print(f"        [Lowest Point] Updated: {current_low}")
@@ -344,7 +237,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                     #check if there are any points above the line
                     if slope is not None and intercept is not None:
                         slope, intercept, breakout_detected = await process_breakout_detection(
-                            line_name, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bearish'
+                            line_name, higher_lows, lowest_point, slope, intercept, candle, config, what_type_of_candle, breakout_type='bearish'
                         )
                 else:
                     print("        [INVALID SLOPE] First point is later than second point.")
@@ -354,13 +247,13 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
 
         elif slope is not None and intercept is not None:
             slope, intercept, breakout_detected = await process_breakout_detection(
-                line_name, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bearish'
+                line_name, higher_lows, lowest_point, slope, intercept, candle, config, what_type_of_candle, breakout_type='bearish'
             )
 
         # Check for breakout
         if slope is not None and intercept is not None:
             slope, intercept, breakout_detected = await process_breakout_detection(
-                line_name, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bearish'
+                line_name, higher_lows, lowest_point, slope, intercept, candle, config, what_type_of_candle, breakout_type='bearish'
             )
     else:
         print(f"        [No Support Candle] type = {candle}")    
@@ -372,7 +265,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     
     update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle)
 
-async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, what_type_of_candle):
+async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, what_type_of_candle):
     
     if slope and intercept is not None:
         trendline_y = slope * hl[0] + intercept
@@ -383,7 +276,7 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
             # Check if the candle associated with this higher low completely closes below the trendline
             if candle['close'] < trendline_y:
                 success = await handle_breakout_and_order(
-                    what_type_of_candle, lowest_point, trendline_y, line_name, hl[0], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bear"
+                    what_type_of_candle, lowest_point, trendline_y, line_name, hl[0], line_type="Bear"
                 )
                 if success:
                     return None, None, True
@@ -414,7 +307,7 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
         
         if candle['close'] < trendline_y:
             success = await handle_breakout_and_order(
-                what_type_of_candle, lowest_point, trendline_y, line_name, candle['candle_index'], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bear", calculate_new_trendline=True, slope=slope, intercept=intercept
+                what_type_of_candle, lowest_point, trendline_y, line_name, candle['candle_index'], line_type="Bear", calculate_new_trendline=True, slope=slope, intercept=intercept
             )
             if success:
                 return None, None, True
@@ -422,7 +315,7 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
                 return slope, intercept, False
     return slope, intercept, False
 
-async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, session, headers, what_type_of_candle):
+async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, slope, intercept, candle, config, what_type_of_candle):
     
     if slope and intercept is not None:
         #y = mx + b
@@ -433,7 +326,7 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
             # Check if the candle associated with this lower high closes over the slope intercept (trendline_y)
             if candle['close'] > trendline_y:
                 success = await handle_breakout_and_order(
-                    what_type_of_candle, highest_point, trendline_y, line_name, lh[0], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bull"
+                    what_type_of_candle, highest_point, trendline_y, line_name, lh[0], line_type="Bull"
                 )
                 if success:
                     return None, None, True
@@ -465,7 +358,7 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
         #this is incase the candle is the one that breaks above the whole trendline, making a new highest high
         if candle['close'] > trendline_y:
             success = await handle_breakout_and_order(
-                what_type_of_candle, highest_point, trendline_y, line_name, candle['candle_index'], session, headers, IS_REAL_MONEY, SYMBOL, line_type="Bull", calculate_new_trendline=True, slope=slope, intercept=intercept
+                what_type_of_candle, highest_point, trendline_y, line_name, candle['candle_index'], line_type="Bull", calculate_new_trendline=True, slope=slope, intercept=intercept
             )
             if success:
                 return None, None, True
@@ -473,7 +366,7 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
                 return slope, intercept, False
     return slope, intercept, False
 
-async def process_breakout_detection(line_name, points, highest_or_lowest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, breakout_type='bullish'):
+async def process_breakout_detection(line_name, points, highest_or_lowest_point, slope, intercept, candle, config, what_type_of_candle, breakout_type='bullish'):
     """
     Processes breakout detection for given points.
 
@@ -497,11 +390,11 @@ async def process_breakout_detection(line_name, points, highest_or_lowest_point,
     for point in points:
         if breakout_type == 'bullish':
             slope, intercept, detected = await check_for_bullish_breakout(
-                line_name, point, points, highest_or_lowest_point, slope, intercept, candle, config, session, headers, what_type_of_candle
+                line_name, point, points, highest_or_lowest_point, slope, intercept, candle, config, what_type_of_candle
             )
         else:  # 'bearish'
             slope, intercept, detected = await check_for_bearish_breakout(
-                line_name, point, points, highest_or_lowest_point, slope, intercept, candle, config, session, headers, what_type_of_candle
+                line_name, point, points, highest_or_lowest_point, slope, intercept, candle, config, what_type_of_candle
             )
         if detected:
             breakout_detected = True
@@ -509,7 +402,7 @@ async def process_breakout_detection(line_name, points, highest_or_lowest_point,
             break  # Optional: break if you only care about the first detected breakout
     return slope, intercept, breakout_detected
 
-async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_name, point, session, headers, is_real_money, symbol, line_type, calculate_new_trendline=False, slope=None, intercept=None):
+async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_name, point, line_type, calculate_new_trendline=False, slope=None, intercept=None):
     """
     Handle the breakout logic and conditional order execution, with an optional calculation of a new trendline.
 
@@ -538,10 +431,11 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
     update_line_data(line_name=line_name, line_type=line_type, status="active", point_1=(hlp[0], hlp[1]), point_2=(point, trendline_y))
     
     #Check emas
-    if line_type == 'Bull':
-        ema_condition_met, ema_price_distance_met = await above_below_ema('above', 0.50)
-    else:  # 'Bear'
-        ema_condition_met, ema_price_distance_met = await above_below_ema('below', 0.50)
+    ema_condition_met, ema_price_distance_met = True, True
+    #if line_type == 'Bull':
+        #ema_condition_met, ema_price_distance_met = await above_below_ema('above', 0.50)
+    #else:  # 'Bear'
+        #ema_condition_met, ema_price_distance_met = await above_below_ema('below', 0.50)
     
     #check if points are valid
     vp_1, vp_2 = check_valid_points(line_name) #vp means valid point
@@ -553,11 +447,13 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
     if ema_condition_met and vp_1 and vp_2 and multi_order_condition_met and ema_price_distance_met: # if all conditions met, then authorize order, buy
         action = 'call' if line_type == 'Bull' else 'put'
         print(f"    [ORDER CONFIRMED] Buy Signal ({action.upper()})")
-        success = await buy_option_cp(is_real_money, symbol, action, session, headers, STRATEGY_NAME)
-        if success: #incase order was canceled because of another active
-            add_candle_type_to_json(what_type_of_candle)
-        else:
-            print(f"    [ORDER FAIL] Buy Signal ({action.upper()}), what_type_of_candle = {what_type_of_candle}")
+        # IMPORTANT: Since we are testing flags we don't need to test the actual buy function.
+        #success = await buy_option_cp(is_real_money, symbol, action, session, headers, STRATEGY_NAME)
+        #if success: #incase order was canceled because of another active
+            #add_candle_type_to_json(what_type_of_candle)
+        add_markers("buy")
+        #else:
+            #print(f"    [ORDER FAIL] Buy Signal ({action.upper()}), what_type_of_candle = {what_type_of_candle}")
         update_line_data(line_name=line_name, line_type=line_type, status="complete")
         return True
     else:
@@ -580,8 +476,6 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
         if not ema_condition_met and vp_1 and vp_2: #and not multi_order_condition_met:
             update_line_data(line_name=line_name, line_type=line_type, status="complete") #test this out next day to see if this fixes the wait-until above/below emas to buy error.
         return False
-
-
     
 def calculate_slope_intercept(lower_highs, highest_point):
     # Calculate slope (m) and intercept (c)
@@ -599,48 +493,6 @@ def calculate_slope_intercept(lower_highs, highest_point):
         print("        [INVALID POINTS] First point is later than second point.")
         return None, None
 
-def resolve_flags(json_file='line_data.json'):
-    
-    # Load the flags from JSON file
-    line_data_path = Path(json_file)
-    if line_data_path.exists():
-        with open(line_data_path, 'r') as file:
-            line_data = json.load(file)
-    else:
-        print(f"    [FLAG ERROR] File {json_file} not found.")
-        return
-
-    # Iterate through the flags and resolve opposite flags
-    updated_line_data = []
-    for flag in line_data:
-        #edit this part to take into account null values
-        if flag['type'] and flag['status'] == 'active':
-            # Mark as complete or remove the flag based on your strategy
-            is_point_1_valid = flag['point_1']['x'] is not None and flag['point_1']['y'] is not None
-            is_point_2_valid = flag['point_2']['x'] is not None and flag['point_2']['y'] is not None
-                
-            if is_point_1_valid and is_point_2_valid:
-                flag['status'] = 'complete' #mark complete so its no longer edited
-                updated_line_data.append(flag)
-                print("    [FLAG] Active flags resolved.")
-            # Skip adding the flag to updated_line_data if it's active and has invalid points
-        else:
-            updated_line_data.append(flag)
-
-    # Save the updated data back to the JSON file
-    with open(line_data_path, 'w') as file:
-        json.dump(updated_line_data, file, indent=4)
-
-def count_flags_in_json(json_file='line_data.json'):
-    try:
-        with open(json_file, 'r') as file:
-            lines = json.load(file)
-            # Count only those flags with a status of 'complete'
-            complete_flags = [line for line in lines if line.get('status') == 'complete']
-            return len(complete_flags)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return 0  # Return 0 if file doesn't exist or is empty
-    
 def update_line_data(line_name, line_type, status=None, point_1=None, point_2=None, json_file='line_data.json'):
     try:
         with open(json_file, 'r') as file:
@@ -674,4 +526,4 @@ def update_line_data(line_name, line_type, status=None, point_1=None, point_2=No
     with open(json_file, 'w') as file:
         json.dump(lines, file, indent=4)
 
-    update_2_min()
+    #update_2_min()

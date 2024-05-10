@@ -2,76 +2,23 @@
     "current_high": null,
     "highest_point": null,
     "lower_highs": [],
-    "current_low": 516.04,
+    "current_low": 519.775,
     "lowest_point": [
-        21,
-        516.04
+        192,
+        519.775
     ],
-    "higher_lows": [
-        [
-            120,
-            516.2
-        ],
-        [
-            118,
-            516.22
-        ],
-        [
-            122,
-            516.37
-        ],
-        [
-            117,
-            516.17
-        ],
-        [
-            105,
-            516.11
-        ],
-        [
-            23,
-            516.15
-        ],
-        [
-            92,
-            516.29
-        ],
-        [
-            124,
-            516.305
-        ],
-        [
-            121,
-            516.34
-        ],
-        [
-            22,
-            516.0715
-        ],
-        [
-            116,
-            516.345
-        ],
-        [
-            24,
-            516.345
-        ],
-        [
-            119,
-            516.28
-        ]
-    ],
+    "higher_lows": [],
     "slope": null,
     "intercept": null,
     "previous_candles": [
         {
-            "open": 516.49,
-            "high": 516.49,
-            "low": 516.305,
-            "close": 516.38,
-            "timestamp": "2024-05-08T12:40:00.017694",
-            "type": "PDHL PDL",
-            "candle_index": 124
+            "open": 519.83,
+            "high": 519.94,
+            "low": 519.775,
+            "close": 519.9097,
+            "timestamp": "2024-05-09T14:58:00.057255",
+            "type": "resistance_21 Buffer",
+            "candle_index": 192
         }
     ]
 }

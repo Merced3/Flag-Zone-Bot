@@ -15,6 +15,7 @@ import pytz
 import time
 from datetime import datetime, timedelta
 import os
+import math
 from pathlib import Path
 
 RETRY_INTERVAL = 1  # Seconds between reconnection attempts
@@ -541,29 +542,151 @@ def load_json_df(file_path):
         data = json.load(file)
     return pd.DataFrame(data)
 
-async def above_below_ema(state):
-    # This will return true or false, state has to be either 'above' or 'below'
-    # It will get an instant price of what the stock is trading at
-    # Then it will see if the price is above or below the EMAs.
-    # The state tells us what we're looking for
+async def above_below_ema(state, threshold=None):
+    """
+    Determines if the current price is above or below the 13 EMA and by what margin.
+
+    Parameters:
+    state (str): 'above' or 'below' indicating desired state relative to EMA.
+    threshold (float, optional): The maximum allowable distance from the 13 EMA for additional condition checks.
+
+    Returns:
+    (bool, bool): Tuple where the first item indicates if the price is correctly positioned relative to all EMAs,
+                  and the second indicates if the price is within the specified threshold from the 13 EMA.
+    """
 
     # Get current price
     price = await get_current_price(SYMBOL)
 
-    # Access EMAs.json, get the last EMA values
+    # Load EMA values
     EMAs = load_json_df('EMAs.json')
+    if EMAs.empty:
+        print("        [EMA] ERROR: data is unavailable.")
+        return False, None  # No EMA data available 
+    
     last_EMA = EMAs.iloc[-1]
     last_EMA_dict = last_EMA.to_dict()
     print(f"        [EMA] Last EMA Values: {last_EMA_dict}, Price: {price}")
-    # Check if price is above or below the EMAs
-    for ema in last_EMA_dict:
-        if ema != 'x':  # Assuming 'x' is not an EMA value but an index or timestamp
-            if state == 'above' and price <= last_EMA_dict[ema]:
-                return False
-            if state == 'below' and price >= last_EMA_dict[ema]:
-                return False
+    
+    # Ensure price is correctly positioned relative to all EMAs
+    for ema, ema_value in last_EMA_dict.items():
+        if ema != 'x':  # 'x' is not an EMA value but an index or timestamp
+            if (state == 'above' and price <= ema_value) or (state == 'below' and price >= ema_value):
+                return False, None  # Price does not meet EMA position requirements
+    
+    # Calculate distance from the 13 EMA if the price is in the correct position relative to all EMAs
+    distance = abs(price - last_EMA_dict.get('13', 0))  # Default to 0 if '13' not present
+    print(f"        [EMA] distance = {distance}")
+    
+    # Check if the distance from the 13 EMA is within the allowed threshold if specified
+    within_threshold = (distance <= threshold) if threshold is not None else True
 
-    return True
+    return True, within_threshold  # Return True for correct EMA positioning and the threshold check result
+
+def determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, multi_order_condition_met):
+    reasons = []
+    if not ema_condition_met:
+        reasons.append("Price not aligned with EMAs")
+    if not ema_price_distance_met:
+        reasons.append("Price too distant from 13 EMA")
+    if not vp_1 or not vp_2:
+        point = "Point 1 None" if not vp_1 else "Point 2 None"
+        reasons.append(f"Invalid points; {point}")
+    if not multi_order_condition_met:
+        reasons.append("Trade limit in zone reached")
+    return "; ".join(reasons) if reasons else "No specific reason"
+
+def restart_state_json(reset_all, state_file_path="state.json", reset_side=None):
+    """
+    Initializes or resets the state.json file to default values or specific sections.
+
+    Parameters:
+    reset_all (bool): if True, reset entire state.
+    state_file_path (str): The file path for the state.json file.
+    reset_side (str): which side to reset, "bear" or "bull".
+    """
+    initial_state = {
+        'current_high': None,
+        'highest_point': None,
+        'lower_highs': [],
+        'current_low': None,
+        'lowest_point': None,
+        'higher_lows': [],
+        'slope': None,
+        'intercept': None,
+        'previous_candles': []
+    }
+    if reset_all:
+        with open(state_file_path, 'w') as file:
+            json.dump(initial_state, file, indent=4)
+        print("    [RESET] State JSON file has been reset to initial state.")
+    elif not reset_all and reset_side:
+        # Load existing state from file
+        try:
+            with open(state_file_path, 'r') as file:
+                state = json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            print("    [ERROR] State file not found or is corrupt. Resetting to initial state.")
+            state = initial_state
+
+        # Apply selective resets based on the specified side
+        if reset_side == "bull":
+            state['current_high'] = None
+            state['highest_point'] = None
+            state['lower_highs'] = []
+        elif reset_side == "bear":
+            state['current_low'] = None
+            state['lowest_point'] = None
+            state['higher_lows'] = []
+        
+        # Save the updated state back to the file
+        with open(state_file_path, 'w') as file:
+            json.dump(state, file, indent=4)
+        print(f"    [RESET] State JSON file has been reset for {reset_side} side.")
+
+def initialize_ema_json(json_path):
+    """Ensure the EMA JSON file exists and is valid; initialize if not."""
+    if not os.path.exists(json_path) or os.stat(json_path).st_size == 0:
+        with open(json_path, 'w') as file:
+            json.dump([], file)  # Initialize with an empty list
+    try:
+        with open(json_path, 'r') as file:
+            return json.load(file) if isinstance(json.load(file), list) else []
+    except json.JSONDecodeError:
+        return []
+
+def clear_priority_candles(havent_cleared, type_candle, json_file='priority_candles.json'):
+    if havent_cleared:
+        with open(json_file, 'w') as file:
+            json.dump([], file, indent=4)
+        print(f"    [RESET] {json_file}; what_type_of_candle = {type_candle}")
+        havent_cleared = False
+
+async def record_priority_candle(candle, type_candles, json_file='priority_candles.json'):
+    # Load existing data or initialize an empty list
+    try:
+        with open(json_file, 'r') as file:
+            candles_data = json.load(file)
+        # Check if 'type' of the last candle exists and does not equal 'type_candles'
+        if candles_data and candles_data[-1]['type'] != type_candles:
+            # If the types don't match, clear the priority candles
+            clear_priority_candles(True, type_candles, json_file)
+            restart_state_json(True)
+            candles_data = []  # Reset candles_data to be an empty list after clearing
+    except (FileNotFoundError, json.JSONDecodeError):
+        candles_data = []
+
+    current_candle_index = get_current_candle_index()
+
+    # Append the new candle data along with its type
+    candle_with_type = candle.copy()
+    candle_with_type['type'] = type_candles
+    candle_with_type['candle_index'] = current_candle_index
+    candles_data.append(candle_with_type)
+
+    # Save updated data back to the file
+    with open(json_file, 'w') as file:
+        json.dump(candles_data, file, indent=4)
 
 async def read_ema_json(position):
     try:
@@ -652,7 +775,7 @@ def check_order_type_json(candle_type, file_path = "order_candle_type.json"):
 
     # Count how many times the given candle_type appears in the list
     num_of_matches = candle_types.count(candle_type)
-    print(num_of_matches)
+    #print(num_of_matches)
     # Compare the count with the threshold
     if num_of_matches >= ORDERS_ZONE_THRESHOLD:
         return False  # More or equal matches than the threshold, do not allow more orders
@@ -674,5 +797,96 @@ def add_candle_type_to_json(candle_type, file_path = "order_candle_type.json"):
     # Write the updated list back to the file
     with open(file_path, 'w') as file:
         json.dump(candle_types, file, indent=4)  # Using indent for better readability of the JSON file
+
+def is_angle_valid(slope, config, bearish=False):
+    """
+    Calculates the angle of the slope and checks if it is within the valid range specified in the config.
+    
+    Parameters:
+    slope (float): The slope of the line.
+    config (dict): Configuration dictionary containing angle criteria.
+
+    Returns:
+    bool: True if the angle is within the valid range, False otherwise.
+    """
+    angle = math.atan(slope) * (180 / math.pi)
+    
+    if bearish:
+        min_angle = config["FLAGPOLE_CRITERIA"]["BEAR_MIN_ANGLE"]
+        max_angle = config["FLAGPOLE_CRITERIA"]["BEAR_MAX_ANGLE"]
+    else:
+        min_angle = config["FLAGPOLE_CRITERIA"]["BULL_MIN_ANGLE"]
+        max_angle = config["FLAGPOLE_CRITERIA"]["BULL_MAX_ANGLE"]
+
+    print(f"        [Slope Angle] {angle} degrees for {'Bear' if bearish else 'Bull'} flag")
+    return min_angle <= angle <= max_angle
+
+def check_valid_points(line_name):
+    line_data_path = Path('line_data.json')
+    if line_data_path.exists():
+        with open(line_data_path, 'r') as file:
+            line_data = json.load(file)
+            for flag in line_data:
+                if flag['name'] == line_name:
+                    # Check and print point_1's x, y if available
+                    point_1 = flag.get('point_1')
+                    #if point_1:
+                    #    print(f"        [LINE CHECK] Point 1: x={point_1.get('x')}, y={point_1.get('y')}")
+                    #else:
+                    #    print("        [LINE CHECK] Point 1: None")
+
+                    # Check and print point_2's x, y if available
+                    point_2 = flag.get('point_2')
+                    #if point_2:
+                    #    print(f"        [LINE CHECK] Point 2: x={point_2.get('x')}, y={point_2.get('y')}")
+                    #else:
+                    #    print("        [LINE CHECK] Point 2: None")
+
+                    # Ensure both point_1 and point_2 exist and have non-null x and y
+                    point_1_valid = point_1 and point_1.get('x') is not None and point_1.get('y') is not None
+                    point_2_valid = point_2 and point_2.get('x') is not None and point_2.get('y') is not None
+                    
+                    return point_1_valid, point_2_valid
+    return False
+
+def update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle):
+    with open(state_file_path, 'r') as file:
+        state = json.load(file)
+
+    state['current_high'] = current_high
+    state['highest_point'] = highest_point
+
+    # Create a new list for lower_highs based on the condition
+    new_lower_highs = [tuple(lh) for lh in lower_highs if lh[0] > highest_point[0]]
+    # Update lower_highs if there are new values, otherwise empty the list
+    if new_lower_highs:
+        unique_new_lower_highs = set(new_lower_highs)
+        state['lower_highs'] = list(unique_new_lower_highs)
+    else:
+        state['lower_highs'] = []
+        state['previous_candles'] = []
+
+    state['current_low'] = current_low
+    state['lowest_point'] = lowest_point
+
+    # Create a new list for higher_lows based on the condition
+    new_higher_lows = [tuple(hl) for hl in higher_lows if hl[0] > lowest_point[0]]
+    # Update higher_lows if there are new values, otherwise empty the list
+    if new_higher_lows:
+        unique_new_higher_lows = set(new_higher_lows)
+        state['higher_lows'] = list(unique_new_higher_lows)
+    else:
+        state['higher_lows'] = []
+        state['previous_candles'] = []
+
+    state['slope'] = slope
+    state['intercept'] = intercept
+
+    # Add the current candle to previous_candles, avoiding duplicates
+    if candle['candle_index'] not in [c['candle_index'] for c in state['previous_candles']]:
+        state['previous_candles'].append(candle)
+
+    with open(state_file_path, 'w') as file:
+        json.dump(state, file, indent=4)
 
 
