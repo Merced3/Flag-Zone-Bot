@@ -539,9 +539,9 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
     
     #Check emas
     if line_type == 'Bull':
-        ema_condition_met, ema_price_distance_met = await above_below_ema('above', 0.50)
+        ema_condition_met, ema_price_distance_met = await above_below_ema('above', 0.20)
     else:  # 'Bear'
-        ema_condition_met, ema_price_distance_met = await above_below_ema('below', 0.50)
+        ema_condition_met, ema_price_distance_met = await above_below_ema('below', 0.20)
     
     #check if points are valid
     vp_1, vp_2 = check_valid_points(line_name) #vp means valid point

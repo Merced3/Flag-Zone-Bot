@@ -620,7 +620,7 @@ def restart_state_json(reset_all, state_file_path="state.json", reset_side=None)
         with open(state_file_path, 'w') as file:
             json.dump(initial_state, file, indent=4)
         print("    [RESET] State JSON file has been reset to initial state.")
-    elif not reset_all and reset_side:
+    elif not reset_all and reset_side is not None:
         # Load existing state from file
         try:
             with open(state_file_path, 'r') as file:
