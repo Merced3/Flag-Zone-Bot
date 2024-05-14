@@ -41,8 +41,8 @@
         "MIN_NUM_CANDLES": 2,
         "MAX_NUM_CANDLES": 150,
         "BULL_MIN_ANGLE": -16,
-        "BULL_MAX_ANGLE": -1.5,
-        "BEAR_MIN_ANGLE": 1.5,
+        "BULL_MAX_ANGLE": -1.4,
+        "BEAR_MIN_ANGLE": 1.4,
         "BEAR_MAX_ANGLE": 16
     },
     "OPTION_EXPIRATION_DTE": "not specified",

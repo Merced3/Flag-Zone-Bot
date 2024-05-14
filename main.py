@@ -1,6 +1,6 @@
 #main.py
 from chart_visualization import plot_candles_and_boxes, initiate_shutdown
-from data_acquisition import get_candle_data, get_dates
+from data_acquisition import get_candle_data, get_dates, reset_json
 from tll_trading_strategy import execute_trading_strategy
 from buy_option import message_ids_dict, used_buying_power
 from ema_strategy import execute_200ema_strategy
@@ -447,11 +447,6 @@ async def reseting_values():
             print(f"[RESET] Order log file {file} deleted.")
         except Exception as e:
             print(f"An error occurred while deleting {file}: {e}")
-
-def reset_json(file_path, contents):
-    with open(file_path, 'w') as f:
-        json.dump(contents, f, indent=4)
-        print(f"[RESET] Cleared file: {file_path}")
 
 async def shutdown(loop, root=None):
     """Shutdown tasks and the Discord bot."""

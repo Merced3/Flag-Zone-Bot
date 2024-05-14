@@ -32,6 +32,11 @@ EMA = config["EMAS"]
 root = None
 canvas = None
 
+# Global control flags
+pause_event = threading.Event()
+pause_event.set()
+next_candle_event = threading.Event()
+
 def setup_globals(tk_root, tk_canvas, _boxes):
     global root, canvas, boxes
     root = tk_root
@@ -277,3 +282,89 @@ def initiate_shutdown():
     global should_close
     should_close = True
     # boxes = None
+
+
+def simulate_candles_one_by_one(log_source, log_destination, update_interval=1):
+    global should_close, pause_event, next_candle_event, df_2_min
+    with open(log_source, 'r') as source_file:
+        candles = source_file.readlines()
+
+    candle_index = 0
+    while candle_index < len(candles):
+        if should_close:
+            break
+        
+        pause_event.wait()  # Wait here if the simulation is paused
+        if next_candle_event.is_set():
+            next_candle_event.clear()  # Clear after processing one candle if set
+
+        candle = candles[candle_index]
+        with open(log_destination, 'a') as dest_file:
+            dest_file.write(candle)
+            dest_file.flush()
+
+        df_2_min = read_log_to_df(log_destination)
+        root.after(0, lambda: update_plot(canvas, df_2_min, boxes, SYMBOL, "2-min"))
+
+        candle_index += 1
+        if not next_candle_event.is_set():  # Only sleep if not stepping through one candle
+            time.sleep(update_interval)
+
+def setup_simulation_environment(boxes, interval):
+    global should_close, root, canvas, button_pause, button_resume, button_next_candle
+    should_close = False
+    root = tk.Tk()
+    root.title("Candlestick Chart Simulation")
+
+    # Create matplotlib figure and canvas
+    fig = Figure(figsize=(12, 6), dpi=100)
+    canvas = FigureCanvasTkAgg(fig, master=root)
+    canvas_widget = canvas.get_tk_widget()
+    canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+    setup_globals(root, canvas, boxes)
+    
+    # Load the path configurations
+    log_source = LOGS_DIR / 'all_candles.log'
+    log_destination = LOGS_DIR / f"{SYMBOL}_2M.log"
+
+    # Buttons
+    button_pause = tk.Button(root, text="Pause", command=pause_simulation)
+    button_pause.pack(side=tk.LEFT)
+
+    button_resume = tk.Button(root, text="Resume", command=resume_simulation)
+    button_resume.pack(side=tk.LEFT)
+    button_resume.config(state="disabled")  # Start disabled
+
+    button_next_candle = tk.Button(root, text="Next Candle", command=next_candle)
+    button_next_candle.pack(side=tk.LEFT)
+    button_next_candle.config(state="disabled")  # Start disabled
+
+    simulate_thread = threading.Thread(target=simulate_candles_one_by_one, args=(log_source, log_destination, interval))
+    simulate_thread.start()
+
+    root.mainloop()
+
+def pause_simulation():
+    global button_pause, button_resume, button_next_candle
+    pause_event.clear()  # Stop the simulation loop
+    button_pause.config(state="disabled")
+    button_resume.config(state="normal")
+    button_next_candle.config(state="normal")
+
+def resume_simulation():
+    global button_pause, button_resume, button_next_candle
+    pause_event.set()  # Allow the simulation to continue
+    button_pause.config(state="normal")
+    button_resume.config(state="disabled")
+    button_next_candle.config(state="disabled")
+
+def next_candle():
+    global button_pause, button_resume, button_next_candle
+    next_candle_event.set()  # Allow one candle to be processed
+    pause_event.set()  # Temporarily resume the loop for one iteration
+    root.after(100, lambda: pause_event.clear())  # Re-pause after a short delay to allow one cycle
+    button_resume.config(state="normal")
+    button_next_candle.config(state="normal")
+    button_pause.config(state="disabled")
+

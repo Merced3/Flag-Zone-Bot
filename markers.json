@@ -1,1 +1,128 @@
-{}
+[
+    {
+        "event_type": "buy",
+        "x": 47,
+        "y": 517.8398000000001,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 54,
+        "y": 517.7149999999999,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 89,
+        "y": 517.4599999999999,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 92,
+        "y": 517.6999999999999,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 109,
+        "y": 517.6099999999998,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 117,
+        "y": 517.5082352941178,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 123,
+        "y": 517.7525,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 128,
+        "y": 517.72,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 133,
+        "y": 517.845,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 138,
+        "y": 517.8949999999999,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 140,
+        "y": 517.9926250000001,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 145,
+        "y": 517.7785999999999,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 150,
+        "y": 517.6251500000001,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    },
+    {
+        "event_type": "buy",
+        "x": 155,
+        "y": 517.905,
+        "style": {
+            "marker": "^",
+            "color": "blue"
+        }
+    }
+]

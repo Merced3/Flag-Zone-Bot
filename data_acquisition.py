@@ -287,11 +287,15 @@ async def get_current_price(symbol: str) -> float:
 
     return 0.0  # Return a default value or handle this case as required
 
-async def add_markers(event_type):
+async def add_markers(event_type, x=None, y=None):
     
     log_file_path = Path(__file__).resolve().parent / 'logs/SPY_2M.log'
-    x_coord = get_current_candle_index(log_file_path)
-    y_coord = await get_current_price(SYMBOL)
+    if x is not None and y is not None:
+        x_coord = x
+        y_coord = y
+    else:
+        x_coord = get_current_candle_index(log_file_path)
+        y_coord = await get_current_price(SYMBOL)
     print(f"    [MARKER] {x_coord}, {y_coord}, {event_type}")
 
     x_coord += 1
@@ -582,6 +586,38 @@ async def above_below_ema(state, threshold=None):
     within_threshold = (distance <= threshold) if threshold is not None else True
 
     return True, within_threshold  # Return True for correct EMA positioning and the threshold check result
+
+def resolve_flags(json_file='line_data.json'):
+    
+    # Load the flags from JSON file
+    line_data_path = Path(json_file)
+    if line_data_path.exists():
+        with open(line_data_path, 'r') as file:
+            line_data = json.load(file)
+    else:
+        print(f"    [FLAG ERROR] File {json_file} not found.")
+        return
+
+    # Iterate through the flags and resolve opposite flags
+    updated_line_data = []
+    for flag in line_data:
+        #edit this part to take into account null values
+        if flag['type'] and flag['status'] == 'active':
+            # Mark as complete or remove the flag based on your strategy
+            is_point_1_valid = flag['point_1']['x'] is not None and flag['point_1']['y'] is not None
+            is_point_2_valid = flag['point_2']['x'] is not None and flag['point_2']['y'] is not None
+                
+            if is_point_1_valid and is_point_2_valid:
+                flag['status'] = 'complete' #mark complete so its no longer edited
+                updated_line_data.append(flag)
+                print("    [FLAG] Active flags resolved.")
+            # Skip adding the flag to updated_line_data if it's active and has invalid points
+        else:
+            updated_line_data.append(flag)
+
+    # Save the updated data back to the JSON file
+    with open(line_data_path, 'w') as file:
+        json.dump(updated_line_data, file, indent=4)
 
 def determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, multi_order_condition_met):
     reasons = []
@@ -889,4 +925,38 @@ def update_state(state_file_path, current_high, highest_point, lower_highs, curr
     with open(state_file_path, 'w') as file:
         json.dump(state, file, indent=4)
 
+def count_flags_in_json(json_file='line_data.json'):
+    try:
+        with open(json_file, 'r') as file:
+            lines = json.load(file)
+            # Count only those flags with a status of 'complete'
+            complete_flags = [line for line in lines if line.get('status') == 'complete']
+            return len(complete_flags)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return 0  # Return 0 if file doesn't exist or is empty
+    
+def reset_json(file_path, contents):
+    with open(file_path, 'w') as f:
+        json.dump(contents, f, indent=4)
+        print(f"[RESET] Cleared file: {file_path}")
+
+def empty_log(filename):
+    """
+    Empties the contents of the specified log file.
+
+    Args:
+    filename (str): The base name of the log file without extension.
+    """
+    # Ensure the logs directory exists
+    if not os.path.exists(LOGS_DIR):
+        os.makedirs(LOGS_DIR)
+    
+    # Path to the log file
+    log_file_path = os.path.join(LOGS_DIR, f'{filename}.log')
+
+    # Open the file in write mode to truncate it
+    with open(log_file_path, 'w') as file:
+        pass  # Opening in write mode ('w') truncates the file automatically
+
+    print(f"[CLEARED]'{filename}.log' has been emptied.")
 
