@@ -1,24 +1,11 @@
 {
-    "current_high": 530.08,
-    "highest_point": [
-        193,
-        530.08
-    ],
+    "current_high": null,
+    "highest_point": [],
     "lower_highs": [],
     "current_low": null,
     "lowest_point": null,
     "higher_lows": [],
     "slope": null,
     "intercept": null,
-    "previous_candles": [
-        {
-            "open": 529.73,
-            "high": 530.08,
-            "low": 529.68,
-            "close": 530.05,
-            "timestamp": "2024-05-15T14:58:00.128149",
-            "type": "PDHL PDH",
-            "candle_index": 193
-        }
-    ]
+    "previous_candles": []
 }

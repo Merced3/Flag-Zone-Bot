@@ -231,7 +231,7 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
 
 def update_2_min():
     global root, df_2_min
-    print("    [update_2_min] function called")
+    #print("    [update_2_min] function called")
     if root and df_2_min is not None:
         try:
             # Post the update task to the Tkinter main loop

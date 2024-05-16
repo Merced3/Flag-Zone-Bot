@@ -854,7 +854,7 @@ def is_angle_valid(slope, config, bearish=False):
         min_angle = config["FLAGPOLE_CRITERIA"]["BULL_MIN_ANGLE"]
         max_angle = config["FLAGPOLE_CRITERIA"]["BULL_MAX_ANGLE"]
 
-    print(f"        [Slope Angle] {angle} degrees for {'Bear' if bearish else 'Bull'} flag")
+    print(f"                [IAV Slope Angle] {angle} degrees for {'Bear' if bearish else 'Bull'} flag")
     return min_angle <= angle <= max_angle
 
 def check_valid_points(line_name):
