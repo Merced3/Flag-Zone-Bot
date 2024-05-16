@@ -160,7 +160,7 @@ async def execute_trading_strategy(zones):
                         num_flags = count_flags_in_json()
                         last_candle = priority_candles.iloc[-1]
                         last_candle_dict = last_candle.to_dict()
-                        await identify_flag(last_candle_dict, num_flags, what_type_of_candle)
+                        await identify_flag(last_candle_dict, num_flags, session, headers, what_type_of_candle)
                         already_cleared = False
                         num_of_candles_in_zone = 0
                     else:
@@ -171,7 +171,7 @@ async def execute_trading_strategy(zones):
                             num_flags = count_flags_in_json()
                             last_candle = priority_candles.iloc[-1]
                             last_candle_dict = last_candle.to_dict()
-                            should_reset = await identify_flag(last_candle_dict, num_flags, prev_what_type_of_candle, False)
+                            should_reset = await identify_flag(last_candle_dict, num_flags, session, headers, prev_what_type_of_candle, False)
                             if should_reset:
                                 print(f"    [RESET] flag state variables, waiting for new candle to come out of zone")
                                 prev_what_type_of_candle = None
@@ -663,8 +663,8 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
         update_line_data(line_name=line_name, line_type=line_type, status="complete")
         return True
     else:
-        if vp_1 and vp_2:
-            update_line_data(line_name=line_name, line_type=line_type, status="complete")
+        #if vp_1 and vp_2:
+            #update_line_data(line_name=line_name, line_type=line_type, status="complete")
         reason = determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, multi_order_condition_met)
         
         if not ema_condition_met and (not vp_1 or not vp_2):

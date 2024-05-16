@@ -432,6 +432,7 @@ async def reseting_values():
     write_log_data_as_string(whole_log, SYMBOL, f"{TIMEFRAMES[0]}_Boxes")
     new_log_file_path = LOGS_DIR / f"{SYMBOL}_{TIMEFRAMES[0]}_Boxes.log"
     await send_file_discord(new_log_file_path) #Send file
+    await send_file_discord('EMAs.json')
 
     #clear the Logs, logs/[ticker_symbol]_2M.log file. Don't delete it just clear it.
     #this deleted the file, but we want to keep the file and just clear it.
