@@ -38,6 +38,7 @@ ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
 MIN_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MIN_NUM_CANDLES"]
 MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
 OPTION_EXPIRATION_DTE = config["OPTION_EXPIRATION_DTE"]
+EMA_MAX_DISTANCE = config["EMA_MAX_DISTANCE"]
 
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
 LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{SYMBOL}_{TIMEFRAMES[0]}.log')  # Adjust the path accordingly
@@ -641,9 +642,9 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
     
     #Check emas
     if line_type == 'Bull':
-        ema_condition_met, ema_price_distance_met = await above_below_ema('above', 0.20)
+        ema_condition_met, ema_price_distance_met = await above_below_ema('above', EMA_MAX_DISTANCE)
     else:  # 'Bear'
-        ema_condition_met, ema_price_distance_met = await above_below_ema('below', 0.20)
+        ema_condition_met, ema_price_distance_met = await above_below_ema('below', EMA_MAX_DISTANCE)
     
     #check if points are valid
     vp_1, vp_2 = check_valid_points(line_name) #vp means valid point
