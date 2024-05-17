@@ -393,6 +393,14 @@ async def reseting_values():
     used_buying_power.clear()
     print("[RESET] Cleared 'used_buying_power' list.")
 
+    #save new data in dicord, send log file, with boxes in the file,
+    whole_log = read_log_file(LOGS_DIR / f"{SYMBOL}_{TIMEFRAMES[0]}.log")
+    write_log_data_as_string(whole_log, SYMBOL, f"{TIMEFRAMES[0]}_Boxes")
+    new_log_file_path = LOGS_DIR / f"{SYMBOL}_{TIMEFRAMES[0]}_Boxes.log"
+    await send_file_discord(new_log_file_path) #Send file
+    await send_file_discord('EMAs.json')
+    await send_file_discord('markers.json')
+
     #clear 'message_ids.json' file
     reset_json('message_ids.json', {})
     #Clear the markers.json file
@@ -425,15 +433,6 @@ async def reseting_values():
     for file in csv_files:
         print(f"[RESET] Deleting File: {file.name}")
         file.unlink()  # Delete the file
-
-    
-    #save new data in dicord, send log file, with boxes in the file,
-    whole_log = read_log_file(LOGS_DIR / f"{SYMBOL}_{TIMEFRAMES[0]}.log")
-    write_log_data_as_string(whole_log, SYMBOL, f"{TIMEFRAMES[0]}_Boxes")
-    new_log_file_path = LOGS_DIR / f"{SYMBOL}_{TIMEFRAMES[0]}_Boxes.log"
-    await send_file_discord(new_log_file_path) #Send file
-    await send_file_discord('EMAs.json')
-    await send_file_discord('markers.json')
 
     #clear the Logs, logs/[ticker_symbol]_2M.log file. Don't delete it just clear it.
     #this deleted the file, but we want to keep the file and just clear it.

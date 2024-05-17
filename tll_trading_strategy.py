@@ -93,7 +93,7 @@ async def execute_trading_strategy(zones):
     already_cleared = False #TODO FALSE
     num_of_candles_in_zone = 0 #TODO 0
     prev_what_type_of_candle = what_type_of_candle
-
+    has_calculated_emas = False #TODO False
     candle_interval = 2
     candle_timescale = "minute"
     AM = "AFTERMARKET"
@@ -181,7 +181,7 @@ async def execute_trading_strategy(zones):
                             else:
                                 num_of_candles_in_zone += 1
                                 print(f"    [ETS Candles In Zone] {num_of_candles_in_zone}")
-                        if not already_cleared and num_of_candles_in_zone >= MIN_NUM_CANDLES: # How many candles it should ignore before restarting the whole state/priority json files
+                        if not already_cleared and num_of_candles_in_zone > MIN_NUM_CANDLES: # How many candles it should ignore before restarting the whole state/priority json files
                             restart_flag_data(what_type_of_candle)
                             prev_what_type_of_candle = None
                             num_of_candles_in_zone = 0
@@ -476,7 +476,7 @@ async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, s
                     if valid_breakout:
                         print(f"            [CFBB FLAG] UPDATE 4: {line_name}, active")
                         update_line_data(line_name, "Bear", "active", lowest_point, hl)
-                        return new_slope, new_intercept, True
+                        return new_slope, new_intercept, False
                     else:
                         print("            [CFBB INVALID BREAKOUT] Invalid breakout on new slope.")
                         return None, None, False
@@ -544,7 +544,7 @@ async def check_for_bullish_breakout(line_name, lh, lower_highs, highest_point, 
                     if valid_breakout:
                         print(f"            [CFBB FLAG] UPDATE 6: {line_name}, active")
                         update_line_data(line_name, "Bull", "active", highest_point, lh)
-                        return new_slope, new_intercept, True
+                        return new_slope, new_intercept, False
                     else:
                         print("            [CFBB INVALID BREAKOUT] Invalid breakout on new slope.")
                         return None, None, False
