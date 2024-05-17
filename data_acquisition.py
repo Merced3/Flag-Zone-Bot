@@ -287,7 +287,7 @@ async def get_current_price(symbol: str) -> float:
 
     return 0.0  # Return a default value or handle this case as required
 
-async def add_markers(event_type, x=None, y=None):
+async def add_markers(event_type, x=None, y=None, percentage=None):
     
     log_file_path = Path(__file__).resolve().parent / 'logs/SPY_2M.log'
     if x is not None and y is not None:
@@ -310,7 +310,8 @@ async def add_markers(event_type, x=None, y=None):
         'event_type': event_type,
         'x': x_coord,
         'y': y_coord,
-        'style': marker_styles[event_type]
+        'style': marker_styles[event_type],
+        'percentage': percentage
     }
 
     # Path to markers.json file

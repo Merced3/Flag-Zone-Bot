@@ -100,10 +100,9 @@ Order Cost Buffer exceded BP
             return False
 
         if real_money_activated: 
-            #stuff...
             order_result = await submit_option_order(real_money_activated, ticker_symbol, strike_price, cp, bid, expiration_date, quantity, side, order_type)
             if order_result:
-                await add_markers("buy")
+                await add_markers("buy", None, None, 0)
                 timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')
                 unique_order_ID, order_bid_entry_price, order_quantity = await get_order_status(strategy_name, real_money_activated, order_result['order_id'], "buy", ticker_symbol, cp, strike_price, expiration_date, timestamp, message_ids_dict)
 
@@ -123,7 +122,7 @@ Order Cost Buffer exceded BP
         else:
             active_order = await submit_option_order_v2(strategy_name, ticker_symbol, strike_price, cp, expiration_date, session, headers, message_ids_dict, buying_power)
             if active_order is not None:
-                await add_markers("buy")
+                await add_markers("buy", None, None, 0)
                 order_cost = (active_order["entry_price"] * 100) * active_order["quantity"]
                 used_buying_power[active_order['order_id']] = order_cost
                 loop = asyncio.get_event_loop()

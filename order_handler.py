@@ -39,6 +39,23 @@ todays_orders_profit_loss_list = [] #added the variable here instead of tll_trad
 
 LOGS_DIR = Path(__file__).resolve().parent / 'logs'
 
+def calculate_bid_percentage(buy_entry_price, sold_bid_price):
+    """
+    Calculate the percentage change between the buy entry price and the sold bid price.
+
+    Args:
+    - buy_entry_price (float): The price at which the asset was bought.
+    - sold_bid_price (float): The price at which the asset was sold or trimmed.
+
+    Returns:
+    - float: The percentage change.
+    """
+    try:
+        percentage_change = ((sold_bid_price - buy_entry_price) / buy_entry_price) * 100
+        return round(percentage_change, 2)  # Rounding to 2 decimal places
+    except ZeroDivisionError:
+        return 0.0
+
 def distribute_remaining_contracts(remaining, n_targets):
     proportions = {
         1: [1.0],  # If only 1 target, put everything on it
@@ -245,14 +262,14 @@ async def manage_active_order(active_order_details, message_ids_dict):
                 if "EMA" in STOP_LOSS_PERCENTAGE:
                     ema_value = STOP_LOSS_PERCENTAGE.split(' ')[-1]
                     if is_ema_broke(ema_value, SYMBOL, TIMEFRAMES[0], option_type):
-                        await sell_rest_of_active_order(message_ids_dict, "13ema Trailing stop Hit")
+                        await sell_rest_of_active_order(message_ids_dict, "13ema Trailing stop Hit", 3, buy_entry_price)
                         break
             elif isinstance(STOP_LOSS_PERCENTAGE, (int, float)): # if STOP_LOSS_PERCENTAGE is number
                 if current_bid_price is not None and buy_entry_price is not None:
                     current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
                     if current_loss_percentage <= STOP_LOSS_PERCENTAGE:
                         print(f"\nStop loss triggered at {current_loss_percentage}% loss.")
-                        await sell_rest_of_active_order(message_ids_dict, "Stop Loss Triggered")
+                        await sell_rest_of_active_order(message_ids_dict, "Stop Loss Triggered", 3, buy_entry_price)
                         break
 
             #this handles the sell targets
@@ -278,10 +295,12 @@ async def manage_active_order(active_order_details, message_ids_dict):
                         remaining_quantity -= sold_quantity
                         print(f"Sold {sold_quantity} at {sold_bid_price} target, {remaining_quantity} remaining.")
 
+                        # Calculate Percentage for more data tracking...
+                        bid_percentage = calculate_bid_percentage(buy_entry_price, sold_bid_price)
                         if remaining_quantity <= 0:
-                            await add_markers("sell")
+                            await add_markers("sell", None, None, bid_percentage)
                         else:
-                            await add_markers("trim")
+                            await add_markers("trim", None, None, bid_percentage)
                         
                         #have 'already_sold' some how afftected right here, i think that will help with selling issue
                         
@@ -402,7 +421,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                     if "EMA" in STOP_LOSS_PERCENTAGE:
                         ema_value = STOP_LOSS_PERCENTAGE.split(' ')[-1]
                         if is_ema_broke(ema_value, SYMBOL, TIMEFRAMES[0], option_type):
-                            await sell_rest_of_active_order(message_ids_dict, "13ema Trailing stop Hit")
+                            await sell_rest_of_active_order(message_ids_dict, "13ema Trailing stop Hit", 3, buy_entry_price)
                             break
                 elif isinstance(STOP_LOSS_PERCENTAGE, (int, float)): # if STOP_LOSS_PERCENTAGE is number
                     if current_bid_price is not None and buy_entry_price is not None:
@@ -410,7 +429,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                         if current_loss_percentage <= STOP_LOSS_PERCENTAGE:
                             Sell_order_cost = remaining_quantity * (current_bid_price * 100)
                             print(f"    [STOP LOSS] {current_loss_percentage:.2f}% loss. Sold {remaining_quantity} at {current_bid_price}, costing ${Sell_order_cost:.2f}")
-                            await sell_rest_of_active_order(message_ids_dict, "Stop Loss Triggered")
+                            await sell_rest_of_active_order(message_ids_dict, "Stop Loss Triggered", 3, buy_entry_price)
                             break
 
                 #this handles the sell targets
@@ -439,10 +458,12 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                         sold_order_cost = (current_bid_price * 100) * sell_quantity
                         print(f"Sold {sell_quantity} at {current_bid_price} target, {remaining_quantity} remaining. Order Cost: ${sold_order_cost:.2f}")
 
+                        # Calculate Percentage for more data tracking...
+                        bid_percentage = calculate_bid_percentage(buy_entry_price, current_bid_price)
                         if remaining_quantity <= 0:
-                            await add_markers("sell")
+                            await add_markers("sell", None, None, bid_percentage)
                         else:
-                            await add_markers("trim")
+                            await add_markers("trim", None, None, bid_percentage)
 
                         with open(order_log_name, "a") as log_file:
                             log_file.write(f"Sold {sell_quantity} at {current_bid_price}\n")
@@ -486,7 +507,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
                     elif is_runner:
                         #print(f"        [RUNNER DETECTED] Preparing to check runner conditions for sell point {sell_point}")
                         if is_ema_broke("13", SYMBOL, TIMEFRAMES[0], option_type):
-                            await sell_rest_of_active_order(message_ids_dict, "13ema Hit")
+                            await sell_rest_of_active_order(message_ids_dict, "13ema Hit", 3, buy_entry_price)
                             break
                         
                 
@@ -594,7 +615,7 @@ def calculate_profit_percentage(message):
         # if negitive
         return f"\n-----\n**AVG BID:**    ${avg_bid:.3f}\n**TOTAL:**    ${profit_or_loss:.2f}❌\n**PERCENT:**    {profit_or_loss_percentage:.2f}%"
 
-async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_limit=3):
+async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_limit=3, entry_bid_price=0):
     global unique_order_id # f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
     global order_quantity
     global current_order_active
@@ -613,7 +634,8 @@ async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_
             sold_bid_price, sold_quantity, success = await sell(sell_quantity, unique_order_id, message_ids_dict, reason_for_selling)
             
             if success and sold_quantity is not None and sold_bid_price is not None:
-                await add_markers("sell")
+                bid_percentage = calculate_bid_percentage(entry_bid_price, sold_bid_price)
+                await add_markers("sell", None, None, bid_percentage)
                 parts = unique_order_id.split('-')
                 if len(parts) >= 5:
                     symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
@@ -684,7 +706,8 @@ async def sell_rest_of_active_order(message_ids_dict, reason_for_selling, retry_
                     "quantity": sell_quantity,  # Using actual sold quantity
                     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 }
-                await add_markers("sell")
+                bid_percentage = calculate_bid_percentage(entry_bid_price, sold_bid_price)
+                await add_markers("sell", None, None, bid_percentage)
                 partial_exits.append(sale_info)
                 
 
