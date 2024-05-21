@@ -123,6 +123,7 @@ async def execute_trading_strategy(zones):
                     config["ACCOUNT_BALANCES"][1] = end_of_day_account_balance # Update the ACCOUNT_BALANCES
                     with open(config_path, 'w') as f: # Write back the updated config
                         json.dump(config, f, indent=4)  # Using indent for better readability
+                    restart_state_json(True)
                     break
 
                 current_last_candle = read_last_n_lines(LOG_FILE_PATH, 1)  # Read the latest candle

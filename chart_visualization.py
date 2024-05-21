@@ -135,14 +135,14 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
     mpf.plot(df, ax=ax, type='candle', style='charles', datetime_format='%Y-%m-%d', volume=False)
 
     # After plotting the candlesticks, set y-axis limits to match the candlestick range 
-    y_min = df[['low']].min().min() - BOX_SIZE_THRESHOLDS[0] # Find the minimum low price in the DataFrame
-    y_max = df[['high']].max().max() + BOX_SIZE_THRESHOLDS[0] # Find the maximum high price in the DataFrame
+    y_min = df[['low']].min().min() - BOX_SIZE_THRESHOLDS[0]  # Find the minimum low price in the DataFrame
+    y_max = df[['high']].max().max() + BOX_SIZE_THRESHOLDS[0]  # Find the maximum high price in the DataFrame
     ax.set_ylim(y_min, y_max)  # Set the y-axis limits
 
     # Add boxes to the plot using the previous working method
     for box_name, box_details in boxes.items():
         left_idx, top, bottom = box_details
-         
+
         if 'support' in box_name:
             box_color = 'green'
         elif 'resistance' in box_name:
@@ -152,34 +152,37 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
         if timescale_type == "15-min":
             # Calculate the x position of the right edge of the box
             last_index_position = df.index.get_loc(df.index[-1])  # Get the index position of the last timestamp
-            width = last_index_position - left_idx + 1 
+            width = last_index_position - left_idx + 1
             rect = Rectangle((left_idx, bottom), width, top - bottom, edgecolor=box_color, facecolor=box_color, alpha=0.5, fill=True)
         elif timescale_type == "2-min":
             # Full width for 2-min data
             width = len(df.index)
             rect = Rectangle((0, bottom), width, top - bottom, edgecolor=box_color, facecolor=box_color, alpha=0.5, fill=True)
-            
+
         ax.add_patch(rect)
 
     if timescale_type == "2-min":
         # Check and plot markers
         markers_file_path = Path(__file__).resolve().parent / 'markers.json'
         try:
-            with open(markers_file_path, 'r') as f:
-                markers = json.load(f)
+            if markers_file_path.stat().st_size > 0:  # Check that the file is not empty
+                with open(markers_file_path, 'r') as f:
+                    markers = json.load(f)
 
-            for marker in markers:
-                ax.scatter(marker['x'], marker['y'], **marker['style'])
+                for marker in markers:
+                    ax.scatter(marker['x'], marker['y'], **marker['style'])
+            else:
+                print("markers.json file is empty.")
         except FileNotFoundError:
             print("No markers.json file found.")
 
         lines_file_path = Path(__file__).resolve().parent / 'line_data.json'
-    
+
         # <<<<<<<<<Check and plot EMAs HERE>>>>>>>>>>
         ema_plotted = False
         ema_file_path = Path(__file__).resolve().parent / 'EMAs.json'
         try:
-            if ema_file_path.stat().st_size > 0:  # Check that file is not empty
+            if ema_file_path.stat().st_size > 0:  # Check that the file is not empty
                 with open(ema_file_path, 'r') as f:
                     emas = json.load(f)
                     # Your existing EMA plotting code...
@@ -207,31 +210,34 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
             print("EMA data file not found.")
 
         try:
-            with open(lines_file_path, 'r') as f:
-                lines = json.load(f)
+            if lines_file_path.stat().st_size > 0:  # Check that the file is not empty
+                with open(lines_file_path, 'r') as f:
+                    lines = json.load(f)
 
-            for line in lines:
-                # Determine the color based on the type of flag
-                color = 'blue' if line['type'] == 'Bull' else 'black'
+                for line in lines:
+                    # Determine the color based on the type of flag
+                    color = 'blue' if line['type'] == 'Bull' else 'black'
 
-                # Extract the start and end points
-                start_x = line['point_1']['x']
-                start_y = line['point_1']['y']
-                end_x = line['point_2']['x']
-                end_y = line['point_2']['y']
+                    # Extract the start and end points
+                    start_x = line['point_1']['x']
+                    start_y = line['point_1']['y']
+                    end_x = line['point_2']['x']
+                    end_y = line['point_2']['y']
 
-                # Draw the line on the chart
-                ax.plot([start_x, end_x], [start_y, end_y], color=color, linewidth=1)
-
+                    # Draw the line on the chart
+                    ax.plot([start_x, end_x], [start_y, end_y], color=color, linewidth=1)
+            else:
+                print("line_data.json file is empty.")
         except FileNotFoundError:
             print("No line_data.json file found.")
+
     # Redraw the canvas
     canvas.draw()
     canvas.figure.savefig(f"{symbol}_{timescale_type}_chart.png")
 
 def update_2_min():
     global root, df_2_min
-    #print("    [update_2_min] function called")
+    # print("    [update_2_min] function called")
     if root and df_2_min is not None:
         try:
             # Post the update task to the Tkinter main loop

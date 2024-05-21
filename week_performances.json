@@ -1,0 +1,86 @@
+[
+    {
+        "week_number": 0,
+        "week_start_end_date": "4/18/24-4/19/24",
+        "start_ammount": 6000.00,
+        "end_ammount": 5775.00,
+        "total_made": -225.00,
+        "num_of_trades": 1,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 1,
+        "description": "still in developement stage, alot of incorrect orders but alot was learned. started on a thursday and ended on a friday so this is a 1 day week long data because i had to shut program down on friday because i started it late.",
+        "important_message_ids": []
+    },
+    {
+        "week_number": 1,
+        "week_start_end_date": "4/22/24-4/26/24",
+        "start_ammount": 5775.00,
+        "end_ammount": 5551.00,
+        "total_made": -224.00,
+        "num_of_trades": 8,
+        "num_of_profitable_trades": 4,
+        "num_of_negitive_trades": 4,
+        "description": "In this week I implemented a new zone rule where it takes only 2 trades in each zone because casey said thats what he does and lost big on 2nd day of that week because of it. Ran into flagging error that i didn't include in this week records, incorrect buy. Had more incorrect buys that are not representative of the strat, so i left them out.",
+        "important_message_ids": [1232403947826708521, 1232419502382252175, 1232548492828999680, 1232699738260897862, 1232777030064410676, 1232778167622697123, 1233095911115063420]
+    },
+    {
+        "week_number": 2,
+        "week_start_end_date": "4/29/24-5/03/24",
+        "start_ammount": 5551.00,
+        "end_ammount": 5972.00,
+        "total_made": 421.00,
+        "num_of_trades": 7,
+        "num_of_profitable_trades": 6,
+        "num_of_negitive_trades": 1,
+        "description": "One of the incorrect buys that ended up working out, I fix the issue later on. 05/01/2024, Got up too late, didn't start program.  ",
+        "important_message_ids": [1234595064337010778, 1235230571274305557]
+    },
+    {
+        "week_number": 3,
+        "week_start_end_date": "5/06/24-5/10/24",
+        "start_ammount": 5972.00,
+        "end_ammount": 6233.00,
+        "total_made": 261.00,
+        "num_of_trades": 9,
+        "num_of_profitable_trades": 5,
+        "num_of_negitive_trades": 4,
+        "description": "Im still having the flag issue but thank god i implemented the 2-try zone order rule. the negitive trade that happened on 05/08/2024 was incorrect, flagging issue again. I change account back to original account balance because of that. I later figured out that if you buy to high above the 13 ema then it looks like you chased the trade, I implemented a new rule that sees if were close enough to the 13 ema, if were not then we don't authorise the order. a bunch of incorrect orders later, alot learned and fixed but flagging issue is still there. Had a order last to end of day and never had that happened aka never tested that so I need to somehow fix that.",
+        "important_message_ids": [1237069815374544996, 1237856660740116550, 1238180813326258186, 1238581549562335363]
+    },
+    {
+        "week_number": 4,
+        "week_start_end_date": "05/13/2024-05/17/2024",
+        "start_ammount": 6233.00,
+        "end_ammount": 6340.00,
+        "total_made": 107,
+        "num_of_trades": 6,
+        "num_of_profitable_trades": 3,
+        "num_of_negitive_trades": 3,
+        "description": "Flagging error still occuring, 2 error orders, I restarted values. I Finally fixed the main parts of the flagging error on 05/14/2024, testing with over 20 days of previous recorded data. Then made it better with testing with IOC. On 05/17/2024 casey told me if ema is constantly violated then wait till emas are respected but idk how to implement that.",
+        "important_message_ids": [1239674903037214893, 1240061933827395624, 1240581420833968138, 1241060995497988177, 1241106047176020130]
+    },
+    {
+        "week_number": 5,
+        "week_start_end_date": "05/20/2024-05/24/2024",
+        "start_ammount": 6340.00,
+        "end_ammount": 6623.00,
+        "total_made": 283.00,
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 2,
+        "num_of_negitive_trades": 0,
+        "description": "I would say this is where i would reliably record all of the data to show were the program really stands, idk how to incorperate EMA line violation records from last weeks issues.",
+        "important_message_ids": []
+    },
+    {
+        "week_number": 0,
+        "week_start_end_date": "",
+        "start_ammount": 6000.0,
+        "end_ammount": 0,
+        "total_made": 0,
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "",
+        "important_message_ids": []
+    }
+]

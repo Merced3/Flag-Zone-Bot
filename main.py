@@ -404,7 +404,7 @@ async def reseting_values():
     #clear 'message_ids.json' file
     reset_json('message_ids.json', {})
     #Clear the markers.json file
-    reset_json('markers.json', {})
+    reset_json('markers.json', [])
     #clear line_data_TEST.json
     reset_json('line_data.json', [])
     #clear order_candle_type.json
