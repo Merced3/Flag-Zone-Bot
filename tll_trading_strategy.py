@@ -113,7 +113,7 @@ async def execute_trading_strategy(zones):
                 current_time = datetime.now(new_york_tz).time()
                 if current_time >= (datetime.combine(datetime.today(), MARKET_CLOSE) - timedelta(minutes=1)).time():
                     # If within one minute of market close, exit all positions
-                    await sell_rest_of_active_order(message_ids_dict, "Market closing soon. Exiting all positions.")
+                    await sell_rest_of_active_order("Market closing soon. Exiting all positions.")
                     todays_profit_loss = sum(get_profit_loss_orders_list()) #returns todays_orders_profit_loss_list
                     end_of_day_account_balance = ACCOUNT_BALANCE[0] + todays_profit_loss
                     print(f"ACCOUNT_BALANCE[0]: {ACCOUNT_BALANCE[0]}, todays_profit_loss: {todays_profit_loss}\nend_of_day_account_balance: {end_of_day_account_balance}")
