@@ -344,7 +344,9 @@ def safe_write_to_file(path, data, max_retries=3, retry_delay=0.25):
             time.sleep(retry_delay)
     return False  # Failed to write after retries
 
-async def manage_active_fake_order(active_order_details, message_ids_dict):
+async def manage_active_fake_order(active_order_details, _message_ids_dict):
+    global message_ids_dict
+    global buy_entry_price
     global unique_order_id
     global order_quantity
     global current_order_active
@@ -355,6 +357,7 @@ async def manage_active_fake_order(active_order_details, message_ids_dict):
 
     # Initialize variables from active_order_details
     unique_order_id = active_order_details["order_id"]
+    message_ids_dict = _message_ids_dict
     buy_entry_price = active_order_details["entry_price"]
     order_quantity = active_order_details["quantity"]
     total_cost = order_quantity * (buy_entry_price * 100)
@@ -627,7 +630,6 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
     global current_order_active
     global partial_exits
 
-    print(f"\nTEST: sell_rest_of_active_order() called\n buy_entry_price: {buy_entry_price}; \nmessage_ids_dict: {message_ids_dict}\n") #delete this once new addition to the function has proven to work
     retry_count = 0
 
     if current_order_active == False:
