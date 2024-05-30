@@ -15,7 +15,7 @@
         70
     ],
     "STOP_LOSS_PERCENTAGE": "EMA 13",
-    "PAST_DAYS": 30,
+    "PAST_DAYS": 20,
     "NUM_OUT_OF_MONEY": 5,
     "BOX_SIZE_THRESHOLDS": [
         0.2,

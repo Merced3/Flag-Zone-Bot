@@ -297,7 +297,7 @@ async def main():
                 if candle_15m_data is None:
                     candle_15m_data = await get_candle_data(cred.POLYGON_API_KEY, SYMBOL, 15, "minute", start_date, end_date)
 
-                start_date_2m, end_date_2m = get_dates(2)
+                start_date_2m, end_date_2m = get_dates(1)
                 print(f"2m) Start and End days: \n{start_date_2m}, {end_date_2m}\n")
                 
                 candle_2m_data = load_from_csv(f"{SYMBOL}_2_minute_candles.csv")
