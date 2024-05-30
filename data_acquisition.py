@@ -154,16 +154,17 @@ async def get_candle_data(api_key, symbol, interval, timescale, start_date, end_
     
         print(f"response: {response}\n") # i want to print conditions somehow
 
-        # Check if 'results' key is in the data
+# Check if 'results' key is in the data
         if 'results' in data:
             #print("Results is true!!!")
             df = pd.DataFrame(data['results'])
             df['t'] = pd.to_datetime(df['t'], unit='ms')
             df.rename(columns={'v': 'volume', 'o': 'open', 'c': 'close', 'h': 'high', 'l': 'low', 't': 'timestamp'}, inplace=True)
+            
             if interval == 15:
-                corrected_df = await filter_data(df)
+                corrected_df = await filter_data(df, True, '13:30:00', '19:45:00')
             elif interval==2:
-                corrected_df = await filter_data(df, exclude_today=False)
+                corrected_df = await filter_data(df, False)
             save_to_csv(corrected_df, f"{symbol}_{interval}_{timescale}_candles.csv")
             return corrected_df
         else:
@@ -179,7 +180,7 @@ async def get_candle_data(api_key, symbol, interval, timescale, start_date, end_
 
     return pd.DataFrame()
 
-async def filter_data(df, exclude_today=True):
+async def filter_data(df, exclude_today=True, day_time_start = '14:30:00', day_time_end = '21:00:00'):
     """
     Filter the data with the following criteria:
     1) Within the week (Monday to Friday)
@@ -191,6 +192,7 @@ async def filter_data(df, exclude_today=True):
     df (DataFrame): The DataFrame to filter.
     exclude_today (bool, optional): Whether to exclude today's data. Defaults to True.
     """
+    print(f'day_time_start: {day_time_start}; day_time_end: {day_time_end}')
     # Keep data for Monday (0) to Friday (4)
     weekday_df = df[df['timestamp'].dt.dayofweek < 5]
 
@@ -200,8 +202,8 @@ async def filter_data(df, exclude_today=True):
         weekday_df = weekday_df[weekday_df['timestamp'].dt.date < today.date()]
 
     # Keep data within market hours
-    market_open_time = pd.Timestamp('14:30:00').time()#09:30:00
-    market_close_time = pd.Timestamp('21:00:00').time()#16:00:00
+    market_open_time = pd.Timestamp(day_time_start).time()#09:30:00
+    market_close_time = pd.Timestamp(day_time_end).time()#16:00:00
     market_hours_df = weekday_df[(weekday_df['timestamp'].dt.time >= market_open_time) & (weekday_df['timestamp'].dt.time <= market_close_time)]
     #market_hours_df = df[(df['timestamp'].dt.time >= market_open_time) & (df['timestamp'].dt.time <= market_close_time)]
     # Reset the index to reorder the DataFrame
