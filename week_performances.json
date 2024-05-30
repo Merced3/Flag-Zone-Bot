@@ -77,10 +77,10 @@
         "start_ammount": 6566.00,
         "end_ammount": 0,
         "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 1,
-        "num_of_negitive_trades": 2,
-        "description": "First day was memorial day, market was closed. Second Day: Had one negitive trade that shouldn't have happened becuase of incorrect 15 min selection times which was corrected. Third Day: had 2 trades, one negitive, one positive both real.",
+        "num_of_trades": 7,
+        "num_of_profitable_trades": 3,
+        "num_of_negitive_trades": 4,
+        "description": "First day was memorial day, market was closed. Second Day: Had one negitive trade that shouldn't have happened becuase of incorrect 15 min selection times which was corrected. Third Day: had 2 trades, one negitive, one positive both real. Forth day, had 4 orders in total, 2 negs and 2 posits, profited 10$ that day.",
         "important_message_ids": [1245189461600637059]
     },
     {
