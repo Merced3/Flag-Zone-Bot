@@ -161,14 +161,18 @@ async def get_option_bid_price(symbol, strike, expiration_date, option_type, ses
             await error_log_and_discord_message(e, "order_handler", "get_option_bid_price", "Error parsing JSON")
             return None
 
-def calculate_max_drawdown(start_price, lowest_price, write_to_file=None, order_log_name=None):
-    max_drawdown = ((start_price - lowest_price)/start_price) *100
+def calculate_max_drawdown_and_gain(start_price, lowest_price, highest_price, write_to_file=None, order_log_name=None):
+    # Calculate maximum drawdown
+    max_drawdown = ((start_price - lowest_price) / start_price) * 100
+    # Calculate maximum gain
+    max_gain = ((highest_price - start_price) / start_price) * 100
     
     if write_to_file is None:
         return "{:.2f}".format(max_drawdown)
     else:
         with open(order_log_name, "a") as log_file:
             log_file.write(f"Lowest Bid Price: {lowest_price}, Max-Drawdown: {max_drawdown:.2f}%\n")
+            log_file.write(f"Highest Bid Price: {highest_price}, Max-Gain: {max_gain:.2f}%\n")
             log_file.flush()
 
 async def manage_active_order(active_order_details, _message_ids_dict):
@@ -204,6 +208,7 @@ async def manage_active_order(active_order_details, _message_ids_dict):
         print_once_flag = True
         current_order_active = True
         lowest_bid_price = None
+        highest_bid_price = None
         buy_price_already_writen = None
         remaining_quantity = order_quantity - sum(sale['quantity'] for sale in partial_exits)
 
@@ -252,6 +257,10 @@ async def manage_active_order(active_order_details, _message_ids_dict):
                             # Update the lowest bid price
                             if lowest_bid_price is None or current_bid_price < lowest_bid_price:
                                 lowest_bid_price = current_bid_price
+                            # Update the highest bid price
+                            if highest_bid_price is None or current_bid_price > highest_bid_price:
+                                highest_bid_price = current_bid_price
+                            
                             # Open the log file and write the bid price
                             with open(order_log_name, "a") as log_file:
                                 if buy_price_already_writen is None:
@@ -312,7 +321,7 @@ async def manage_active_order(active_order_details, _message_ids_dict):
                             log_file.write(f"Sold {sold_quantity} at {sold_bid_price}\n")
                             log_file.flush()
                         if remaining_quantity <= 0:
-                            calculate_max_drawdown(buy_entry_price, lowest_bid_price, True, order_log_name)
+                            calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name)
                             #print end of message calculations
                             _message_ = await get_message_content(message_ids_dict[unique_order_id])  
                             if _message_ is not None:
@@ -368,6 +377,7 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
     print_once_flag = True
     current_order_active = True
     lowest_bid_price = None
+    highest_bid_price = None
     buy_price_already_writen = None
     remaining_quantity = order_quantity - sum(sale['quantity'] for sale in partial_exits)
 
@@ -415,6 +425,10 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                             # Update the lowest bid price
                             if lowest_bid_price is None or current_bid_price < lowest_bid_price:
                                 lowest_bid_price = current_bid_price
+                            # Update the highest bid price
+                            if highest_bid_price is None or current_bid_price > highest_bid_price:
+                                highest_bid_price = current_bid_price
+                            
                             # Open the log file and write the bid price
                             if not safe_write_to_file(order_log_name, f"{current_bid_price}\n"):
                                 print(f"Failed to write to {order_log_name} after retries.")
@@ -494,7 +508,7 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                             print(f"Message ID for order {unique_order_id} not found in dictionary. Dictionary contents:\n{message_ids_dict}")
 
                         if remaining_quantity <= 0:
-                            calculate_max_drawdown(buy_entry_price, lowest_bid_price, True, order_log_name)
+                            calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name)
                             #print end of message calculations
                             _message_ = await get_message_content(message_ids_dict[unique_order_id], "427")  
                             if _message_ is not None:

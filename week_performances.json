@@ -1,7 +1,7 @@
 [
     {
         "week_number": 0,
-        "week_start_end_date": "4/18/24-4/19/24",
+        "week_start_end_date": "04/18/2024-04/19/2024",
         "start_ammount": 6000.00,
         "end_ammount": 5775.00,
         "total_made": -225.00,
@@ -13,7 +13,7 @@
     },
     {
         "week_number": 1,
-        "week_start_end_date": "4/22/24-4/26/24",
+        "week_start_end_date": "04/22/2024-04/26/2024",
         "start_ammount": 5775.00,
         "end_ammount": 5551.00,
         "total_made": -224.00,
@@ -25,7 +25,7 @@
     },
     {
         "week_number": 2,
-        "week_start_end_date": "4/29/24-5/03/24",
+        "week_start_end_date": "04/29/2024-05/03/2024",
         "start_ammount": 5551.00,
         "end_ammount": 5972.00,
         "total_made": 421.00,
@@ -37,7 +37,7 @@
     },
     {
         "week_number": 3,
-        "week_start_end_date": "5/06/24-5/10/24",
+        "week_start_end_date": "05/06/2024-05/10/2024",
         "start_ammount": 5972.00,
         "end_ammount": 6233.00,
         "total_made": 261.00,
@@ -75,18 +75,30 @@
         "week_number": 5,
         "week_start_end_date": "05/27/2024-05/31/2024",
         "start_ammount": 6566.00,
+        "end_ammount": 6823.00,
+        "total_made": 257.00,
+        "num_of_trades": 8,
+        "num_of_profitable_trades": 5,
+        "num_of_negitive_trades": 3,
+        "description": "First day was memorial day, market was closed. Second Day: Had one negitive trade that shouldn't have happened becuase of incorrect 15 min selection times which was corrected. Third Day: had 2 trades, one negitive, one positive both real. Forth day, had 4 orders in total, 2 negs and 2 posits, profited 10$ that day. fifth day had 2 trades both positive, im going to not count that first trade this week since it was a incorrect order and its not relivant to this strategy.",
+        "important_message_ids": [1245189461600637059, 1246226883700592714]
+    },
+    {
+        "week_number": 6,
+        "week_start_end_date": "06/03/2024-06/07/2024",
+        "start_ammount": 6823.00,
         "end_ammount": 0,
         "total_made": 0,
-        "num_of_trades": 7,
-        "num_of_profitable_trades": 3,
-        "num_of_negitive_trades": 4,
-        "description": "First day was memorial day, market was closed. Second Day: Had one negitive trade that shouldn't have happened becuase of incorrect 15 min selection times which was corrected. Third Day: had 2 trades, one negitive, one positive both real. Forth day, had 4 orders in total, 2 negs and 2 posits, profited 10$ that day.",
-        "important_message_ids": [1245189461600637059]
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "",
+        "important_message_ids": []
     },
     {
         "week_number": 0,
         "week_start_end_date": "",
-        "start_ammount": 6000.0,
+        "start_ammount": 0,
         "end_ammount": 0,
         "total_made": 0,
         "num_of_trades": 0,
