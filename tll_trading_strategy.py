@@ -13,7 +13,7 @@ import pytz
 import cred
 import aiohttp
 
-STRATEGY_NAME = "CASEY FLAG/ZONE STRAT"
+STRATEGY_NAME = "FLAG/ZONE STRAT"
 
 STRATEGY_DESCRIPTION = """
 Desctiption: 
