@@ -786,7 +786,6 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
         elif cp == 'put' and latest_ema < close_price:
             print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put. [OPEN]: {open_price}; [EMA {ema_type}]: {latest_ema}; [CLOSE] {close_price}")
             return True
-
     return False
 
 def read_last_n_lines(file_path, n): #code from a previous ema tradegy, thought it may help. pls edit if need be.

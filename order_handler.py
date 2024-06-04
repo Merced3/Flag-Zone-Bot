@@ -665,15 +665,17 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                     order_log_name = f"order_log_{symbol}_{option_type}_{strike}_{_timestamp}.txt"
                     # Read the buy entry price from the log file
                     try:
+                        
                         with open(order_log_name, "r") as log_file:
                             lines = log_file.readlines()
-                            buy_entry_price = float(lines[0].split(": ")[1])  #"Buy Entry Price: <price>"
+                            #buy_entry_price = float(lines[0].split(": ")[1])  #"Buy Entry Price: <price>"
                             bid_prices = [float(line.strip()) for line in lines[1:] if line.strip() and "Sold" not in line]
                             lowest_bid_price = min(bid_prices, default=buy_entry_price)
-
-                            percentage_drop = ((buy_entry_price - lowest_bid_price) / buy_entry_price) * 100
-                        with open(order_log_name, "a") as log_file:
-                            log_file.write(f"Sold rest ({sell_quantity}) at {sold_bid_price}\nLowest Bid Price: {lowest_bid_price}, Max-Drawdown: {percentage_drop:.2f}%\n")
+                            highest_bid_price = max(bid_prices, default=buy_entry_price)
+                            #percentage_drop = ((buy_entry_price - lowest_bid_price) / buy_entry_price) * 100
+                        #with open(order_log_name, "a") as log_file:
+                            #log_file.write(f"Sold rest ({sell_quantity}) at {sold_bid_price}\nLowest Bid Price: {lowest_bid_price}, Max-Drawdown: {percentage_drop:.2f}%\n")
+                            calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name)
                     except Exception as e:
                         await error_log_and_discord_message(e, "order_handler", "sell_rest_of_active_order", f"Error processing order log file")
                         return
@@ -716,12 +718,13 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
             try:
                 with open(order_log_name, "r") as log_file:
                     lines = log_file.readlines()
-                    buy_entry_price = float(lines[0].split(": ")[1])  #"Buy Entry Price: <price>"
+                    #buy_entry_price = float(lines[0].split(": ")[1])  #"Buy Entry Price: <price>"
                     sold_bid_price = float(lines[-1].strip())
                     bid_prices = [float(line.strip()) for line in lines[1:] if line.strip() and "Sold" not in line]
                     lowest_bid_price = min(bid_prices, default=buy_entry_price)
+                    highest_bid_price = max(bid_prices, default=buy_entry_price)
                     order_cost = (buy_entry_price *100) * order_quantity
-                    percentage_drop = ((buy_entry_price - lowest_bid_price) / buy_entry_price) * 100
+                    #percentage_drop = ((buy_entry_price - lowest_bid_price) / buy_entry_price) * 100
 
                 sale_info = {
                     "target": "Not Defined",
@@ -733,21 +736,22 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                 await add_markers("sell", None, None, bid_percentage)
                 partial_exits.append(sale_info)
                 
+                calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name)
+                #with open(order_log_name, "a") as log_file:
+                    #log_file.write(f"Sold rest ({sell_quantity}) at {sold_bid_price}\nLowest Bid Price: {lowest_bid_price}, Max-Drawdown: {percentage_drop:.2f}%\n")
+                    
+                all_sells = 0
+                for sells in partial_exits:
+                    sell_cost = (sells["sold_price"] * 100) * sells["quantity"]
+                    all_sells = all_sells + sell_cost
 
-                with open(order_log_name, "a") as log_file:
-                    log_file.write(f"Sold rest ({sell_quantity}) at {sold_bid_price}\nLowest Bid Price: {lowest_bid_price}, Max-Drawdown: {percentage_drop:.2f}%\n")
-                    all_sells = 0
-                    for sells in partial_exits:
-                        sell_cost = (sells["sold_price"] * 100) * sells["quantity"]
-                        all_sells = all_sells + sell_cost
-
-                    precision = 2 # Define a precision level for rounding (e.g., 2 decimal places)
-                    order_cost_rounded = round(order_cost, precision)
-                    all_sells_rounded = round(all_sells, precision)
-                    profit_loss = all_sells_rounded - order_cost_rounded
-                    print(f"    [ORDER DETIALS] All Sells: {all_sells_rounded}, Order Cost: {order_cost_rounded}")
-                    print(f"    [ORDER DETIALS] Profit/Loss: ${profit_loss:.2f}")
-                    todays_orders_profit_loss_list.append(profit_loss)
+                precision = 2 # Define a precision level for rounding (e.g., 2 decimal places)
+                order_cost_rounded = round(order_cost, precision)
+                all_sells_rounded = round(all_sells, precision)
+                profit_loss = all_sells_rounded - order_cost_rounded
+                print(f"    [ORDER DETIALS] All Sells: {all_sells_rounded}, Order Cost: {order_cost_rounded}")
+                print(f"    [ORDER DETIALS] Profit/Loss: ${profit_loss:.2f}")
+                todays_orders_profit_loss_list.append(profit_loss)
 
                 total_value = (sold_bid_price * 100) * sell_quantity
                 _message_ = f"Sold {sell_quantity} {symbol} contracts for ${total_value:.2f}, Fill: {sold_bid_price}"
