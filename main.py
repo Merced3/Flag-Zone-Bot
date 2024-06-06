@@ -265,30 +265,35 @@ async def process_data(queue):
     except Exception as e:
         await error_log_and_discord_message(e, "main", "process_data")
 
-async def main():
-    print("Starting main()...")
+async def initial_setup():
     global websocket_connection
     global start_of_day_account_balance
     global end_of_day_account_balance
 
     await bot.wait_until_ready()
-    
     print(f"We have logged in as {bot.user}")
-
     await print_discord(f"Starting Bot, Real Money Activated" if IS_REAL_MONEY else f"Starting Bot, Paper Trading Activated")
+
+async def main():
+    await initial_setup()
+    await main_loop()
+
+async def main_loop():
+    global websocket_connection
+    global start_of_day_account_balance
+    global end_of_day_account_balance
 
     queue = asyncio.Queue()
     already_ran = False
 
-    try:
-        while True:
+    while True:
+        try:
             new_york = pytz.timezone('America/New_York')
             current_time = datetime.now(new_york)
             market_open_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("09:30:00", "%H:%M:%S").time()))
             market_close_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("16:00:00", "%H:%M:%S").time()))
 
-            # 2 mins before market opens, havent implemented this but will soon. its not the highest on the priority list.
-            # I want this to run before the wesocket connection starts so that we have the boxes first
+            # 2 mins before market opens
             if ((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
                 start_date, end_date = get_dates(DAYS)
                 print(f"15m) Start and End days: \n{start_date}, {end_date}\n")
@@ -344,7 +349,6 @@ async def main():
                     #execute_200ema_strategy()
                 )
             else:
-                
                 print("The market is closed...")
                 if websocket_connection is not None:
                     data_acquisition.should_close = True  # Signal to close WebSocket
@@ -361,10 +365,9 @@ async def main():
 
                 print(f"Sleeping for {delta_until_open.seconds:,} seconds until the market opens.")
                 await asyncio.sleep(delta_until_open.seconds)
-                
-
-    except Exception as e:
-        await error_log_and_discord_message(e, "main", "main")
+                continue
+        except Exception as e:
+            await error_log_and_discord_message(e, "main", "main")
 
 async def reseting_values():
     global websocket_connection

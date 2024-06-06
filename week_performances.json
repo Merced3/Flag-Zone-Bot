@@ -87,12 +87,12 @@
         "week_number": 6,
         "week_start_end_date": "06/03/2024-06/07/2024",
         "start_ammount": 6823.00,
-        "end_ammount": 6331.00,
-        "total_made": -492.00,
-        "num_of_trades": 2,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 2,
-        "description": "So first day was a huge loss, 492$. reason being because of a news event and markets went volitile.",
+        "end_ammount": 6593.00,
+        "total_made": -406.00,
+        "num_of_trades": 9,
+        "num_of_profitable_trades": 3,
+        "num_of_negitive_trades": 6,
+        "description": "So first day was a huge loss, 492$. reason being because of a news event and markets went volitile. 2nd day, no trades, between PDHL. 3rd day made 5 trades, made 262$. 4th day, 2 trades both negitive totalling -$176. ",
         "important_message_ids": [1247196023550509057, 1247196096300584970]
     },
     {
