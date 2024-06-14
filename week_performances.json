@@ -104,7 +104,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 3,
-        "description": "1st day, stuck inbetween PDHL, no trades. 2nd day, 2 negitive real trades for a total of -$363. 3rd day 2 trades, one neg and one positive profiting $67. ",
+        "description": "1st day, stuck inbetween PDHL, no trades. 2nd day, 2 negitive real trades for a total of -$363. 3rd day 2 trades, one neg and one positive profiting $67. 4th day no trades, In between PDHL. ",
         "important_message_ids": []
     },
     {
