@@ -111,12 +111,12 @@
         "week_number": 8,
         "week_start_end_date": "06/17/2024-06/21/2024",
         "start_ammount": 6216.0,
-        "end_ammount": 0,
-        "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "",
+        "end_ammount": 6506.00,
+        "total_made": 290.00,
+        "num_of_trades": 4,
+        "num_of_profitable_trades": 2,
+        "num_of_negitive_trades": 2,
+        "description": "1st day was a banger, 4 trades, 2 profitable in $480, 2 Losses in -$190 totaling in 290$ profit, no errors.",
         "important_message_ids": []
     },
     {
