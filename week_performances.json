@@ -128,7 +128,7 @@
         "num_of_trades": 2,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 2,
-        "description": "First day broke over PDH, tried to go over but failed multiple times, 2 negitive trades.",
+        "description": "First day broke over PDH, tried to go over but failed multiple times, 2 negitive trades. 2nd day, no trades inbetween PDHL.",
         "important_message_ids": []
     },
     {
