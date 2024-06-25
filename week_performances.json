@@ -123,12 +123,12 @@
         "week_number": 9,
         "week_start_end_date": "06/24/2024-06/28/2024",
         "start_ammount": 6480.00,
-        "end_ammount": 0,
-        "total_made": 0,
-        "num_of_trades": 0,
+        "end_ammount": 6241.00,
+        "total_made": -239.00,
+        "num_of_trades": 2,
         "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "",
+        "num_of_negitive_trades": 2,
+        "description": "First day broke over PDH, tried to go over but failed multiple times, 2 negitive trades.",
         "important_message_ids": []
     },
     {
