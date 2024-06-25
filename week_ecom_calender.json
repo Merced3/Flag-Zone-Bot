@@ -1,0 +1,28 @@
+{
+    "week_timespan": "06-24-24 to 06-30-24",
+    "dates": {
+        "06-25-24": {
+            "07:30 AM": [
+                "Inflation Rate YoY"
+            ]
+        },
+        "06-27-24": {
+            "07:30 AM": [
+                "Durable Goods Orders MoM",
+                "GDP Growth Rate QoQ Final"
+            ]
+        },
+        "06-28-24": {
+            "07:30 AM": [
+                "Core PCE Price Index MoM",
+                "Personal Income MoM",
+                "Personal Spending MoM"
+            ]
+        },
+        "07-01-24": {
+            "09:00 AM": [
+                "ISM Manufacturing PMI"
+            ]
+        }
+    }
+}

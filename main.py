@@ -266,6 +266,40 @@ async def process_data(queue):
     except Exception as e:
         await error_log_and_discord_message(e, "main", "process_data")
 
+async def ensure_economic_calendar_data():
+    json_file = 'week_ecom_calender.json'
+    
+    # Check if the JSON file exists
+    if not os.path.exists(json_file):
+        await get_economic_calendar_data("week", 3, "America")
+        return
+
+    # Read the JSON data
+    with open(json_file, 'r') as file:
+        data = json.load(file)
+
+    # Extract week_timespan
+    week_timespan = data.get('week_timespan', "")
+    if not week_timespan:
+        await get_economic_calendar_data("week", 3, "America")
+        return
+
+    # Parse the week_timespan
+    try:
+        start_date_str, end_date_str = week_timespan.split(" to ")
+        start_date = datetime.strptime(start_date_str, '%m-%d-%y')
+        end_date = datetime.strptime(end_date_str, '%m-%d-%y')
+    except ValueError:
+        await get_economic_calendar_data("week", 3, "America")
+        return
+
+    # Get today's date
+    today_date = datetime.now()
+
+    # Check if today's date is within the week_timespan
+    if not (start_date <= today_date <= end_date):
+        await get_economic_calendar_data("week", 3, "America")
+
 async def initial_setup():
     global websocket_connection
     global start_of_day_account_balance
@@ -293,9 +327,10 @@ async def main_loop():
             current_time = datetime.now(new_york)
             market_open_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("09:30:00", "%H:%M:%S").time()))
             market_close_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("16:00:00", "%H:%M:%S").time()))
-            await get_economic_calendar_data("week", 3, "america")
             # 2 mins before market opens
             if ((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
+                await ensure_economic_calendar_data()
+
                 start_date, end_date = get_dates(DAYS)
                 print(f"15m) Start and End days: \n{start_date}, {end_date}\n")
 
