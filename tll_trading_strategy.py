@@ -5,6 +5,7 @@ import json
 import asyncio
 from datetime import datetime, timedelta, time
 from buy_option import buy_option_cp
+from economic_calender_scraper import check_order_time_to_event_time
 from order_handler import get_profit_loss_orders_list, sell_rest_of_active_order
 from error_handler import error_log_and_discord_message
 from data_acquisition import get_current_candle_index, calculate_save_EMAs, get_candle_data_and_merge, above_below_ema, load_json_df, read_last_n_lines, load_message_ids, check_order_type_json, add_candle_type_to_json, determine_order_cancel_reason, initialize_ema_json, restart_state_json, record_priority_candle, clear_priority_candles, update_state, check_valid_points, is_angle_valid, resolve_flags, count_flags_in_json
@@ -39,6 +40,7 @@ MIN_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MIN_NUM_CANDLES"]
 MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
 OPTION_EXPIRATION_DTE = config["OPTION_EXPIRATION_DTE"]
 EMA_MAX_DISTANCE = config["EMA_MAX_DISTANCE"]
+MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION = config["MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION"]
 
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
 LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{SYMBOL}_{TIMEFRAMES[0]}.log')  # Adjust the path accordingly
@@ -654,8 +656,11 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
     # Check if trade limits have been reached in this zone
     multi_order_condition_met = check_order_type_json(what_type_of_candle)
 
-    print(f"                [HBAO CONDITIONS] {ema_condition_met}, {vp_1}, {vp_2}, {multi_order_condition_met}, {ema_price_distance_met}")
-    if ema_condition_met and vp_1 and vp_2 and multi_order_condition_met and ema_price_distance_met: # if all conditions met, then authorize order, buy
+    # Check if trade time is aligned with economic events
+    time_result = check_order_time_to_event_time(MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION)
+
+    print(f"                [HBAO CONDITIONS] {ema_condition_met}, {vp_1}, {vp_2}, {multi_order_condition_met}, {ema_price_distance_met}, {time_result}")
+    if ema_condition_met and vp_1 and vp_2 and multi_order_condition_met and ema_price_distance_met and time_result: # if all conditions met, then authorize order, buy
         action = 'call' if line_type == 'Bull' else 'put'
         print(f"                [HBAO ORDER CONFIRMED] Buy Signal ({action.upper()})")
         success = await buy_option_cp(is_real_money, symbol, action, session, headers, STRATEGY_NAME)
@@ -667,21 +672,8 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
         update_line_data(line_name=line_name, line_type=line_type, status="complete")
         return True
     else:
-        #if vp_1 and vp_2:
-            #print(f"                [HBAO FLAG] UPDATE 3: {line_name}, active")
-            #update_line_data(line_name=line_name, line_type=line_type, status="complete")
-        reason = determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, multi_order_condition_met)
+        reason = determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, multi_order_condition_met, time_result)
         
-        if not ema_condition_met and (not vp_1 or not vp_2):
-            point = "Point 1 None" if not vp_1 else "Point 2 None"
-            reason = f"Not above EMAs and Invalid Points; {point}"
-        elif not ema_condition_met:
-            reason = "Not above EMAs"
-        elif not vp_1 or not vp_2:
-            point = "Point 1 None" if not vp_1 else "Point 2 None"
-            reason = f"Invalid points; {point}"    
-        if not multi_order_condition_met:
-            reason = f"Number of trades threshold reached"
         action = 'CALL' if line_type == 'Bull' else 'PUT'
         print(f"                [HBAO ORDER CANCELED] Buy Signal ({action}); {reason}.")
         #if any of the vp_1 or vp_2 are false, don't go through. but if vp_1 and vp_2 are both true and not ema_condition_met is true then go through

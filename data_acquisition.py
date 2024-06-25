@@ -622,7 +622,7 @@ def resolve_flags(json_file='line_data.json'):
     with open(line_data_path, 'w') as file:
         json.dump(updated_line_data, file, indent=4)
 
-def determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, multi_order_condition_met):
+def determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, multi_order_condition_met, time_result):
     reasons = []
     if not ema_condition_met:
         reasons.append("Price not aligned with EMAs")
@@ -632,7 +632,9 @@ def determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_
         point = "Point 1 None" if not vp_1 else "Point 2 None"
         reasons.append(f"Invalid points; {point}")
     if not multi_order_condition_met:
-        reasons.append("Trade limit in zone reached")
+        reasons.append("Number of trades limit outside of zone reached")
+    if not time_result:
+        reasons.append("Trade time conflicts with economic events")
     return "; ".join(reasons) if reasons else "No specific reason"
 
 def restart_state_json(reset_all, state_file_path="state.json", reset_side=None):

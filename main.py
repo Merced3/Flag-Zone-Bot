@@ -4,6 +4,7 @@ from data_acquisition import get_candle_data, get_dates, reset_json
 from tll_trading_strategy import execute_trading_strategy
 from buy_option import message_ids_dict, used_buying_power
 from ema_strategy import execute_200ema_strategy
+from economic_calender_scraper import get_economic_calendar_data, setup_economic_news_message
 from print_discord_messages import bot, print_discord, get_message_content, send_file_discord
 from error_handler import error_log_and_discord_message
 import data_acquisition
@@ -292,7 +293,7 @@ async def main_loop():
             current_time = datetime.now(new_york)
             market_open_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("09:30:00", "%H:%M:%S").time()))
             market_close_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("16:00:00", "%H:%M:%S").time()))
-
+            await get_economic_calendar_data("week", 3, "america")
             # 2 mins before market opens
             if ((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
                 start_date, end_date = get_dates(DAYS)
@@ -343,6 +344,7 @@ async def main_loop():
                     pic_15m_filepath = Path(__file__).resolve().parent / f"{SYMBOL}_15-min_chart.png"
                     await send_file_discord(pic_15m_filepath)
 
+                    await print_discord(setup_economic_news_message())
                 await asyncio.gather(
                     process_data(queue),
                     execute_trading_strategy(Boxes),
