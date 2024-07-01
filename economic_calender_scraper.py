@@ -53,6 +53,7 @@ async def get_economic_calendar_data(i_timespan, star_ammount, world_type):
     world_section_dropdown = driver.find_element(By.XPATH, "//*[@id='aspnetForm']/div[3]/div/div/table/tbody/tr/td[1]/div/button")
     world_section_dropdown.click()
     await asyncio.sleep(1)  # Allow the dropdown to open
+    world_xpath = None
     if world_type == "all":
         world_xpath = "//*[@id='te-c-main-countries']/div/div[1]/span[1]"
     elif world_type == "major":
