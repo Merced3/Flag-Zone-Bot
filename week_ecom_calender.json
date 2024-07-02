@@ -1,27 +1,38 @@
 {
-    "week_timespan": "06-24-24 to 06-30-24",
+    "week_timespan": "07-01-24 to 07-07-24",
     "dates": {
-        "06-25-24": {
-            "07:30 AM": [
-                "Inflation Rate YoY"
-            ]
-        },
-        "06-27-24": {
-            "07:30 AM": [
-                "Durable Goods Orders MoM",
-                "GDP Growth Rate QoQ Final"
-            ]
-        },
-        "06-28-24": {
-            "07:30 AM": [
-                "Core PCE Price Index MoM",
-                "Personal Income MoM",
-                "Personal Spending MoM"
-            ]
-        },
         "07-01-24": {
             "09:00 AM": [
                 "ISM Manufacturing PMI"
+            ]
+        },
+        "07-02-24": {
+            "08:30 AM": [
+                "Fed Chair Powell Speech"
+            ],
+            "09:00 AM": [
+                "JOLTs Job Openings"
+            ]
+        },
+        "07-03-24": {
+            "07:30 AM": [
+                "Balance of Trade"
+            ],
+            "09:00 AM": [
+                "ISM Services PMI"
+            ],
+            "01:00 PM": [
+                "FOMC Minutes"
+            ]
+        },
+        "07-05-24": {
+            "07:30 AM": [
+                "Unemployment Rate",
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ],
+            "09:00 AM": [
+                "Ivey PMI s.a"
             ]
         }
     }
