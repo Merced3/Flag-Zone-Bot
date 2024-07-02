@@ -18,7 +18,7 @@ STRATEGY_NAME = "FLAG/ZONE STRAT"
 
 STRATEGY_DESCRIPTION = """
 Desctiption: 
-    1) We wait until we break out of a zone, that zone dictates if we use bear or bull flags.
+    1) We wait until candle breaks out of a zone, that zone dictates if we use bear or bull flags.
     2) When we break out of those flags, we check if were above or below all the emas. if were not, we do not buy
     3) If evreything checks out, we buy and use the 13ema as trailing stoploss and we trim along the way up.
 """
@@ -143,6 +143,16 @@ async def execute_trading_strategy(zones):
                                 index_val_in_list = len(candle_list) - candle_list.index(_candle) - 1
                                 await calculate_save_EMAs(_candle, index_val_in_list)
                             #calculate the current candle after the list has been processed
+                            await calculate_save_EMAs(candle, get_current_candle_index())
+                            print("    [EMA] Calculated EMA list")
+                            has_calculated_emas = True
+                        elif not has_calculated_emas:
+                            await get_candle_data_and_merge(aftermarket_file, premarket_file, candle_interval, candle_timescale, AM, PM, merged_file_name)
+                            #if not candle_list:
+                                # get candles if any in spy log
+                                # if none in spy log then try and get as much 2 min candle stick data from polygon and add it to spy log
+                                # then calculate the list of candles in list
+                                # then once list is done calculating then calulate current candle
                             await calculate_save_EMAs(candle, get_current_candle_index())
                             print("    [EMA] Calculated EMA list")
                             has_calculated_emas = True
