@@ -137,9 +137,9 @@
         "start_ammount": 5883.0,
         "end_ammount": 5453.0,
         "total_made": -430.0,
-        "num_of_trades": 3,
+        "num_of_trades": 7,
         "num_of_profitable_trades": 2,
-        "num_of_negitive_trades": 1,
+        "num_of_negitive_trades": 5,
         "description": "day 1, no trades, inbetween PDHL. 2nd day, ran program late 8:47am. Made 3 trades totaling in 91$ profit that day, 1 loss 2 profitable. 3rd day, got up late again, started at 9am. 4 trades negitive, -521$ in one day. ",
         "important_message_ids": [1258080566159478814]
     },
