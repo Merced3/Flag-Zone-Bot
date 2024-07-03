@@ -135,13 +135,13 @@
         "week_number": 10,
         "week_start_end_date": "07/01/2024-07/05/2024",
         "start_ammount": 5883.0,
-        "end_ammount": 5974.0,
-        "total_made": 0,
+        "end_ammount": 5453.0,
+        "total_made": -430.0,
         "num_of_trades": 3,
         "num_of_profitable_trades": 2,
         "num_of_negitive_trades": 1,
-        "description": "day 1, no trades, inbetween PDHL. 2nd day, ran program late 8:47am. Made 3 trades totaling in 91$ profit that day, 1 loss 2 profitable.",
-        "important_message_ids": []
+        "description": "day 1, no trades, inbetween PDHL. 2nd day, ran program late 8:47am. Made 3 trades totaling in 91$ profit that day, 1 loss 2 profitable. 3rd day, got up late again, started at 9am. 4 trades negitive, -521$ in one day. ",
+        "important_message_ids": [1258080566159478814]
     },
     {
         "week_number": 0,
