@@ -15,6 +15,7 @@ import time
 df_15_min = None
 df_2_min = None
 boxes = None
+tp_lines = None
 LOGS_DIR = Path(__file__).resolve().parent / 'logs'
 should_close = False
 
@@ -37,14 +38,15 @@ pause_event = threading.Event()
 pause_event.set()
 next_candle_event = threading.Event()
 
-def setup_globals(tk_root, tk_canvas, _boxes):
-    global root, canvas, boxes
+def setup_globals(tk_root, tk_canvas, _boxes, _tp_lines):
+    global root, canvas, boxes, tp_lines
     root = tk_root
     canvas = tk_canvas
     boxes = _boxes
+    tp_lines = _tp_lines
     print("    [setup_globals] setting global root and canvas")
 
-def update_chart_periodically(root, canvas, boxes, symbol, log_file_path):
+def update_chart_periodically(root, canvas, boxes, tp_lines, symbol, log_file_path):
     global df_2_min, should_close
     last_timestamp = None  # Initialize with None
     is_waiting_for_data = True # Flag to check if waiting for initial data
@@ -71,7 +73,7 @@ def update_chart_periodically(root, canvas, boxes, symbol, log_file_path):
                 df_2_min = new_df
                 last_timestamp = new_df.index[-1]
                 # Schedule the update_plot function to run on the main thread
-                root.after(0, lambda: update_plot(canvas, df_2_min, boxes, symbol, "2-min"))
+                root.after(0, lambda: update_plot(canvas, df_2_min, boxes, tp_lines, symbol, "2-min"))
 
         if should_close:
             print("Closing the GUI...")
@@ -127,12 +129,15 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         df.set_index('timestamp', inplace=True)
 
+    # Determine the number of data points
+    num_data_points = len(df)
+
     # Clear the existing figure and create new axes
     canvas.figure.clf()
     ax = canvas.figure.add_subplot(111)
 
     # Generate the mplfinance plot
-    mpf.plot(df, ax=ax, type='candle', style='charles', datetime_format='%Y-%m-%d', volume=False)
+    mpf.plot(df, ax=ax, type='candle', style='charles', datetime_format='%Y-%m-%d', volume=False, warn_too_much_data=num_data_points + 1)
 
     # After plotting the candlesticks, set y-axis limits to match the candlestick range 
     y_min = df[['low']].min().min() - BOX_SIZE_THRESHOLDS[0]  # Find the minimum low price in the DataFrame
@@ -140,26 +145,27 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
     ax.set_ylim(y_min, y_max)  # Set the y-axis limits
 
     # Add boxes to the plot using the previous working method
-    for box_name, box_details in boxes.items():
-        left_idx, top, bottom = box_details
-
-        if 'support' in box_name:
-            box_color = 'green'
-        elif 'resistance' in box_name:
-            box_color = 'red'
-        else:
-            box_color = 'blue'
-        if timescale_type == "15-min":
-            # Calculate the x position of the right edge of the box
-            last_index_position = df.index.get_loc(df.index[-1])  # Get the index position of the last timestamp
-            width = last_index_position - left_idx + 1
-            rect = Rectangle((left_idx, bottom), width, top - bottom, edgecolor=box_color, facecolor=box_color, alpha=0.5, fill=True)
-        elif timescale_type == "2-min":
-            # Full width for 2-min data
-            width = len(df.index)
-            rect = Rectangle((0, bottom), width, top - bottom, edgecolor=box_color, facecolor=box_color, alpha=0.5, fill=True)
-
-        ax.add_patch(rect)
+    if boxes:
+        for box_name, box_details in boxes.items():
+            left_idx, top, bottom = box_details
+            
+            if 'support' in box_name:
+                box_color = 'green'
+            elif 'resistance' in box_name:
+                box_color = 'red'
+            else: # PDHL
+                box_color = 'blue'
+            if timescale_type == "15-min":
+                # Calculate the x position of the right edge of the box
+                last_index_position = df.index.get_loc(df.index[-1])  # Get the index position of the last timestamp
+                width = last_index_position - left_idx + 1 
+                rect = Rectangle((left_idx, bottom), width, top - bottom, edgecolor=box_color, facecolor=box_color, alpha=0.5, fill=True)
+            elif timescale_type == "2-min":
+                # Full width for 2-min data
+                width = len(df.index)
+                rect = Rectangle((0, bottom), width, top - bottom, edgecolor=box_color, facecolor=box_color, alpha=0.5, fill=True)
+                
+            ax.add_patch(rect)
 
     if timescale_type == "2-min":
         # Check and plot markers
@@ -231,26 +237,62 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
         except FileNotFoundError:
             print("No line_data.json file found.")
 
+    # Add Take Profit dotted lines
+    if tp_lines:
+        try: 
+            for tpl_name, tpl_details in tp_lines.items():
+                line_color = None
+                if 'support' in tpl_name:
+                    line_color = 'green'
+                elif 'resistance' in tpl_name:
+                    line_color = 'red'
+                else: # PDHL or whatever else I add
+                    line_color = 'blue'
+                
+                # Get X and Y positions
+                _x, y = tpl_details
+                x = 0 if timescale_type == "2-min" else _x
+                x_end = len(df.index)
+                #the line should be straight Horizontal accross the screen
+                ax.plot([x, x_end], [y, y], color=line_color, linewidth=1, linestyle=':') # ':' makes the line dotted
+        except FileNotFoundError:
+            print("No TAKE PROFITS line data found.")
+
     # Redraw the canvas
     canvas.draw()
     canvas.figure.savefig(f"{symbol}_{timescale_type}_chart.png")
 
+def update_15_min(df, _boxes=None, _tp_lines=None, print_statements=False):
+    global canvas, root, df_15_min, boxes, tp_lines
+    df_15_min, boxes, tp_lines = df, _boxes, _tp_lines
+    if print_statements:
+        print("    [update_15_min] function called")
+    if root and df_15_min is not None:
+        try:
+            # Post the update task to the Tkinter main loop
+            root.after(0, lambda: update_plot(canvas, df_15_min, boxes, tp_lines, SYMBOL, "15-min"))
+        except Exception as e:
+            print(f"    [update_15_min] Error updating 15-min chart: {e}")
+    else:
+        print("    [update_15_min] GUI or data not initialized.")
+
 def update_2_min():
-    global root, df_2_min
-    # print("    [update_2_min] function called")
+    global root, df_2_min, boxes, tp_lines
+    print("    [update_2_min] function called")
     if root and df_2_min is not None:
         try:
             # Post the update task to the Tkinter main loop
-            root.after(0, lambda: update_plot(canvas, df_2_min, boxes, SYMBOL, "2-min"))
+            root.after(0, lambda: update_plot(canvas, df_2_min, boxes, tp_lines, SYMBOL, "2-min"))
         except Exception as e:
             print(f"    [update_2_min] Error updating 2-min chart: {e}")
     else:
         print("    [update_2_min] GUI or data not initialized.")
 
-def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
-    global df_15_min, df_2_min, should_close
-    df_15_min, df_2_min, boxes = df_15, df_2, box_data
+def plot_candles_and_boxes(df_15, df_2, box_data, _tp_lines, symbol):
+    global df_15_min, df_2_min, should_close, tp_lines
+    df_15_min, df_2_min, boxes, tp_lines = df_15, df_2, box_data, _tp_lines
 
+    #print(f"[plot_candles_and_boxes] Starting Chart Generation")
     # Create the main Tkinter window
     root = tk.Tk()
     root.wm_title(f"Candlestick chart for {symbol}")
@@ -261,24 +303,25 @@ def plot_candles_and_boxes(df_15, df_2, box_data, symbol):
     canvas = FigureCanvasTkAgg(fig, master=root)
     canvas_widget = canvas.get_tk_widget()
     canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-    setup_globals(root, canvas, box_data)
+    #print(f"    [plot_candles_and_boxes] Setting Global Variables for 'chart_visualization.py'")
+    setup_globals(root, canvas, box_data, tp_lines)
     # Initial plot with 15-minute data
-    update_plot(canvas, df_15_min, boxes, symbol, "15-min")
+    update_plot(canvas, df_15_min, boxes, tp_lines, symbol, "15-min")
 
     # Button to switch to 15-min data
     button_15_min = tk.Button(root, text="15 min", 
-                              command=lambda: update_plot(canvas, df_15_min, boxes, symbol, "15-min"))
+                              command=lambda: update_plot(canvas, df_15_min, boxes, tp_lines, symbol, "15-min"))
     button_15_min.pack(side=tk.LEFT)
 
     # Button to switch to 2-min data
     button_2_min = tk.Button(root, text="2 min", 
-                             command=lambda: update_plot(canvas, df_2_min, boxes, symbol, "2-min"))
+                             command=lambda: update_plot(canvas, df_2_min, boxes, tp_lines, symbol, "2-min"))
     button_2_min.pack(side=tk.LEFT)
 
     # Start the background task for updating the chart
     log_file_path = LOGS_DIR / f"{symbol}_2M.log"  # Replace with your actual log file path
     #how do we say wait until this file exists if it doesn't exists?
-    update_thread = threading.Thread(target=update_chart_periodically, args=(root, canvas, boxes, symbol, log_file_path), daemon=True)
+    update_thread = threading.Thread(target=update_chart_periodically, args=(root, canvas, boxes, tp_lines, symbol, log_file_path), daemon=True)
     update_thread.start()
 
     # Start the Tkinter event loop

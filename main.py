@@ -1,5 +1,5 @@
 #main.py
-from chart_visualization import plot_candles_and_boxes, initiate_shutdown
+from chart_visualization import plot_candles_and_boxes, initiate_shutdown, update_15_min
 from data_acquisition import get_candle_data, get_dates, reset_json
 from tll_trading_strategy import execute_trading_strategy
 from buy_option import message_ids_dict, used_buying_power
@@ -338,20 +338,40 @@ async def main_loop():
                 if candle_15m_data is None:
                     candle_15m_data = await get_candle_data(cred.POLYGON_API_KEY, SYMBOL, 15, "minute", start_date, end_date)
 
-                start_date_2m, end_date_2m = get_dates(1)
-                print(f"2m) Start and End days: \n{start_date_2m}, {end_date_2m}\n")
+                candle_15m_data['date'] = candle_15m_data['timestamp'].dt.date
+                days = candle_15m_data['date'].unique()
+                days = days[::-1]  # Reverse the order of days to start with the most recent date
+                num_days = min(DAYS, len(days))
                 
-                candle_2m_data = load_from_csv(f"{SYMBOL}_2_minute_candles.csv")
-                if candle_2m_data is None:
-                    candle_2m_data = await get_candle_data(cred.POLYGON_API_KEY, SYMBOL, 2, "minute", start_date_2m, end_date_2m)
-
                 if candle_15m_data is not None and 'timestamp' in candle_15m_data.columns:
-                    Boxes = boxes.get(candle_15m_data, DAYS)
-                    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, candle_2m_data, Boxes, SYMBOL))
+                    # Process the data to get zones and lines
+                    Boxes = None
+                    tp_lines = None
+                    prev_days_data = pd.DataFrame()  # Initialize prev_days_data to an empty DataFrame
+                    
+                    # Plot the data
+                    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, None, Boxes, tp_lines, SYMBOL))
                     chart_thread.start()
+                    await asyncio.sleep(1) # wait for the thread
+
+                    for day_num in range(num_days):
+                        current_date = days[day_num]
+                        day_data = candle_15m_data[candle_15m_data['date'] == current_date]
+                        print(f"[Day {day_num + 1} of {num_days}] {current_date}")
+                        #print(f"    [LENGTH DAY DATA] {len(day_data)}")
+                        df_15m = pd.concat([day_data, prev_days_data])
+                        Boxes = boxes.get_v2(Boxes, tp_lines, df_15m, current_date, len(day_data), False)
+                        Boxes = boxes.correct_zones_inside_other_zones(Boxes)
+                        Boxes = boxes.correct_bleeding_zones(Boxes)
+                        Boxes, tp_lines = boxes.correct_zones_that_are_too_close(Boxes, tp_lines)
+                        prev_days_data = df_15m
+                        #await asyncio.sleep(.25)
+                    update_15_min(df_15m, Boxes, tp_lines)
+                    
                     already_ran = True
-                    #save boxes into log file for later use
-                    boxes_info = f"15m) Start and End days: {start_date}, {end_date}\n{Boxes}\n"
+
+                    # Save boxes into log file for later use
+                    boxes_info = f"15m) Start and End days: {start_date}, {end_date}\n{Boxes}\n\nTake Profit Lines: {tp_lines}\n"
                     write_log_data_as_string(boxes_info, SYMBOL, f"{TIMEFRAMES[0]}_Boxes")
 
                 elif candle_15m_data is None or candle_15m_data.empty or 'timestamp' not in candle_15m_data.columns:
