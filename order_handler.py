@@ -477,7 +477,7 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                                 if current_loss_percentage <= loss_percentage:
                                     await sell_rest_of_active_order("13ema Trailing stop Hit and is more than desired percentage")
                                     break
-
+ 
                 #this handles the sell targets
                 for i, sell_point in enumerate(sell_points):
                     # Determine if this sell target has already been hit
