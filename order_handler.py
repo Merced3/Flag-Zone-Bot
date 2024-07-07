@@ -284,6 +284,16 @@ async def manage_active_order(active_order_details, _message_ids_dict):
                         print(f"\nStop loss triggered at {current_loss_percentage}% loss.")
                         await sell_rest_of_active_order("Stop Loss Triggered")
                         break
+            elif isinstance(STOP_LOSS_PERCENTAGE, list) and len(STOP_LOSS_PERCENTAGE) == 2:  # if STOP_LOSS_PERCENTAGE is a list containing an EMA and a percentage
+                    ema_string, loss_percentage = STOP_LOSS_PERCENTAGE
+                    if isinstance(ema_string, str) and "EMA" in ema_string and isinstance(loss_percentage, (int, float)):
+                        ema_value = ema_string.split(' ')[-1]
+                        if is_ema_broke(ema_value, SYMBOL, TIMEFRAMES[0], option_type):
+                            if current_bid_price is not None and buy_entry_price is not None:
+                                current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
+                                if current_loss_percentage <= loss_percentage:
+                                    await sell_rest_of_active_order("13ema Trailing stop Hit and is more than desired percentage")
+                                    break
 
             #this handles the sell targets
             for i, sell_point in enumerate(sell_points):
@@ -452,6 +462,21 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                             print(f"    [STOP LOSS] {current_loss_percentage:.2f}% loss. Sold {remaining_quantity} at {current_bid_price}, costing ${Sell_order_cost:.2f}")
                             await sell_rest_of_active_order("Stop Loss Triggered")
                             break
+                elif isinstance(STOP_LOSS_PERCENTAGE, list) and len(STOP_LOSS_PERCENTAGE) == 2:  # if STOP_LOSS_PERCENTAGE is a list containing an EMA and a percentage
+                    ema_string, loss_percentage = STOP_LOSS_PERCENTAGE
+                    if isinstance(ema_string, str) and "EMA" in ema_string and isinstance(loss_percentage, (int, float)):
+                        ema_value = ema_string.split(' ')[-1]
+                        if partial_exits and is_ema_broke("13", SYMBOL, TIMEFRAMES[0], option_type):
+                            # If a partial exit has occurred, use the 13 EMA stop loss
+                            await sell_rest_of_active_order("13ema Trailing stop Hit after partial exit")
+                            break
+                        elif is_ema_broke(ema_value, SYMBOL, TIMEFRAMES[0], option_type):
+                            # If no partial exit has occurred, use the current code logic
+                            if current_bid_price is not None and buy_entry_price is not None:
+                                current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
+                                if current_loss_percentage <= loss_percentage:
+                                    await sell_rest_of_active_order("13ema Trailing stop Hit and is more than desired percentage")
+                                    break
 
                 #this handles the sell targets
                 for i, sell_point in enumerate(sell_points):
