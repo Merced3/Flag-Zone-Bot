@@ -750,7 +750,7 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
     try:
         with open("EMAs.json", "r") as file:
             emas = json.load(file)
-            latest_ema = emas[-1][ema_type]  # Assuming 'ema_type' is a string like "13", "48", or "200"
+            latest_ema = emas[-1][ema_type]  # 'ema_type' is a string like "13", "48", or "200"
             index_ema = emas[-1]['x']
     except FileNotFoundError:
         print("EMAs.json file not found.")

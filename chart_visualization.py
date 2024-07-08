@@ -38,13 +38,17 @@ pause_event = threading.Event()
 pause_event.set()
 next_candle_event = threading.Event()
 
-def setup_globals(tk_root, tk_canvas, _boxes, _tp_lines):
+def setup_global_chart(tk_root, tk_canvas):
     global root, canvas, boxes, tp_lines
     root = tk_root
     canvas = tk_canvas
+    print("    [setup_global_chart] setting global root and canvas")
+
+def setup_global_boxes(_boxes, _tp_lines):
+    global boxes, tp_lines
     boxes = _boxes
     tp_lines = _tp_lines
-    print("    [setup_globals] setting global root and canvas")
+    print("    [setup_global_boxes] setting global boxes and tp_lines")
 
 def update_chart_periodically(root, canvas, boxes, tp_lines, symbol, log_file_path):
     global df_2_min, should_close
@@ -123,7 +127,7 @@ def read_log_to_df(log_file_path):
         print(f"Error reading log file: {e}")
         return pd.DataFrame()
 
-def update_plot(canvas, df, boxes, symbol, timescale_type):
+def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
     # Ensure the DataFrame index is a DatetimeIndex
     if not isinstance(df.index, pd.DatetimeIndex):
         df['timestamp'] = pd.to_datetime(df['timestamp'])
@@ -144,7 +148,6 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
     y_max = df[['high']].max().max() + BOX_SIZE_THRESHOLDS[0]  # Find the maximum high price in the DataFrame
     ax.set_ylim(y_min, y_max)  # Set the y-axis limits
 
-    # Add boxes to the plot using the previous working method
     if boxes:
         for box_name, box_details in boxes.items():
             left_idx, top, bottom = box_details
@@ -262,9 +265,8 @@ def update_plot(canvas, df, boxes, symbol, timescale_type):
     canvas.draw()
     canvas.figure.savefig(f"{symbol}_{timescale_type}_chart.png")
 
-def update_15_min(df, _boxes=None, _tp_lines=None, print_statements=False):
+def update_15_min(print_statements=False):
     global canvas, root, df_15_min, boxes, tp_lines
-    df_15_min, boxes, tp_lines = df, _boxes, _tp_lines
     if print_statements:
         print("    [update_15_min] function called")
     if root and df_15_min is not None:
@@ -276,9 +278,10 @@ def update_15_min(df, _boxes=None, _tp_lines=None, print_statements=False):
     else:
         print("    [update_15_min] GUI or data not initialized.")
 
-def update_2_min():
+def update_2_min(print_statements=False):
     global root, df_2_min, boxes, tp_lines
-    print("    [update_2_min] function called")
+    if print_statements:
+        print("    [update_2_min] function called")
     if root and df_2_min is not None:
         try:
             # Post the update task to the Tkinter main loop
@@ -288,9 +291,9 @@ def update_2_min():
     else:
         print("    [update_2_min] GUI or data not initialized.")
 
-def plot_candles_and_boxes(df_15, df_2, box_data, _tp_lines, symbol):
-    global df_15_min, df_2_min, should_close, tp_lines
-    df_15_min, df_2_min, boxes, tp_lines = df_15, df_2, box_data, _tp_lines
+def plot_candles_and_boxes(df_15, symbol, df_2=None):
+    global df_15_min, df_2_min, should_close
+    df_15_min, df_2_min = df_15, df_2
 
     #print(f"[plot_candles_and_boxes] Starting Chart Generation")
     # Create the main Tkinter window
@@ -304,7 +307,7 @@ def plot_candles_and_boxes(df_15, df_2, box_data, _tp_lines, symbol):
     canvas_widget = canvas.get_tk_widget()
     canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
     #print(f"    [plot_candles_and_boxes] Setting Global Variables for 'chart_visualization.py'")
-    setup_globals(root, canvas, box_data, tp_lines)
+    setup_global_chart(root, canvas)
     # Initial plot with 15-minute data
     update_plot(canvas, df_15_min, boxes, tp_lines, symbol, "15-min")
 
@@ -371,7 +374,8 @@ def setup_simulation_environment(boxes, interval):
     canvas_widget = canvas.get_tk_widget()
     canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-    setup_globals(root, canvas, boxes)
+    setup_global_chart(root, canvas)
+    setup_global_boxes(boxes, None)
     
     # Load the path configurations
     log_source = LOGS_DIR / 'all_candles.log'

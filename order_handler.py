@@ -9,7 +9,7 @@ from pathlib import Path
 from print_discord_messages import bot, print_discord, edit_discord_message, get_message_content
 from submit_order import submit_option_order, get_order_status
 from error_handler import error_log_and_discord_message
-from data_acquisition import add_markers, is_ema_broke
+from data_acquisition import add_markers, is_ema_broke, get_current_candle_index
 import time
 import re
 
@@ -390,6 +390,7 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
     highest_bid_price = None
     buy_price_already_writen = None
     remaining_quantity = order_quantity - sum(sale['quantity'] for sale in partial_exits)
+    last_check_candle_index = None
 
     async with aiohttp.ClientSession() as session:
         retry_attempts = 0
@@ -466,17 +467,27 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                     ema_string, loss_percentage = STOP_LOSS_PERCENTAGE
                     if isinstance(ema_string, str) and "EMA" in ema_string and isinstance(loss_percentage, (int, float)):
                         ema_value = ema_string.split(' ')[-1]
+
+                        # Check if a partial exit has already occurred and if the 13 EMA is broken
                         if partial_exits and is_ema_broke("13", SYMBOL, TIMEFRAMES[0], option_type):
-                            # If a partial exit has occurred, use the 13 EMA stop loss
                             await sell_rest_of_active_order("13ema Trailing stop Hit after partial exit")
                             break
-                        elif is_ema_broke(ema_value, SYMBOL, TIMEFRAMES[0], option_type):
-                            # If no partial exit has occurred, use the current code logic
-                            if current_bid_price is not None and buy_entry_price is not None:
-                                current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
-                                if current_loss_percentage <= loss_percentage:
-                                    await sell_rest_of_active_order("13ema Trailing stop Hit and is more than desired percentage")
-                                    break
+                        
+                        # Get the current candle index
+                        current_candle_index = get_current_candle_index()
+                        
+                        # Check if the current candle is different from the last checked candle
+                        if current_candle_index != last_check_candle_index:
+                            last_check_candle_index = current_candle_index
+                            
+                            # Check if the specified EMA value is broken
+                            if is_ema_broke(ema_value, SYMBOL, TIMEFRAMES[0], option_type):
+                                # If no partial exit has occurred, use the current loss percentage logic
+                                if current_bid_price is not None and buy_entry_price is not None:
+                                    current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
+                                    if current_loss_percentage <= loss_percentage:
+                                        await sell_rest_of_active_order("13ema Trailing stop Hit and is more than desired percentage")
+                                        break
  
                 #this handles the sell targets
                 for i, sell_point in enumerate(sell_points):

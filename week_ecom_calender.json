@@ -1,38 +1,30 @@
 {
-    "week_timespan": "07-01-24 to 07-07-24",
+    "week_timespan": "07-08-24 to 07-14-24",
     "dates": {
-        "07-01-24": {
+        "07-09-24": {
             "09:00 AM": [
-                "ISM Manufacturing PMI"
+                "Fed Chair Powell Testimony"
             ]
         },
-        "07-02-24": {
-            "08:30 AM": [
+        "07-10-24": {
+            "09:00 AM": [
                 "Fed Chair Powell Speech"
-            ],
-            "09:00 AM": [
-                "JOLTs Job Openings"
             ]
         },
-        "07-03-24": {
+        "07-11-24": {
             "07:30 AM": [
-                "Balance of Trade"
-            ],
-            "09:00 AM": [
-                "ISM Services PMI"
-            ],
-            "01:00 PM": [
-                "FOMC Minutes"
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
             ]
         },
-        "07-05-24": {
+        "07-12-24": {
             "07:30 AM": [
-                "Unemployment Rate",
-                "Non Farm Payrolls",
-                "Unemployment Rate"
+                "PPI MoM"
             ],
             "09:00 AM": [
-                "Ivey PMI s.a"
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }

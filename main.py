@@ -1,5 +1,5 @@
 #main.py
-from chart_visualization import plot_candles_and_boxes, initiate_shutdown, update_15_min
+from chart_visualization import plot_candles_and_boxes, initiate_shutdown, update_15_min, setup_global_boxes
 from data_acquisition import get_candle_data, get_dates, reset_json
 from tll_trading_strategy import execute_trading_strategy
 from buy_option import message_ids_dict, used_buying_power
@@ -328,6 +328,9 @@ async def main_loop():
             market_open_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("09:30:00", "%H:%M:%S").time()))
             market_close_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("16:00:00", "%H:%M:%S").time()))
             # 2 mins before market opens
+            # Process the data to get zones and lines
+            Boxes = None
+            tp_lines = None
             if ((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
                 await ensure_economic_calendar_data()
 
@@ -344,13 +347,10 @@ async def main_loop():
                 num_days = min(DAYS, len(days))
                 
                 if candle_15m_data is not None and 'timestamp' in candle_15m_data.columns:
-                    # Process the data to get zones and lines
-                    Boxes = None
-                    tp_lines = None
                     prev_days_data = pd.DataFrame()  # Initialize prev_days_data to an empty DataFrame
                     
                     # Plot the data
-                    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, None, Boxes, tp_lines, SYMBOL))
+                    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, SYMBOL))
                     chart_thread.start()
                     await asyncio.sleep(1) # wait for the thread
 
@@ -366,7 +366,9 @@ async def main_loop():
                         Boxes, tp_lines = boxes.correct_zones_that_are_too_close(Boxes, tp_lines)
                         prev_days_data = df_15m
                         #await asyncio.sleep(.25)
-                    update_15_min(df_15m, Boxes, tp_lines)
+                    print(" ") # space at the end of console log for visual clarity
+                    setup_global_boxes(Boxes, tp_lines)
+                    update_15_min()
                     
                     already_ran = True
 

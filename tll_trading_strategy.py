@@ -244,7 +244,7 @@ def candle_zone_handler(candle, type_of_candle, boxes, first_candle = False):
                         
         
         # I only want this to run on the first candle
-        if box_name == 'PDHL' and first_candle: 
+        if 'PDHL' in box_name and first_candle: 
             # Above zone
             if candle['open'] > box_top and candle['close'] > box_top:
                 # whole candle is above zone
@@ -448,7 +448,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     with open(state_file_path, 'w') as file:
         json.dump(state, file, indent=4)
     print(f"    [IDF CANDLE DIR] {candle_direction}")
-    
+    update_2_min()
     update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle)
 
 async def check_for_bearish_breakout(line_name, hl, higher_lows, lowest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, able_to_buy):

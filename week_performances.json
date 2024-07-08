@@ -144,6 +144,18 @@
         "important_message_ids": [1258080566159478814, 1258151228009873480, 1258160136820621384, 1258163103011442790]
     },
     {
+        "week_number": 11,
+        "week_start_end_date": "07/08/2024-07/12/2024",
+        "start_ammount": 5503.0,
+        "end_ammount": 0,
+        "total_made": 0,
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "",
+        "important_message_ids": []
+    },
+    {
         "week_number": 0,
         "week_start_end_date": "",
         "start_ammount": 0,
