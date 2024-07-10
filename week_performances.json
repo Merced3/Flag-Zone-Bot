@@ -147,12 +147,12 @@
         "week_number": 11,
         "week_start_end_date": "07/08/2024-07/12/2024",
         "start_ammount": 5503.0,
-        "end_ammount": 5359.0,
-        "total_made": -144.0,
+        "end_ammount": 5653.0,
+        "total_made": 150.0,
         "num_of_trades": 1,
-        "num_of_profitable_trades": 0,
+        "num_of_profitable_trades": 2,
         "num_of_negitive_trades": 1,
-        "description": "day 1, made 4 trades all negitive for a total loss of -$480, there aws alot of code that I added therefore alot of errors, only one of those orders count for a actual total loss of -$144. 2nd Day, All orders stoplosses didn't work, so i didn't record them. still figuring it out.",
+        "description": "day 1, made 4 trades all negitive for a total loss of -$480, there aws alot of code that I added therefore alot of errors, only one of those orders count for a actual total loss of -$144. 2nd Day, All orders stoplosses didn't work, so i didn't record them. still figuring it out.3rd day, made 2 trades for a total of $294, other trades were made but those were test trades for updated code.",
         "important_message_ids": []
     },
     {

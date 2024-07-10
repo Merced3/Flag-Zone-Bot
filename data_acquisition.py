@@ -751,20 +751,25 @@ async def read_ema_json(position):
         await error_log_and_discord_message(e, "ema_strategy", "read_last_ema_json")
         return None
     
-def is_ema_broke(ema_type, symbol, timeframe, cp):
-    # Load the latest EMA values
+def get_latest_ema_values(ema_type):
     try:
         with open("EMAs.json", "r") as file:
             emas = json.load(file)
             latest_ema = emas[-1][ema_type]  # 'ema_type' is a string like "13", "48", or "200"
             index_ema = emas[-1]['x']
-    except FileNotFoundError:
-        print("EMAs.json file not found.")
-        return False
-    except KeyError:
-        print(f"EMA type {ema_type} not found in the latest entry.")
+
+            return latest_ema, index_ema
+    except (FileNotFoundError, KeyError) as e:
+        print(f"EMA error: {e}")
+        return None, None
+
+def is_ema_broke(ema_type, symbol, timeframe, cp):
+    # Get EMA Data
+    latest_ema, index_ema = get_latest_ema_values(ema_type)
+    if latest_ema is None or index_ema is None:
         return False
     
+    # Get Candle Data
     filepath = LOGS_DIR / f"{symbol}_{timeframe}.log"
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
     try:
@@ -772,29 +777,28 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
             lines = file.readlines()
             index_candle = len(lines) - 1
             latest_candle = json.loads(lines[-1])
-    except FileNotFoundError:
-        print(f"{symbol}_{timeframe}.log file not found.")
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Log file error: {e}")
         return False
-    except json.JSONDecodeError:
-        print(f"Error decoding the last candle from {symbol}_{timeframe}.log")
-        return False
-    
+
     if index_candle == index_ema:
         open_price = latest_candle["open"]
         close_price = latest_candle["close"]
-    else:
-        open_price = None
-        close_price = None  
 
-    # Check conditions based on option type
-    print(f"    [IEB {ema_type} EMA] open: {open_price}; close: {close_price}; latest_ema: {latest_ema}; ")
-    if open_price and close_price:
-        if cp == 'call' and latest_ema > close_price: #close_price > latest_ema and open_price < latest_ema:
-            print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call. [CLOSE]: {close_price}; [Last EMA]: {latest_ema}; [OPEN]: {open_price}")
-            return True
-        elif cp == 'put' and latest_ema < close_price:
-            print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put. [OPEN]: {open_price}; [EMA {ema_type}]: {latest_ema}; [CLOSE] {close_price}")
-            return True
+        # Check conditions based on option type
+        if open_price and close_price:
+            if cp == 'call' and latest_ema > close_price:
+                print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call. [CLOSE]: {close_price}; [Last EMA]: {latest_ema}; [OPEN]: {open_price}")
+                return True
+            elif cp == 'put' and latest_ema < close_price:
+                print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put. [OPEN]: {open_price}; [EMA {ema_type}]: {latest_ema}; [CLOSE] {close_price}")
+                return True
+        else:
+            print(f"    [IEB {ema_type} EMA] unable to get open and close price... Candle OC: {open_price}, {close_price}")
+    else:
+        # Print the indices to show they don't match and wait before trying again
+        print(f"    [IEB {ema_type} EMA]\n        index_candle: {index_candle}; Length Lines: {len(lines)}\n        index_ema: {index_ema}; latest ema: {latest_ema}; Indices do not match...")
+    
     return False
 
 #def respecting_ema_num():

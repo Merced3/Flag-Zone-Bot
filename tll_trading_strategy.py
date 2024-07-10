@@ -286,7 +286,8 @@ def candle_zone_handler(candle, type_of_candle, boxes, first_candle = False):
                 #havent_cleared = True if what_type_of_candle is not None else False
                 print(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}")
                 return what_type_of_candle 
-            
+    else:
+        print("    [CZH] No Boxes were found...")        
     if type_of_candle is not None:
         return type_of_candle
 
