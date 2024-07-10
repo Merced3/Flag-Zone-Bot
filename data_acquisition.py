@@ -7,6 +7,8 @@ from chart_visualization import update_2_min
 from error_handler import error_log_and_discord_message
 import websockets
 from websockets.exceptions import InvalidStatusCode
+from requests.exceptions import ConnectionError, Timeout
+from urllib3.exceptions import NewConnectionError, MaxRetryError
 import asyncio
 import cred
 import aiohttp
@@ -90,6 +92,10 @@ async def ws_connect(queue, symbol):
             print("WebSocket connection closed. Re-establishing connection...")
             await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
 
+        except (ConnectionError, NewConnectionError, MaxRetryError, Timeout) as e:
+            print(f"[INTERNET CONNECTION] Failed to connect at {datetime.now().isoformat()}, retrying...")
+            await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
+        
         except Exception as e:
             await error_log_and_discord_message(e, "data_acquisition", "ws_connect", "An error occurred. Re-establishing connection...")
             await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
@@ -781,6 +787,7 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
         close_price = None  
 
     # Check conditions based on option type
+    print(f"    [IEB {ema_type} EMA] open: {open_price}; close: {close_price}; latest_ema: {latest_ema}; ")
     if open_price and close_price:
         if cp == 'call' and latest_ema > close_price: #close_price > latest_ema and open_price < latest_ema:
             print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call. [CLOSE]: {close_price}; [Last EMA]: {latest_ema}; [OPEN]: {open_price}")
@@ -789,6 +796,9 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
             print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put. [OPEN]: {open_price}; [EMA {ema_type}]: {latest_ema}; [CLOSE] {close_price}")
             return True
     return False
+
+#def respecting_ema_num():
+    # Go one by one, get the most recent candle then the same ema in that position.
 
 def read_last_n_lines(file_path, n): #code from a previous ema tradegy, thought it may help. pls edit if need be.
     # Ensure the logs directory exists

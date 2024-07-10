@@ -206,86 +206,87 @@ async def execute_trading_strategy(zones):
             await error_log_and_discord_message(e, "tll_trading_strategy", "execute_trading_strategy")
 
 def candle_zone_handler(candle, type_of_candle, boxes, first_candle = False):
-    for box_name, (x_pos, high_low_of_day, buffer) in boxes.items(): 
-        # Determine zone type
-        zone_type = "support" if "support" in box_name else "resistance" if "resistance" in box_name else "PDHL"
-        PDH_or_PDL = high_low_of_day  # PDH for resistance, PDL for support
-        box_top = PDH_or_PDL if zone_type in ["resistance", "PDHL"] else buffer  # PDH or Buffer as top for resistance/PDHL
-        box_bottom = buffer if zone_type in ["resistance", "PDHL"] else PDH_or_PDL  # Buffer as bottom for resistance/PDHL
-        check_is_in_another_zone = True
-        action = None # Initialize action to None or any default value
-        # Check if the candle shoots through the zone
-        if candle['open'] < box_bottom:
-            if candle['close'] > box_top:
-                # Candle shoots up through the zone
-                action = "[START 1]" # CALLS
-                candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
-                check_is_in_another_zone = True
-            elif box_bottom < candle['close'] < box_top:
-                # Went up, closed Inside of box
-                action = '[END 2]'
-        elif candle['open'] > box_top:
-            if candle['close'] < box_bottom:
-                # Candle shoots down through the zone
-                action = "[START 3]" # PUTS
-                candle_type = "PDL" if zone_type in ["support", "PDHL"] else "Buffer" #buffer if resistance
-                check_is_in_another_zone = True
-            elif box_top > candle['close'] > box_bottom:
-                #went down, closed Inside of box
-                action = "[END 4]"
-        elif candle['close'] > box_top and candle['open'] <= box_top:
-            # Candle closes above the zone, potentially starting an upward trend
-            action = "[START 5]" # CALLS
-            candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
-        elif candle['close'] < box_bottom and candle['open'] >= box_bottom:
-            # Candle closes below the zone, potentially starting a downward trend
-            action = "[START 6]" # PUTS
-            candle_type = "PDL" if zone_type in ["support", "PDHL"] else "Buffer" #buffer if resistance
-                        
-        
-        # I only want this to run on the first candle
-        if 'PDHL' in box_name and first_candle: 
-            # Above zone
-            if candle['open'] > box_top and candle['close'] > box_top:
-                # whole candle is above zone
-                candle_type = "PDH"
-                action = "[START 8]"
-            elif candle['open'] < box_top and candle['close'] > box_top:
-                # candle is coming out above zone
-                candle_type = "PDH"
-                action = "[START 9]"
-            
-            # Below zone
-            if candle['open'] < box_bottom and candle['close'] < box_bottom:
-                # whole candle is below zone
-                candle_type = "PDL"
-                action = "[START 10]"
-            if candle['open'] > box_bottom and candle['close'] < box_bottom:
-                # candle is coming out below zone
-                candle_type = "PDL"
-                action = "[START 11]"
+    if boxes:
+        for box_name, (x_pos, high_low_of_day, buffer) in boxes.items(): 
+            # Determine zone type
+            zone_type = "support" if "support" in box_name else "resistance" if "resistance" in box_name else "PDHL"
+            PDH_or_PDL = high_low_of_day  # PDH for resistance, PDL for support
+            box_top = PDH_or_PDL if zone_type in ["resistance", "PDHL"] else buffer  # PDH or Buffer as top for resistance/PDHL
+            box_bottom = buffer if zone_type in ["resistance", "PDHL"] else PDH_or_PDL  # Buffer as bottom for resistance/PDHL
             check_is_in_another_zone = True
+            action = None # Initialize action to None or any default value
+            # Check if the candle shoots through the zone
+            if candle['open'] < box_bottom:
+                if candle['close'] > box_top:
+                    # Candle shoots up through the zone
+                    action = "[START 1]" # CALLS
+                    candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
+                    check_is_in_another_zone = True
+                elif box_bottom < candle['close'] < box_top:
+                    # Went up, closed Inside of box
+                    action = '[END 2]'
+            elif candle['open'] > box_top:
+                if candle['close'] < box_bottom:
+                    # Candle shoots down through the zone
+                    action = "[START 3]" # PUTS
+                    candle_type = "PDL" if zone_type in ["support", "PDHL"] else "Buffer" #buffer if resistance
+                    check_is_in_another_zone = True
+                elif box_top > candle['close'] > box_bottom:
+                    #went down, closed Inside of box
+                    action = "[END 4]"
+            elif candle['close'] > box_top and candle['open'] <= box_top:
+                # Candle closes above the zone, potentially starting an upward trend
+                action = "[START 5]" # CALLS
+                candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
+            elif candle['close'] < box_bottom and candle['open'] >= box_bottom:
+                # Candle closes below the zone, potentially starting a downward trend
+                action = "[START 6]" # PUTS
+                candle_type = "PDL" if zone_type in ["support", "PDHL"] else "Buffer" #buffer if resistance
+                            
+            
+            # I only want this to run on the first candle
+            if 'PDHL' in box_name and first_candle: 
+                # Above zone
+                if candle['open'] > box_top and candle['close'] > box_top:
+                    # whole candle is above zone
+                    candle_type = "PDH"
+                    action = "[START 8]"
+                elif candle['open'] < box_top and candle['close'] > box_top:
+                    # candle is coming out above zone
+                    candle_type = "PDH"
+                    action = "[START 9]"
+                
+                # Below zone
+                if candle['open'] < box_bottom and candle['close'] < box_bottom:
+                    # whole candle is below zone
+                    candle_type = "PDL"
+                    action = "[START 10]"
+                if candle['open'] > box_bottom and candle['close'] < box_bottom:
+                    # candle is coming out below zone
+                    candle_type = "PDL"
+                    action = "[START 11]"
+                check_is_in_another_zone = True
 
-        if check_is_in_another_zone:
-            # Additional checks to refine action based on closing inside any other zone
-            for other_box_name, (_, other_high_low_of_day, other_buffer) in boxes.items():
-                if other_box_name != box_name:  # Ensure we're not checking the same zone
-                    other_box_top = other_high_low_of_day if "resistance" in other_box_name or "PDHL" in other_box_name else other_buffer
-                    other_box_bottom = other_buffer if "resistance" in other_box_name or "PDHL" in other_box_name else other_high_low_of_day
-                                    
-                    # Check if the candle closed inside this other zone
-                    if other_box_bottom <= candle['close'] <= other_box_top:
-                        # Modify action to [END #] since we closed inside of another zone
-                        action = "[END 7]"
-                        #print(f"    [MODIFIED ACTION] Candle closed inside another zone ({other_box_name}), changing action to {action}.")
-                        break  # Exit the loop since we've found a zone that modifies the action
-        
-        if action:
-            what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
-            #havent_cleared = True if what_type_of_candle is not None else False
-            print(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}")
-            return what_type_of_candle 
-        
+            if check_is_in_another_zone:
+                # Additional checks to refine action based on closing inside any other zone
+                for other_box_name, (_, other_high_low_of_day, other_buffer) in boxes.items():
+                    if other_box_name != box_name:  # Ensure we're not checking the same zone
+                        other_box_top = other_high_low_of_day if "resistance" in other_box_name or "PDHL" in other_box_name else other_buffer
+                        other_box_bottom = other_buffer if "resistance" in other_box_name or "PDHL" in other_box_name else other_high_low_of_day
+                                        
+                        # Check if the candle closed inside this other zone
+                        if other_box_bottom <= candle['close'] <= other_box_top:
+                            # Modify action to [END #] since we closed inside of another zone
+                            action = "[END 7]"
+                            #print(f"    [MODIFIED ACTION] Candle closed inside another zone ({other_box_name}), changing action to {action}.")
+                            break  # Exit the loop since we've found a zone that modifies the action
+            
+            if action:
+                what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
+                #havent_cleared = True if what_type_of_candle is not None else False
+                print(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}")
+                return what_type_of_candle 
+            
     if type_of_candle is not None:
         return type_of_candle
 
@@ -320,7 +321,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     breakout_detected = None
     candle_direction = None
     # Check if the 'type' key exists in the candle dictionary
-    if 'type' in candle and ('support' in candle['type'] and 'Buffer' in candle['type']) or ('resistance' in candle['type'] and 'PDH' in candle['type']) or ('PDHL PDH' in candle['type']):
+    if 'type' in candle and ('support' in candle['type'] and 'Buffer' in candle['type']) or ('resistance' in candle['type'] and 'PDH' in candle['type']) or ('PDHL' in candle['type'] and 'PDH' in candle['type']):
         # Bull Candles, We look at Higher Highs
         candle_direction = "bullish"
         line_name = f"flag_{num_flags}"
@@ -380,7 +381,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                 line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, able_to_buy, breakout_type='bullish'
             )
     
-    elif ('support' in candle['type'] and 'PDL' in candle['type']) or ('resistance' in candle['type'] and 'Buffer' in candle['type']) or ('PDHL PDL' in candle['type']):
+    elif ('support' in candle['type'] and 'PDL' in candle['type']) or ('resistance' in candle['type'] and 'Buffer' in candle['type']) or ('PDHL' in candle['type'] and 'PDL' in candle['type']):
         # Bear Candles, we look at lower lows
         candle_direction = "bearish"
         line_name = f"flag_{num_flags}"
