@@ -137,8 +137,3 @@ Order Cost Buffer exceded BP
         await error_log_and_discord_message(e, "tll_trading_strategy", "buy_option_cp")
 
 
-
-
-
-
-

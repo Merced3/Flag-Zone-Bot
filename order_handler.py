@@ -481,8 +481,8 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                             last_checked_ema_index = current_index_ema
                             broke_13_ema = is_ema_broke(ema_value, SYMBOL, TIMEFRAMES[0], option_type)
                             print(f"    [MAFO] Current EMA index: {last_checked_ema_index}")
-                            print(f"    [MAFO] Current Candle Index: {last_check_candle_index}; {broke_13_ema}")
-                            
+                            print(f"    [MAFO] Current Candle Index: {last_check_candle_index}")
+                            print(f"    [MAFO] Broke 13 ema: {broke_13_ema}")
                             # Check if a partial exit has already occurred and if the 13 EMA is broken
                             if partial_exits and broke_13_ema:
                                 await sell_rest_of_active_order("13ema Trailing stop Hit after partial exit")

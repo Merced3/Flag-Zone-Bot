@@ -320,7 +320,9 @@ async def main_loop():
 
     queue = asyncio.Queue()
     already_ran = False
-
+    # Process the data to get zones and lines
+    Boxes = None
+    tp_lines = None
     while True:
         try:
             new_york = pytz.timezone('America/New_York')
@@ -328,9 +330,6 @@ async def main_loop():
             market_open_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("09:30:00", "%H:%M:%S").time()))
             market_close_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("16:00:00", "%H:%M:%S").time()))
             # 2 mins before market opens
-            # Process the data to get zones and lines
-            Boxes = None
-            tp_lines = None
             if ((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
                 await ensure_economic_calendar_data()
 
