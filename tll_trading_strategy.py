@@ -324,7 +324,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     candle_direction = None
     # Check if the 'type' key exists in the candle dictionary
     if 'type' in candle:
-        if ('support' in candle['type'] and 'Buffer' in candle['type']) or (('resistance' in candle['type'] or 'PDHL' in candle['type']) and 'PDH' in candle['type']):
+        if (('resistance' in candle['type'] or 'PDHL' in candle['type']) and 'PDH' in candle['type']): # ('support' in candle['type'] and 'Buffer' in candle['type']) or 
             # Bull Candles, We look at Higher Highs
             candle_direction = "bullish"
             line_name = f"flag_{num_flags}"
@@ -384,7 +384,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                     line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, able_to_buy, breakout_type='bullish'
                 )
         
-        elif ('resistance' in candle['type'] and 'Buffer' in candle['type']) or (('support' in candle['type'] or 'PDHL' in candle['type']) and 'PDL' in candle['type']):
+        elif (('support' in candle['type'] or 'PDHL' in candle['type']) and 'PDL' in candle['type']): # ('resistance' in candle['type'] and 'Buffer' in candle['type']) or 
             # Bear Candles, we look at lower lows
             candle_direction = "bearish"
             line_name = f"flag_{num_flags}"
