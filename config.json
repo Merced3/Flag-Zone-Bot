@@ -1,7 +1,7 @@
 {
     "REAL_MONEY_ACTIVATED": false,
     "ACCOUNT_BALANCES": [
-        5541.0,
+        4871.0,
         0
     ],
     "SYMBOL": "SPY",
@@ -40,7 +40,7 @@
             "RED"
         ]
     ],
-    "EMA_MAX_DISTANCE": 0.3,
+    "EMA_MAX_DISTANCE": 0.75,
     "FLAGPOLE_CRITERIA": {
         "MIN_NUM_CANDLES": 2,
         "MAX_NUM_CANDLES": 150,
@@ -50,6 +50,6 @@
         "BEAR_MAX_ANGLE": 25
     },
     "OPTION_EXPIRATION_DTE": "not specified",
-    "ORDERS_ZONE_THRESHOLD": 2,
+    "ORDERS_ZONE_THRESHOLD": 5,
     "MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION": 20
 }
