@@ -159,12 +159,12 @@
         "week_number": 12,
         "week_start_end_date": "07/15/2024-07/19/2024",
         "start_ammount": 5120.0,
-        "end_ammount": 4871.0,
-        "total_made": -249.0,
-        "num_of_trades": 4,
-        "num_of_profitable_trades": 1,
-        "num_of_negitive_trades": 3,
-        "description": "day 1, made 4 trades 1 positive and 3 negitive, that was not a representation of the program, i was trying to find where the bad orders come from so i know how to better aviod them.",
+        "end_ammount": 4913.0,
+        "total_made": -207.0,
+        "num_of_trades": 7,
+        "num_of_profitable_trades": 2,
+        "num_of_negitive_trades": 4,
+        "description": "day 1, made 4 trades 1 positive and 3 negitive, that was not a representation of the program, i was trying to find where the bad orders come from so i know how to better aviod them. Day 2 was the first implementation of not trading in the buffer zone, 3 trades were madey, 2 profit 1 negitive, making 42$.",
         "important_message_ids": []
     },
     {
