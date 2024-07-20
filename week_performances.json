@@ -159,13 +159,13 @@
         "week_number": 12,
         "week_start_end_date": "07/15/2024-07/19/2024",
         "start_ammount": 5120.0,
-        "end_ammount": 4803.0,
-        "total_made": -317.0,
-        "num_of_trades": 17,
-        "num_of_profitable_trades": 8,
-        "num_of_negitive_trades": 9,
-        "description": "day 1, made 4 trades 1 positive and 3 negitive, that was not a representation of the program, i was trying to find where the bad orders come from so i know how to better aviod them. Day 2 was the first implementation of not trading in the buffer zone, 3 trades were madey, 2 profit 1 negitive, making 42$. Day 3, made 5 trades 3 positive, 2 neg, i wouldve had 4 pos if i had num of trades sest higher which i did at end of day, lost -2$ for the day. Day 4, 6 trades, 3 positive 3 negitive, lost 108$, had some 'num_of_canldes_in_zones' flagging errors. ",
-        "important_message_ids": [1263224305660199034, 1263224375662874747]
+        "end_ammount": 4535.0,
+        "total_made": -585.0,
+        "num_of_trades": 21,
+        "num_of_profitable_trades": 9,
+        "num_of_negitive_trades": 12,
+        "description": "day 1, made 4 trades 1 positive and 3 negitive, that was not a representation of the program, i was trying to find where the bad orders come from so i know how to better aviod them. Day 2 was the first implementation of not trading in the buffer zone, 3 trades were madey, 2 profit 1 negitive, making 42$. Day 3, made 5 trades 3 positive, 2 neg, i wouldve had 4 pos if i had num of trades sest higher which i did at end of day, lost -2$ for the day. Day 4, 6 trades, 3 positive 3 negitive, lost 108$, had some 'num_of_canldes_in_zones' flagging errors. Day 5, made 4 trades, 1 positive and 3 negitive, this would have been alot less negitive of a day if i had enabled the PDHL first box instead of support and resistance zones for the previous day.",
+        "important_message_ids": [1263224305660199034, 1263224375662874747, 1263950195985616987]
     },
     {
         "week_number": 0,
