@@ -247,7 +247,7 @@ def candle_zone_handler(candle, type_of_candle, boxes, first_candle = False):
                             
             
             # I only want this to run on the first candle
-            if 'PDHL' in box_name and first_candle: 
+            if 'PDHL_1' in box_name and first_candle: 
                 # Above zone
                 if candle['open'] > box_top and candle['close'] > box_top:
                     # whole candle is above zone
