@@ -1,20 +1,23 @@
 {
-    "week_timespan": "07-15-24 to 07-21-24",
+    "week_timespan": "07-22-24 to 07-28-24",
     "dates": {
-        "07-15-24": {
-            "11:30 AM": [
-                "Fed Chair Powell Speech"
+        "07-24-24": {
+            "08:45 AM": [
+                "BoC Interest Rate Decision",
+                "BoC Monetary Policy Report"
             ]
         },
-        "07-16-24": {
+        "07-25-24": {
             "07:30 AM": [
-                "Inflation Rate YoY",
-                "Retail Sales MoM"
+                "Durable Goods Orders MoM",
+                "GDP Growth Rate QoQ Adv"
             ]
         },
-        "07-17-24": {
+        "07-26-24": {
             "07:30 AM": [
-                "Building Permits Prel"
+                "Core PCE Price Index MoM",
+                "Personal Income MoM",
+                "Personal Spending MoM"
             ]
         }
     }

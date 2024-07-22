@@ -1,6 +1,6 @@
 #main.py
 from chart_visualization import plot_candles_and_boxes, initiate_shutdown, update_15_min, setup_global_boxes
-from data_acquisition import get_candle_data, get_dates, reset_json
+from data_acquisition import get_candle_data, get_dates, reset_json, initialize_order_log
 from tll_trading_strategy import execute_trading_strategy
 from buy_option import message_ids_dict, used_buying_power
 from ema_strategy import execute_200ema_strategy
@@ -330,6 +330,10 @@ async def main_loop():
             current_time = datetime.now(new_york)
             market_open_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("09:30:00", "%H:%M:%S").time()))
             market_close_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("16:00:00", "%H:%M:%S").time()))
+            
+            # Ensure the order log is initialized before using it
+            initialize_order_log('order_log.csv')
+            
             # 2 mins before market opens
             if ((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
                 await ensure_economic_calendar_data()

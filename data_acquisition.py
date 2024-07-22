@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 import os
 import math
 from pathlib import Path
+import csv
 
 RETRY_INTERVAL = 1  # Seconds between reconnection attempts
 should_close = False  # Global variable to signal if the WebSocket should close
@@ -575,7 +576,7 @@ async def above_below_ema(state, threshold=None):
     EMAs = load_json_df('EMAs.json')
     if EMAs.empty:
         print("        [EMA] ERROR: data is unavailable.")
-        return False, None  # No EMA data available 
+        return False, None, None  # No EMA data available 
     
     last_EMA = EMAs.iloc[-1]
     last_EMA_dict = last_EMA.to_dict()
@@ -585,7 +586,7 @@ async def above_below_ema(state, threshold=None):
     for ema, ema_value in last_EMA_dict.items():
         if ema != 'x':  # 'x' is not an EMA value but an index or timestamp
             if (state == 'above' and price <= ema_value) or (state == 'below' and price >= ema_value):
-                return False, None  # Price does not meet EMA position requirements
+                return False, None, None  # Price does not meet EMA position requirements
     
     # Calculate distance from the 13 EMA if the price is in the correct position relative to all EMAs
     distance = abs(price - last_EMA_dict.get('13', 0))  # Default to 0 if '13' not present
@@ -594,7 +595,7 @@ async def above_below_ema(state, threshold=None):
     # Check if the distance from the 13 EMA is within the allowed threshold if specified
     within_threshold = (distance <= threshold) if threshold is not None else True
 
-    return True, within_threshold  # Return True for correct EMA positioning and the threshold check result
+    return True, within_threshold, distance  # Return True for correct EMA positioning and the threshold check result
 
 def resolve_flags(json_file='line_data.json'):
     
@@ -834,7 +835,20 @@ def check_order_type_json(candle_type, file_path = "order_candle_type.json"):
     if num_of_matches >= ORDERS_ZONE_THRESHOLD:
         return False  # More or equal matches than the threshold, do not allow more orders
 
-    return True  # Fewer matches than the threshold, allow more orders
+    return True, num_of_matches  # Fewer matches than the threshold, allow more orders
+
+# Function to initialize the CSV file with headers if it doesn't exist
+def initialize_order_log(filepath):
+    if not os.path.exists(filepath):
+        with open(filepath, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['time_entered', 'ema_distance', 'num_of_matches', 'line_degree_angle'])
+
+# Function to log order details
+def log_order_details(filepath, time_entered, ema_distance, num_of_matches, line_degree_angle):
+    with open(filepath, 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([time_entered, ema_distance, num_of_matches, line_degree_angle])
 
 def add_candle_type_to_json(candle_type, file_path = "order_candle_type.json"):
     # Read the current contents of the file, or initialize an empty list if file does not exist
@@ -884,24 +898,21 @@ def check_valid_points(line_name):
                 if flag['name'] == line_name:
                     # Check and print point_1's x, y if available
                     point_1 = flag.get('point_1')
-                    #if point_1:
-                    #    print(f"        [LINE CHECK] Point 1: x={point_1.get('x')}, y={point_1.get('y')}")
-                    #else:
-                    #    print("        [LINE CHECK] Point 1: None")
-
-                    # Check and print point_2's x, y if available
                     point_2 = flag.get('point_2')
-                    #if point_2:
-                    #    print(f"        [LINE CHECK] Point 2: x={point_2.get('x')}, y={point_2.get('y')}")
-                    #else:
-                    #    print("        [LINE CHECK] Point 2: None")
 
                     # Ensure both point_1 and point_2 exist and have non-null x and y
                     point_1_valid = point_1 and point_1.get('x') is not None and point_1.get('y') is not None
                     point_2_valid = point_2 and point_2.get('x') is not None and point_2.get('y') is not None
                     
-                    return point_1_valid, point_2_valid
-    return False
+                    if point_1_valid and point_2_valid:
+                        # Calculate angle between point_1 and point_2
+                        x_diff = point_2['x'] - point_1['x']
+                        y_diff = point_2['y'] - point_1['y']
+                        angle = math.degrees(math.atan2(y_diff, x_diff))
+
+                        return point_1_valid, point_2_valid, angle
+                    return point_1_valid, point_2_valid, None
+    return False, False, None
 
 def update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle):
     with open(state_file_path, 'r') as file:

@@ -8,7 +8,7 @@ from buy_option import buy_option_cp
 from economic_calender_scraper import check_order_time_to_event_time
 from order_handler import get_profit_loss_orders_list, sell_rest_of_active_order
 from error_handler import error_log_and_discord_message
-from data_acquisition import get_current_candle_index, calculate_save_EMAs, get_candle_data_and_merge, above_below_ema, load_json_df, read_last_n_lines, load_message_ids, check_order_type_json, add_candle_type_to_json, determine_order_cancel_reason, initialize_ema_json, restart_state_json, record_priority_candle, clear_priority_candles, update_state, check_valid_points, is_angle_valid, resolve_flags, count_flags_in_json
+from data_acquisition import get_current_candle_index, calculate_save_EMAs, get_candle_data_and_merge, above_below_ema, load_json_df, read_last_n_lines, load_message_ids, check_order_type_json, add_candle_type_to_json, determine_order_cancel_reason, initialize_ema_json, restart_state_json, record_priority_candle, clear_priority_candles, update_state, check_valid_points, is_angle_valid, resolve_flags, count_flags_in_json, log_order_details
 from pathlib import Path
 import pytz
 import cred
@@ -663,15 +663,15 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
     
     #Check emas
     if line_type == 'Bull':
-        ema_condition_met, ema_price_distance_met = await above_below_ema('above', EMA_MAX_DISTANCE)
+        ema_condition_met, ema_price_distance_met, ema_distance = await above_below_ema('above', EMA_MAX_DISTANCE)
     else:  # 'Bear'
-        ema_condition_met, ema_price_distance_met = await above_below_ema('below', EMA_MAX_DISTANCE)
+        ema_condition_met, ema_price_distance_met, ema_distance = await above_below_ema('below', EMA_MAX_DISTANCE)
     
     #check if points are valid
-    vp_1, vp_2 = check_valid_points(line_name) #vp means valid point
+    vp_1, vp_2, line_degree_angle = check_valid_points(line_name) #vp means valid point
 
     # Check if trade limits have been reached in this zone
-    multi_order_condition_met = check_order_type_json(what_type_of_candle)
+    multi_order_condition_met, num_of_matches = check_order_type_json(what_type_of_candle)
 
     # Check if trade time is aligned with economic events
     time_result = check_order_time_to_event_time(MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION)
@@ -683,6 +683,9 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
         success = await buy_option_cp(is_real_money, symbol, action, session, headers, STRATEGY_NAME)
         if success: #incase order was canceled because of another active
             add_candle_type_to_json(what_type_of_candle)
+            time_entered_into_trade = datetime.now().strftime("%m/%d/%Y-%I:%M:%S %p") # Convert to ISO format string
+            # Log order details
+            log_order_details('order_log.csv', time_entered_into_trade, ema_distance, num_of_matches, line_degree_angle)
         else:
             print(f"                [HBAO ORDER FAIL] Buy Signal ({action.upper()}), what_type_of_candle = {what_type_of_candle}")
         print(f"                [HBAO FLAG] UPDATE 2: {line_name}, complete")
