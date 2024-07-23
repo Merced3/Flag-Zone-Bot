@@ -9,7 +9,7 @@ from pathlib import Path
 from print_discord_messages import bot, print_discord, edit_discord_message, get_message_content
 from submit_order import submit_option_order, get_order_status
 from error_handler import error_log_and_discord_message
-from data_acquisition import add_markers, is_ema_broke, get_current_candle_index, get_latest_ema_values
+from data_acquisition import add_markers, is_ema_broke, get_current_candle_index, get_latest_ema_values, update_order_details
 import time
 import re
 
@@ -161,7 +161,7 @@ async def get_option_bid_price(symbol, strike, expiration_date, option_type, ses
             await error_log_and_discord_message(e, "order_handler", "get_option_bid_price", "Error parsing JSON")
             return None
 
-def calculate_max_drawdown_and_gain(start_price, lowest_price, highest_price, write_to_file=None, order_log_name=None):
+def calculate_max_drawdown_and_gain(start_price, lowest_price, highest_price, write_to_file=None, order_log_name=None, unique_order_id=None):
     # Calculate maximum drawdown
     max_drawdown = ((start_price - lowest_price) / start_price) * 100
     # Calculate maximum gain
@@ -174,6 +174,9 @@ def calculate_max_drawdown_and_gain(start_price, lowest_price, highest_price, wr
             log_file.write(f"Lowest Bid Price: {lowest_price}, Max-Drawdown: {max_drawdown:.2f}%\n")
             log_file.write(f"Highest Bid Price: {highest_price}, Max-Gain: {max_gain:.2f}%\n")
             log_file.flush()
+            #TODO: add 'lowest_bid,max_drawdown,highest_bid,max_gain' into order_log.csv
+            update_order_details('order_log.csv', unique_order_id, lowest_bid=lowest_price, max_drawdown=max_drawdown,
+                         highest_bid=highest_price, max_gain=max_gain)
 
 async def manage_active_order(active_order_details, _message_ids_dict):
     global message_ids_dict
@@ -331,11 +334,11 @@ async def manage_active_order(active_order_details, _message_ids_dict):
                             log_file.write(f"Sold {sold_quantity} at {sold_bid_price}\n")
                             log_file.flush()
                         if remaining_quantity <= 0:
-                            calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name)
+                            calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name, unique_order_id)
                             #print end of message calculations
                             _message_ = await get_message_content(message_ids_dict[unique_order_id])  
                             if _message_ is not None:
-                                trade_info = calculate_profit_percentage(_message_)
+                                trade_info = calculate_profit_percentage(_message_, unique_order_id)
                                 new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content
                                 await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content)
                                 current_order_active = False
@@ -407,7 +410,7 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                     parts = unique_order_id.split('-')
                     if len(parts) >= 5:
                         symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-                        order_log_name = f"order_log({symbol}_{option_type}_{strike}_{_timestamp}).txt"
+                        order_log_name = f"order_log_{symbol}_{option_type}_{strike}_{_timestamp}.txt"
                         expiration_date_obj = datetime.strptime(expiration_date, "%Y%m%d")# Convert the expiration date to 'YYYY-MM-DD' format
                         formatted_expiration_date = expiration_date_obj.strftime("%Y-%m-%d")
                         try:
@@ -551,11 +554,11 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                             print(f"Message ID for order {unique_order_id} not found in dictionary. Dictionary contents:\n{message_ids_dict}")
 
                         if remaining_quantity <= 0:
-                            calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name)
+                            calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name, unique_order_id)
                             #print end of message calculations
                             _message_ = await get_message_content(message_ids_dict[unique_order_id], "427")  
                             if _message_ is not None:
-                                trade_info = calculate_profit_percentage(_message_)
+                                trade_info = calculate_profit_percentage(_message_, unique_order_id)
                                 new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content
                                 order_log_file_path = Path(__file__).resolve().parent / f"{order_log_name}"
                                 await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content, None, order_log_file_path)
@@ -642,7 +645,7 @@ async def sell(quantity, unique_order_key, message_ids_dict, reason_for_selling)
 def calculate_sell_points(buy_entry_price, percentages):
     return [buy_entry_price * (1 + p / 100) for p in percentages]
 
-def calculate_profit_percentage(message):
+def calculate_profit_percentage(message, unique_order_id):
     # Extract buy details based on the new Discord message format
     buy_pattern = r"\*\*(.+?)\*\*\n-----\n\*\*Ticker Symbol:\*\* (.+?)\n\*\*Strike Price:\*\* (.+?)\n\*\*Option Type:\*\* (call|put)\n\*\*Quantity:\*\* (\d+) contracts\n\*\*Price:\*\* \$(\d+\.\d+)\n\*\*Total Investment:\*\* \$(\d+\.\d+)\n-----"
     buy_match = re.search(buy_pattern, message)
@@ -671,6 +674,10 @@ def calculate_profit_percentage(message):
     # Calculate profit or loss
     profit_or_loss = total_sales - total_investment
     profit_or_loss_percentage = (profit_or_loss / total_investment) * 100
+    
+    #TODO: add 'avg_bid:.3f', 'profit_or_loss:.2f', 'profit_or_loss_percentage:.2f' to 'avg_sold_bid,total_profit,total_percentage' in order_log.csv
+    update_order_details('order_log.csv', unique_order_id, avg_sold_bid=avg_bid, total_profit=profit_or_loss, total_percentage=profit_or_loss_percentage)
+
     if profit_or_loss_percentage >= 0: 
         #if trade is positive
         return f"\n-----\n**AVG BID:**    ${avg_bid:.3f}\n**TOTAL:**    ${profit_or_loss:.2f}✅\n**PERCENT:**    {profit_or_loss_percentage:.2f}%"
@@ -700,6 +707,9 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
             sold_bid_price, sold_quantity, success = await sell(sell_quantity, unique_order_id, message_ids_dict, reason_for_selling)
             
             if success and sold_quantity is not None and sold_bid_price is not None:
+                #TODO: add 'time_exited_trade' to 'time_exited' to order_log.csv
+                time_exited_trade = datetime.now().strftime("%m/%d/%Y-%I:%M:%S %p") # Convert to ISO format string
+                update_order_details('order_log.csv', unique_order_id, time_exited=time_exited_trade)
                 bid_percentage = calculate_bid_percentage(buy_entry_price, sold_bid_price)
                 await add_markers("sell", None, None, bid_percentage)
                 parts = unique_order_id.split('-')
@@ -718,7 +728,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                             #percentage_drop = ((buy_entry_price - lowest_bid_price) / buy_entry_price) * 100
                         #with open(order_log_name, "a") as log_file:
                             #log_file.write(f"Sold rest ({sell_quantity}) at {sold_bid_price}\nLowest Bid Price: {lowest_bid_price}, Max-Drawdown: {percentage_drop:.2f}%\n")
-                            calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name)
+                            calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name, unique_order_id)
                     except Exception as e:
                         await error_log_and_discord_message(e, "order_handler", "sell_rest_of_active_order", f"Error processing order log file")
                         return
@@ -726,7 +736,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                 #   Quantity of the order is zero now so we log it in discord
                 _message_ = await get_message_content(message_ids_dict[unique_order_id]), "579"  
                 if _message_ is not None:
-                    trade_info = calculate_profit_percentage(_message_)
+                    trade_info = calculate_profit_percentage(_message_, unique_order_id)
                     new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content
                     order_log_file_path = Path(__file__).resolve().parent / f"{order_log_name}"
                     await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content, None, order_log_file_path)  
@@ -756,7 +766,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
         parts = unique_order_id.split('-')
         if len(parts) >= 5:
             symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-            order_log_name = f"order_log({symbol}_{option_type}_{strike}_{_timestamp}).txt"
+            order_log_name = f"order_log_{symbol}_{option_type}_{strike}_{_timestamp}.txt"
             # Read the buy entry price from the log file
             try:
                 with open(order_log_name, "r") as log_file:
@@ -778,8 +788,10 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                 bid_percentage = calculate_bid_percentage(buy_entry_price, sold_bid_price)
                 await add_markers("sell", None, None, bid_percentage)
                 partial_exits.append(sale_info)
-                
-                calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name)
+                #TODO: add 'time_exited_trade' to 'time_exited' to order_log.csv
+                time_exited_trade = datetime.now().strftime("%m/%d/%Y-%I:%M:%S %p") # Convert to ISO format string
+                update_order_details('order_log.csv', unique_order_id, time_exited=time_exited_trade)
+                calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name, unique_order_id)
                 #with open(order_log_name, "a") as log_file:
                     #log_file.write(f"Sold rest ({sell_quantity}) at {sold_bid_price}\nLowest Bid Price: {lowest_bid_price}, Max-Drawdown: {percentage_drop:.2f}%\n")
                     
@@ -816,7 +828,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                 #   Quantity of the order is zero now so we log it in discord
                 _message_ = await get_message_content(message_ids_dict[unique_order_id], "645")  
                 if _message_ is not None:
-                    trade_info = calculate_profit_percentage(_message_)
+                    trade_info = calculate_profit_percentage(_message_, unique_order_id)
                     new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content
                     order_log_file_path = Path(__file__).resolve().parent / f"{order_log_name}"
                     await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content, None, order_log_file_path)

@@ -680,12 +680,12 @@ async def handle_breakout_and_order(what_type_of_candle, hlp, trendline_y, line_
     if ema_condition_met and vp_1 and vp_2 and multi_order_condition_met and ema_price_distance_met and time_result: # if all conditions met, then authorize order, buy
         action = 'call' if line_type == 'Bull' else 'put'
         print(f"                [HBAO ORDER CONFIRMED] Buy Signal ({action.upper()})")
-        success = await buy_option_cp(is_real_money, symbol, action, session, headers, STRATEGY_NAME)
+        success, strike_price, quantity, entry_bid_price, order_cost = await buy_option_cp(is_real_money, symbol, action, session, headers, STRATEGY_NAME)
         if success: #incase order was canceled because of another active
             add_candle_type_to_json(what_type_of_candle)
             time_entered_into_trade = datetime.now().strftime("%m/%d/%Y-%I:%M:%S %p") # Convert to ISO format string
             # Log order details
-            log_order_details('order_log.csv', time_entered_into_trade, ema_distance, num_of_matches, line_degree_angle)
+            log_order_details('order_log.csv', what_type_of_candle, time_entered_into_trade, ema_distance, num_of_matches, line_degree_angle, symbol, strike_price, action, quantity, entry_bid_price, order_cost)
         else:
             print(f"                [HBAO ORDER FAIL] Buy Signal ({action.upper()}), what_type_of_candle = {what_type_of_candle}")
         print(f"                [HBAO FLAG] UPDATE 2: {line_name}, complete")

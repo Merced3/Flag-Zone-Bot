@@ -497,8 +497,9 @@ async def reseting_values():
     #find all CSV files in directory
     csv_files = Path(__file__).resolve().parent.glob('*.csv')
     for file in csv_files:
-        print(f"[RESET] Deleting File: {file.name}")
-        file.unlink()  # Delete the file
+        if file.name != 'order_log.csv':
+            print(f"[RESET] Deleting File: {file.name}")
+            file.unlink()  # Delete the file
 
     #clear the Logs, logs/[ticker_symbol]_2M.log file. Don't delete it just clear it.
     #this deleted the file, but we want to keep the file and just clear it.

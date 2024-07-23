@@ -115,23 +115,28 @@ Order Cost Buffer exceded BP
                     'quantity': order_quantity,
                     'partial_exits': []
                 }
+                order_cost = (active_order["entry_price"] * 100) * active_order["quantity"]
+                # TODO: add 'ticker_symbol,strike_price,cp,active_order["quantity"],active_order["entry_price"],order_cost' into 'ticker_symbol,strike_price,option_type, order_quantity,order_bid_price,total_investment' order_log.csv
                 loop = asyncio.get_event_loop()
                 task = loop.create_task(manage_active_order(active_order, message_ids_dict))
                 if task.done():
                     print("Task completed.")
+                return True, strike_price, quantity, active_order["entry_price"], order_cost
         else:
             active_order = await submit_option_order_v2(strategy_name, ticker_symbol, strike_price, cp, expiration_date, session, headers, message_ids_dict, buying_power)
             if active_order is not None:
                 await add_markers("buy", None, None, 0)
                 order_cost = (active_order["entry_price"] * 100) * active_order["quantity"]
+                # TODO: add 'ticker_symbol,strike_price,cp,active_order["quantity"],active_order["entry_price"],order_cost' into 'ticker_symbol,strike_price,option_type, order_quantity,order_bid_price,total_investment' order_log.csv
                 used_buying_power[active_order['order_id']] = order_cost
                 loop = asyncio.get_event_loop()
                 task = loop.create_task(manage_active_fake_order(active_order, message_ids_dict))
                 if task.done():
                     print("Task completed.")
+                return True, strike_price, quantity, active_order["entry_price"], order_cost
             else:
                 print("Canceled Trade")
-        return True
+        #return True
 
     except Exception as e:
         await error_log_and_discord_message(e, "tll_trading_strategy", "buy_option_cp")

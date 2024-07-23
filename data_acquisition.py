@@ -842,13 +842,39 @@ def initialize_order_log(filepath):
     if not os.path.exists(filepath):
         with open(filepath, 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(['time_entered', 'ema_distance', 'num_of_matches', 'line_degree_angle'])
+            writer.writerow(['what_type_of_candle', 'time_entered', 'ema_distance', 'num_of_matches', 'line_degree_angle',
+                             'ticker_symbol', 'strike_price', 'option_type', 'order_quantity', 'order_bid_price', 'total_investment',
+                             'time_exited', 'lowest_bid', 'max_drawdown', 'highest_bid', 'max_gain', 'avg_sold_bid', 'total_profit', 'total_percentage'])
 
-# Function to log order details
-def log_order_details(filepath, time_entered, ema_distance, num_of_matches, line_degree_angle):
+# Log initial order details
+def log_order_details(filepath, what_type_of_candle, time_entered, ema_distance, num_of_matches, line_degree_angle,
+                      ticker_symbol, strike_price, option_type, order_quantity, order_bid_price, total_investment):
     with open(filepath, 'a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow([time_entered, ema_distance, num_of_matches, line_degree_angle])
+        writer.writerow([what_type_of_candle, time_entered, ema_distance, num_of_matches, line_degree_angle,
+                         ticker_symbol, strike_price, option_type, order_quantity, order_bid_price, total_investment])
+
+# Update the CSV file with additional details
+def update_order_details(filepath, unique_order_id, **kwargs):
+    df = pd.read_csv(filepath)
+    
+    # `unique_order_id` is f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
+    order_id_parts = unique_order_id.split('-')
+    symbol, option_type, strike_price, expiration_date, timestamp = order_id_parts[:5]
+
+    # Convert the timestamp to datetime object
+    dt = datetime.strptime(timestamp[:14], "%Y%m%d%H%M%S")
+
+    # Format the datetime object to the desired string format
+    formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M:%S %p")
+
+    for index, row in df.iterrows():
+        if (row['ticker_symbol'] == symbol and row['strike_price'] == float(strike_price) and 
+            row['option_type'] == option_type and row['time_entered'].startswith(formatted_timestamp)):
+            for key, value in kwargs.items():
+                df.at[index, key] = value
+    
+    df.to_csv(filepath, index=False)
 
 def add_candle_type_to_json(candle_type, file_path = "order_candle_type.json"):
     # Read the current contents of the file, or initialize an empty list if file does not exist
