@@ -856,6 +856,8 @@ def log_order_details(filepath, what_type_of_candle, time_entered, ema_distance,
 
 # Update the CSV file with additional details
 def update_order_details(filepath, unique_order_id, **kwargs):
+    print(f"    [UOD] unique_order_id: {unique_order_id}")
+    print(f"    [UOD] kwargs: {kwargs}")
     df = pd.read_csv(filepath)
     
     # `unique_order_id` is f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
@@ -868,12 +870,19 @@ def update_order_details(filepath, unique_order_id, **kwargs):
     # Format the datetime object to the desired string format
     formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M:%S %p")
 
+    row_found = False
     for index, row in df.iterrows():
         if (row['ticker_symbol'] == symbol and row['strike_price'] == float(strike_price) and 
             row['option_type'] == option_type and row['time_entered'].startswith(formatted_timestamp)):
+            print(f"    [UOD] Matching row found at index {index}: {row}")
+            row_found = True
             for key, value in kwargs.items():
+                print(f"Updating {key} to {value}")
                 df.at[index, key] = value
     
+    if not row_found:
+        print("    [UOD] No matching row found.")
+
     df.to_csv(filepath, index=False)
 
 def add_candle_type_to_json(candle_type, file_path = "order_candle_type.json"):
