@@ -171,12 +171,12 @@
         "week_number": 13,
         "week_start_end_date": "07/22/2024-07/26/2024",
         "start_ammount": 4535.0,
-        "end_ammount": 4588.0,
-        "total_made": 53.0,
-        "num_of_trades": 5,
-        "num_of_profitable_trades": 3,
-        "num_of_negitive_trades": 2,
-        "description": "day 1, made 5 trades, 3 profitable and 2 negitive, after it broke out of PDH it was super choppy so im glad i came out somewhat profitable for $53.",
+        "end_ammount": 4456.0,
+        "total_made": -79.0,
+        "num_of_trades": 8,
+        "num_of_profitable_trades": 4,
+        "num_of_negitive_trades": 4,
+        "description": "day 1, made 6 trades, 4 profitable and 2 negitive, after it broke out of PDH it was super choppy so im glad i came out somewhat profitable for $53. Day 2, made 2 trades of -$117 and the other was -$132, restarted program with a fix of the return function of buy_option_cp().",
         "important_message_ids": []
     },
     {
