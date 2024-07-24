@@ -511,8 +511,9 @@ async def reseting_values():
 
     for file in order_log_files:
         try:
-            os.remove(file)
-            print(f"[RESET] Order log file {file} deleted.")
+            if file.name != 'order_log.csv':
+                os.remove(file)
+                print(f"[RESET] Order log file {file} deleted.")
         except Exception as e:
             print(f"An error occurred while deleting {file}: {e}")
 

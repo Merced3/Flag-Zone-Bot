@@ -44,7 +44,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, header
     # Check if there's an active order of the same type
     if current_order_active and prev_option_type == cp:
         print(f"Canceling buy Order, same order type '{cp}' is already active.")
-        return False
+        return False, None, None, None, None
     elif current_order_active and prev_option_type != cp:
         # Sell the current active order if it's of a different type
         await sell_rest_of_active_order(message_ids_dict, "Switching option type.")
@@ -92,12 +92,12 @@ Order Cost Buffer exceded BP
 **Total Cost:** ${f_order_cost}
 """
             await print_discord(message)
-            return False
+            return False, None, None, None, None
 
         if strike_price is None:
             # If no appropriate strike price found, cancel the buy operation
             await print_discord(f"**Appropriate strike was not found**\nstrike_price = None, Canceling buy.\n(Since not enough info)")
-            return False
+            return False, None, None, None, None
 
         if real_money_activated: 
             order_result = await submit_option_order(real_money_activated, ticker_symbol, strike_price, cp, bid, expiration_date, quantity, side, order_type)
