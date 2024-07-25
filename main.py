@@ -502,7 +502,6 @@ async def reseting_values():
             file.unlink()  # Delete the file
 
     #clear the Logs, logs/[ticker_symbol]_2M.log file. Don't delete it just clear it.
-    #this deleted the file, but we want to keep the file and just clear it.
     clear_log(SYMBOL, "2M")
     clear_log(SYMBOL, "2M_Boxes")
 
@@ -511,7 +510,7 @@ async def reseting_values():
 
     for file in order_log_files:
         try:
-            if file.name != 'order_log.csv':
+            if os.path.basename(file) != 'order_log.csv':
                 os.remove(file)
                 print(f"[RESET] Order log file {file} deleted.")
         except Exception as e:

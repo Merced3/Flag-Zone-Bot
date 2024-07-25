@@ -90,7 +90,7 @@ async def execute_trading_strategy(zones):
     #Testing While Running: 'resistance PDH' or 'support Buffer' or "support_1 Buffer"
     what_type_of_candle = candle_zone_handler(f_candle[0], None, zones, True)
     print(f"    [ETS INFO] what_type_of_candle = {what_type_of_candle}\n\n")
-    
+
     last_processed_candle = None
     #already_cleared = False #TODO FALSE
     #num_of_candles_in_zone = 0 #TODO 0
@@ -325,7 +325,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     candle_direction = None
     # Check if the 'type' key exists in the candle dictionary
     if 'type' in candle:
-        if 'PDH' in candle['type']: # ('support' in candle['type'] and 'Buffer' in candle['type']) or (('resistance' in candle['type'] or 'PDHL' in candle['type']) and 'PDH' in candle['type'])
+        if (' PDH' in candle['type']) or ('support' in candle['type'] and 'Buffer' in candle['type']): # or (('resistance' in candle['type'] or 'PDHL' in candle['type']) and 'PDH' in candle['type'])
             # Bull Candles, We look at Higher Highs
             candle_direction = "bullish"
             line_name = f"flag_{num_flags}"
@@ -385,7 +385,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                     line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, able_to_buy, breakout_type='bullish'
                 )
         
-        elif 'PDL' in candle['type']: # ('resistance' in candle['type'] and 'Buffer' in candle['type']) or (('support' in candle['type'] or 'PDHL' in candle['type']) and 'PDL' in candle['type'])
+        elif (' PDL' in candle['type']) or ('resistance' in candle['type'] and 'Buffer' in candle['type']): # or (('support' in candle['type'] or 'PDHL' in candle['type']) and 'PDL' in candle['type'])
             # Bear Candles, we look at lower lows
             candle_direction = "bearish"
             line_name = f"flag_{num_flags}"
