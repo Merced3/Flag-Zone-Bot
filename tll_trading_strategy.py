@@ -41,6 +41,7 @@ MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
 OPTION_EXPIRATION_DTE = config["OPTION_EXPIRATION_DTE"]
 EMA_MAX_DISTANCE = config["EMA_MAX_DISTANCE"]
 MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION = config["MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION"]
+TRADE_IN_BUFFERS = config["TRADE_IN_BUFFERS"]
 
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
 LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{SYMBOL}_{TIMEFRAMES[0]}.log')  # Adjust the path accordingly
@@ -325,7 +326,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     candle_direction = None
     # Check if the 'type' key exists in the candle dictionary
     if 'type' in candle:
-        if (' PDH' in candle['type']) or ('support' in candle['type'] and 'Buffer' in candle['type']): # or (('resistance' in candle['type'] or 'PDHL' in candle['type']) and 'PDH' in candle['type'])
+        if (' PDH' in candle['type']) or (TRADE_IN_BUFFERS and 'support' in candle['type'] and 'Buffer' in candle['type']): # or (('resistance' in candle['type'] or 'PDHL' in candle['type']) and 'PDH' in candle['type'])
             # Bull Candles, We look at Higher Highs
             candle_direction = "bullish"
             line_name = f"flag_{num_flags}"
@@ -385,7 +386,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                     line_name, lower_highs, highest_point, slope, intercept, candle, config, session, headers, what_type_of_candle, able_to_buy, breakout_type='bullish'
                 )
         
-        elif (' PDL' in candle['type']) or ('resistance' in candle['type'] and 'Buffer' in candle['type']): # or (('support' in candle['type'] or 'PDHL' in candle['type']) and 'PDL' in candle['type'])
+        elif (' PDL' in candle['type']) or (TRADE_IN_BUFFERS and 'resistance' in candle['type'] and 'Buffer' in candle['type']): # or (('support' in candle['type'] or 'PDHL' in candle['type']) and 'PDL' in candle['type'])
             # Bear Candles, we look at lower lows
             candle_direction = "bearish"
             line_name = f"flag_{num_flags}"

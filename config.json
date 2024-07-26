@@ -25,6 +25,8 @@
         0.5
     ],
     "BOX_SPACING": 0.5,
+    "TRADE_IN_BUFFERS": true,
+    "GET_PDHL": true,
     "CANDLE_BUFFER": 1,
     "EMAS": [
         [
@@ -40,7 +42,7 @@
             "RED"
         ]
     ],
-    "EMA_MAX_DISTANCE": 0.75,
+    "EMA_MAX_DISTANCE": 2.0,
     "FLAGPOLE_CRITERIA": {
         "MIN_NUM_CANDLES": 2,
         "MAX_NUM_CANDLES": 150,
@@ -51,6 +53,5 @@
     },
     "OPTION_EXPIRATION_DTE": "not specified",
     "ORDERS_ZONE_THRESHOLD": 10,
-    "MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION": 20,
-    "GET_PDHL": true
+    "MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION": 20
 }
