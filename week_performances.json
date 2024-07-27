@@ -176,7 +176,7 @@
         "num_of_trades": 8,
         "num_of_profitable_trades": 4,
         "num_of_negitive_trades": 4,
-        "description": "day 1, made 6 trades, 4 profitable and 2 negitive, after it broke out of PDH it was super choppy so im glad i came out somewhat profitable for $53. Day 2, made 2 trades of -$117 and the other was -$132, restarted program with a fix of the return function of buy_option_cp(). Day 3, no trades were made because of a flagging error, i found the issue and fixed it, i changed it back to trade in buffer zones but im trying to get as many order into the order_log.csv so i can mathmatically tell if trading in the buffers are a bad thing to do, which i think they are. day 4, stayed inbetween PDHL no trades, flagging code change worked.",
+        "description": "day 1, made 6 trades, 4 profitable and 2 negitive, after it broke out of PDH it was super choppy so im glad i came out somewhat profitable for $53. Day 2, made 2 trades of -$117 and the other was -$132, restarted program with a fix of the return function of buy_option_cp(). Day 3, no trades were made because of a flagging error, i found the issue and fixed it, i changed it back to trade in buffer zones but im trying to get as many order into the order_log.csv so i can mathmatically tell if trading in the buffers are a bad thing to do, which i think they are. day 4, stayed inbetween PDHL no trades, flagging code change worked. day 5, no trades stuck in between PDHL, I want there to ba as many trades as possible so next week im resetting the account to a higher number so i can get more orders, good and bad. most likely it will be a negitive 2 weeks but this is to fine tune what orders i want and don't want.",
         "important_message_ids": []
     },
     {

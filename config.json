@@ -1,13 +1,14 @@
 {
     "REAL_MONEY_ACTIVATED": false,
     "ACCOUNT_BALANCES": [
-        4456.0,
+        100000.0,
         0
     ],
     "SYMBOL": "SPY",
     "TIMEFRAMES": [
         "2M"
     ],
+    "ACCOUNT_ORDER_PERCENTAGE": 0.05,
     "TAKE_PROFIT_PERCENTAGES": [
         20,
         35,
@@ -26,7 +27,7 @@
     ],
     "BOX_SPACING": 0.5,
     "TRADE_IN_BUFFERS": true,
-    "GET_PDHL": true,
+    "GET_PDHL": false,
     "CANDLE_BUFFER": 1,
     "EMAS": [
         [

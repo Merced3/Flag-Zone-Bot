@@ -25,6 +25,7 @@ ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
 MIN_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MIN_NUM_CANDLES"]
 MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
 OPTION_EXPIRATION_DTE = config["OPTION_EXPIRATION_DTE"]
+ACCOUNT_ORDER_PERCENTAGE = config["ACCOUNT_ORDER_PERCENTAGE"]
 
 message_ids_dict = {}
 used_buying_power = {}
@@ -57,7 +58,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, header
         strike_price, strike_ask_bid = await find_what_to_buy(ticker_symbol, cp, NUM_OUT_MONEY, expiration_date, session, headers)
         #print(f"Strike, Price: {strike_price}, {strike_ask_bid}")
         
-        quantity = calculate_quantity(strike_ask_bid, 0.1)    
+        quantity = calculate_quantity(strike_ask_bid, ACCOUNT_ORDER_PERCENTAGE)    
         #order math, making sure we have enough buying power to fulfill order
         if real_money_activated:
             buying_power = await get_account_balance(real_money_activated, bp=True)
