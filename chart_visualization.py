@@ -66,7 +66,7 @@ def update_chart_periodically(root, canvas, boxes, tp_lines, symbol, log_file_pa
         # Check if DataFrame is empty (no data)
         if new_df.empty:
             if is_waiting_for_data:
-                print("[chart_visualization.py] Waiting for live candles...")
+                print("    [chart_visualization.py, UCP] Waiting for live candles...")
                 is_waiting_for_data = False  # Reset flag after first announcement
         else:
             # Reset flag as data is now available
@@ -80,7 +80,7 @@ def update_chart_periodically(root, canvas, boxes, tp_lines, symbol, log_file_pa
                 root.after(0, lambda: update_plot(canvas, df_2_min, boxes, tp_lines, symbol, "2-min"))
 
         if should_close:
-            print("Closing the GUI...")
+            print("    [chart_visualization.py, UCP] Closing the GUI...")
             root.quit()
             break
         # Short sleep to prevent excessive CPU usage
@@ -96,7 +96,7 @@ def read_log_to_df(log_file_path):
     # If the file does not exist, create an empty file
     if not log_file_path.exists():
         log_file_path.touch()
-        print(f"Created new log file: {log_file_path}")
+        print(f"    [RLTD] Created new log file: {log_file_path}")
         return pd.DataFrame()
     # Read the log file and return a DataFrame
     try:
@@ -112,9 +112,9 @@ def read_log_to_df(log_file_path):
                     if 'timestamp' in json_data:
                         data.append(json_data)
                     else:
-                        print("Line in log file missing 'timestamp':", line)
+                        print("    [RLTD] Line in log file missing 'timestamp':", line)
                 except json.JSONDecodeError as e:
-                    print("Error decoding line in log file:", line, "\nError:", e)
+                    print("    [RLTD] Error decoding line in log file:", line, "\nError:", e)
 
             if not data:  # Check if no valid data was found
                 return pd.DataFrame()
@@ -124,7 +124,7 @@ def read_log_to_df(log_file_path):
             df.set_index('timestamp', inplace=True)
             return df
     except Exception as e:
-        print(f"Error reading log file: {e}")
+        print(f"    [RLTD] Error reading log file: {e}")
         return pd.DataFrame()
 
 def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
@@ -181,9 +181,9 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
                 for marker in markers:
                     ax.scatter(marker['x'], marker['y'], **marker['style'])
             else:
-                print("markers.json file is empty.")
+                print("    [UP] markers.json file is empty.")
         except FileNotFoundError:
-            print("No markers.json file found.")
+            print("    [UP] No markers.json file found.")
 
         lines_file_path = Path(__file__).resolve().parent / 'line_data.json'
 
@@ -211,17 +211,30 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
                         ax.plot([], [], ' ', label="Waiting for EMAs...")
                         ax.legend(loc='upper left')
             else:
-                print("EMA data file is empty. Skipping EMA plot.")
+                print("    [UP] EMA data file is empty. Skipping EMA plot.")
                 # Optionally, plot a dummy line to show a waiting message
                 ax.plot([], [], ' ', label="Waiting for EMAs...")
                 ax.legend(loc='upper left')
         except FileNotFoundError:
-            print("EMA data file not found.")
+            print("    [UP] EMA data file not found.")
 
+        # <<<<<<<<<Check and plot Bull/Bear Flags HERE>>>>>>>>>>
         try:
             if lines_file_path.stat().st_size > 0:  # Check that the file is not empty
+                #with open(lines_file_path, 'r') as f:
+                    #lines = json.load(f)
+
                 with open(lines_file_path, 'r') as f:
-                    lines = json.load(f)
+                    content = f.read().strip()
+                    if content == "[]" or not content:  # Check if the file contains an empty array or is empty
+                        print("    [UP] line_data.json file is empty.")
+                        lines = []
+                    else:
+                        try:
+                            lines = json.loads(content)
+                        except json.JSONDecodeError as e:
+                            print(f"    [UP] Error decoding JSON from line_data.json: {e}")
+                            lines = []
 
                 for line in lines:
                     # Determine the color based on the type of flag
@@ -236,11 +249,11 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
                     # Draw the line on the chart
                     ax.plot([start_x, end_x], [start_y, end_y], color=color, linewidth=1)
             else:
-                print("line_data.json file is empty.")
+                print("    [UP] line_data.json file is empty.")
         except FileNotFoundError:
-            print("No line_data.json file found.")
+            print("    [UP] No line_data.json file found.")
 
-    # Add Take Profit dotted lines
+    # <<<<<<<<<Check and plot 'Take Profit dotted lines' HERE>>>>>>>>>>
     if tp_lines:
         try: 
             for tpl_name, tpl_details in tp_lines.items():
@@ -259,7 +272,7 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
                 #the line should be straight Horizontal accross the screen
                 ax.plot([x, x_end], [y, y], color=line_color, linewidth=1, linestyle=':') # ':' makes the line dotted
         except FileNotFoundError:
-            print("No TAKE PROFITS line data found.")
+            print("    [UP] No TAKE PROFITS line data found.")
 
     # Redraw the canvas
     canvas.draw()

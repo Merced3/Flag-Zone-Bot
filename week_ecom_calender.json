@@ -1,23 +1,33 @@
 {
-    "week_timespan": "07-22-24 to 07-28-24",
+    "week_timespan": "07-29-24 to 08-04-24",
     "dates": {
-        "07-24-24": {
-            "08:45 AM": [
-                "BoC Interest Rate Decision",
-                "BoC Monetary Policy Report"
+        "07-30-24": {
+            "09:00 AM": [
+                "JOLTs Job Openings"
             ]
         },
-        "07-25-24": {
-            "07:30 AM": [
-                "Durable Goods Orders MoM",
-                "GDP Growth Rate QoQ Adv"
+        "07-31-24": {
+            "01:00 PM": [
+                "Fed Interest Rate Decision"
+            ],
+            "01:30 PM": [
+                "Fed Press Conference"
             ]
         },
-        "07-26-24": {
+        "08-01-24": {
+            "09:00 AM": [
+                "ISM Manufacturing PMI"
+            ]
+        },
+        "08-02-24": {
             "07:30 AM": [
-                "Core PCE Price Index MoM",
-                "Personal Income MoM",
-                "Personal Spending MoM"
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ]
+        },
+        "08-05-24": {
+            "09:00 AM": [
+                "ISM Services PMI"
             ]
         }
     }

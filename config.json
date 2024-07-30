@@ -27,7 +27,7 @@
     ],
     "BOX_SPACING": 0.5,
     "TRADE_IN_BUFFERS": true,
-    "GET_PDHL": false,
+    "GET_PDHL": true,
     "CANDLE_BUFFER": 1,
     "EMAS": [
         [
