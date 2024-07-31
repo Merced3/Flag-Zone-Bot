@@ -119,18 +119,24 @@ def to_float(value):
         raise ValueError("Value must be a string or a number")
 
 def extract_trade_results(message, message_id):
-    clean_message = ''.join(e for e in message if (e.isalnum() or e.isspace() or e in ['$', '.', ':', '-']))
-    investment_pattern = r"Total Investment: \$(.+)"
+    # Clean up the message to remove unwanted characters
+    clean_message = ''.join(e for e in message if (e.isalnum() or e.isspace() or e in ['$', '.', ':', '-', '✅', '❌']))
+    
+    # Pattern to extract total investment
+    investment_pattern = r"Total Investment: \$(\d+,\d+\.\d{2})" #r"Total Investment: \$(.+)"
     investment_match = re.search(investment_pattern, clean_message)
     total_investment = float(investment_match.group(1).replace(",", "")) if investment_match else 0.0
 
-    results_pattern = r"AVG BID:.*?(-?\d{1,3}(?:,\d{3})*\.\d{2}).*?TOTAL:.*?(-?\d{1,3}(?:,\d{3})*\.\d{2})(✅|❌).*?PERCENT:.*?(-?\d+\.\d+)%"
-    results_match = re.search(results_pattern, message, re.DOTALL)
+    # Pattern to extract the average bid, total profit/loss, profit indicator, and percentage gain/loss
+    results_pattern = r"AVG BID:.*?\$(\d+\.\d{3}).*?TOTAL:\s*(-?\$-?\d{1,3}(?:,\d{3})*\.\d{2}).*?PERCENT:\s*(-?\d+\.\d{2})%(\✅|\❌)"
+    results_match = re.search(results_pattern, clean_message, re.DOTALL)
+
     if results_match:
         avg_bid = float(results_match.group(1))
-        total = float(results_match.group(2))
-        profit_indicator = results_match.group(3)
-        percent = float(results_match.group(4))
+        total_str = results_match.group(2).replace(",", "").replace("$", "")
+        total = float(total_str) if total_str else 0.0
+        percent = float(results_match.group(3))
+        profit_indicator = results_match.group(4)
         
         return {
             "avg_bid": avg_bid,
@@ -453,6 +459,7 @@ async def reseting_values():
     await send_file_discord(pic_2m_filepath)
 
     #Calculate/Send todays results, use the 'message_ids_dict' from ema_strategy.py
+    # TODO: the ouput_message was incorrect, fix it
     output_message = await calculate_day_performance(message_ids_dict, start_of_day_account_balance, end_of_day_account_balance)
     await print_discord(output_message)
     #reset all values
