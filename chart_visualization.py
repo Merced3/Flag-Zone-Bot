@@ -227,7 +227,7 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
                 with open(lines_file_path, 'r') as f:
                     content = f.read().strip()
                     if content == "[]" or not content:  # Check if the file contains an empty array or is empty
-                        print("    [UP] line_data.json file is empty.")
+                        #print("    [UP] line_data.json file is empty.") This prints every half a sec, too much.
                         lines = []
                     else:
                         try:

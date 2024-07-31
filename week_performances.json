@@ -183,12 +183,12 @@
         "week_number": 14,
         "week_start_end_date": "07/29/2024-08/02/2024",
         "start_ammount": 100000.0,
-        "end_ammount": 0,
+        "end_ammount": 94372.0,
         "total_made": 0,
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, no trades, inbetween PDHL.",
+        "description": "Day 1, no trades, inbetween PDHL. Day 2, 2 trades both negitive, lost -$5,628.00. ",
         "important_message_ids": []
     },
     {
