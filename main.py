@@ -122,21 +122,24 @@ def extract_trade_results(message, message_id):
     # Clean up the message to remove unwanted characters
     clean_message = ''.join(e for e in message if (e.isalnum() or e.isspace() or e in ['$', '.', ':', '-', '✅', '❌']))
     
-    # Pattern to extract total investment
-    investment_pattern = r"Total Investment: \$(\d+,\d+\.\d{2})" #r"Total Investment: \$(.+)"
+    # Pattern to extract total investment (using the previous pattern)
+    investment_pattern = r"Total Investment: \$(.+)"
     investment_match = re.search(investment_pattern, clean_message)
     total_investment = float(investment_match.group(1).replace(",", "")) if investment_match else 0.0
 
     # Pattern to extract the average bid, total profit/loss, profit indicator, and percentage gain/loss
-    results_pattern = r"AVG BID:.*?\$(\d+\.\d{3}).*?TOTAL:\s*(-?\$-?\d{1,3}(?:,\d{3})*\.\d{2}).*?PERCENT:\s*(-?\d+\.\d{2})%(\✅|\❌)"
+    results_pattern = r"AVG BID:\s*\$(\d+\.\d{3}).*?TOTAL:\s*(-?\$\d{1,3}(?:,\d{3})*\.\d{2})(✅|❌).*?PERCENT:\s*(-?\d+\.\d{2})%"  
     results_match = re.search(results_pattern, clean_message, re.DOTALL)
 
     if results_match:
         avg_bid = float(results_match.group(1))
+        
+        # Handle 'total' value
         total_str = results_match.group(2).replace(",", "").replace("$", "")
         total = float(total_str) if total_str else 0.0
-        percent = float(results_match.group(3))
-        profit_indicator = results_match.group(4)
+        
+        profit_indicator = results_match.group(3)  # Capture ✅ or ❌
+        percent = float(results_match.group(4))  # Capture the percentage
         
         return {
             "avg_bid": avg_bid,

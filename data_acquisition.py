@@ -865,23 +865,28 @@ def update_order_details(filepath, unique_order_id, **kwargs):
     symbol, option_type, strike_price, expiration_date, timestamp = order_id_parts[:5]
 
     # Convert the timestamp to datetime object
-    dt = datetime.strptime(timestamp[:14], "%Y%m%d%H%M%S")
+    dt = datetime.strptime(timestamp[:12], "%Y%m%d%H%M")  # Only use up to minutes
 
-    # Format the datetime object to the desired string format
-    formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M:%S %p")
+    # Format the datetime object to the desired string format (ignore seconds)
+    formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M %p")
+    print(f"    [UOD] Formatted timestamp (ignoring seconds): {formatted_timestamp}")
 
     row_found = False
     for index, row in df.iterrows():
-        if (row['ticker_symbol'] == symbol and row['strike_price'] == float(strike_price) and 
-            row['option_type'] == option_type and row['time_entered'].startswith(formatted_timestamp)):
+        print(f"    [UOD] Checking row at index {index}: {row['time_entered']}")
+        if (row['ticker_symbol'] == symbol and 
+            row['strike_price'] == float(strike_price) and 
+            row['option_type'] == option_type and 
+            row['time_entered'][:17] == formatted_timestamp):  # Using exact match for time_entered
             print(f"    [UOD] Matching row found at index {index}: {row}")
             row_found = True
             for key, value in kwargs.items():
-                print(f"Updating {key} to {value}")
+                print(f"    [UOD] Updating {key} to {value}")
                 df.at[index, key] = value
+            break  # If the correct row is found, no need to continue looping
     
     if not row_found:
-        print("    [UOD] No matching row found.")
+        print(f"    [UOD] No matching row found for timestamp: {formatted_timestamp}")
 
     df.to_csv(filepath, index=False)
 

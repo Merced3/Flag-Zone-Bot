@@ -183,13 +183,13 @@
         "week_number": 14,
         "week_start_end_date": "07/29/2024-08/02/2024",
         "start_ammount": 100000.0,
-        "end_ammount": 94372.0,
-        "total_made": -5628.0,
-        "num_of_trades": 2,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 2,
-        "description": "Day 1, no trades, inbetween PDHL. Day 2, 2 trades both negitive, lost -$5,628.00, end-of-day trades message came out incorrectly, i should edit zones that are too close into TP lines. Day 2, Fixed end-of-day message reading, . ",
-        "important_message_ids": []
+        "end_ammount": 94194.0,
+        "total_made": -5806.0,
+        "num_of_trades": 4,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 3,
+        "description": "Day 1, no trades, inbetween PDHL. Day 2, 2 trades both negitive, lost -$5,628.00, end-of-day trades message came out incorrectly, I should edit zones that are too close into TP lines. Day 2, Fixing end-of-day message reading and UOD's; 2 trades, one positive and one negitive, lost $178. ",
+        "important_message_ids": [1268190382965915690, 1268318075959246910]
     },
     {
         "week_number": 0,
