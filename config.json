@@ -11,9 +11,10 @@
     "ACCOUNT_ORDER_PERCENTAGE": 0.05,
     "TAKE_PROFIT_PERCENTAGES": [
         20,
-        35,
-        55,
-        70
+        50,
+        100,
+        200,
+        300
     ],
     "STOP_LOSS_PERCENTAGE": [
         "EMA 13",
@@ -25,7 +26,7 @@
         0.2,
         0.5
     ],
-    "BOX_SPACING": 0.5,
+    "BOX_SPACING": 1,
     "TRADE_IN_BUFFERS": true,
     "GET_PDHL": true,
     "CANDLE_BUFFER": 1,

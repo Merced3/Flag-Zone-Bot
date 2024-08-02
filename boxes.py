@@ -385,7 +385,7 @@ def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False):
             high_low_buffer_range = abs(hl1 - buf2)
             high_low_buffer_range_2 = abs(hl2 - buf1)
 
-            if (buffers_range <= BOX_SIZE_THRESHOLDS[1]) or (high_low_range <= BOX_SIZE_THRESHOLDS[1]) or (high_low_buffer_range <= BOX_SIZE_THRESHOLDS[1]) or (high_low_buffer_range_2 <= BOX_SIZE_THRESHOLDS[1]):
+            if (buffers_range <= BOX_SPACING) or (high_low_range <= BOX_SPACING) or (high_low_buffer_range <= BOX_SPACING) or (high_low_buffer_range_2 <= BOX_SPACING):
                 #these are made incase of zone were trying to remove has 2 important lines
                 if "b_" in TPL_name:
                     new_name_1 = f"{TPL_name}_1"

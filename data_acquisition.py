@@ -873,7 +873,9 @@ def update_order_details(filepath, unique_order_id, **kwargs):
 
     row_found = False
     for index, row in df.iterrows():
-        print(f"    [UOD] Checking row at index {index}: {row['time_entered']}")
+        row_time_formatted = row['time_entered'][:17]  # Extract the same length as `formatted_timestamp`
+        print(f"    [UOD] Checking row at index {index}: {row_time_formatted}")
+        
         if (row['ticker_symbol'] == symbol and 
             row['strike_price'] == float(strike_price) and 
             row['option_type'] == option_type and 

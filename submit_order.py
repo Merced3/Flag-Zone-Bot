@@ -21,6 +21,7 @@ config = read_config()
 SYMBOL = config["SYMBOL"]
 IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"][0]
+ACCOUNT_ORDER_PERCENTAGE = config["ACCOUNT_ORDER_PERCENTAGE"]
 
 def save_message_ids(order_id, message_id):
     # Load existing data
@@ -124,9 +125,8 @@ async def submit_option_order_v2(strategy_name, symbol, strike, option_type,  ex
                     ask = option['ask']
             
             if ask is not None:
-                percentage_of_balance = 0.1
                 while True:
-                    quantity = calculate_quantity(ask, percentage_of_balance)
+                    quantity = calculate_quantity(ask, ACCOUNT_ORDER_PERCENTAGE)
                     order_cost = (ask * 100) * quantity #order_cost = (ask * 100 + commission_fee) * quantity
                     if order_cost <= buying_power:
                         break  # If the cost fits within the buying power, proceed with this quantity
