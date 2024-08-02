@@ -96,7 +96,7 @@ async def execute_trading_strategy(zones):
     #already_cleared = False #TODO FALSE
     #num_of_candles_in_zone = 0 #TODO 0
     #prev_what_type_of_candle = what_type_of_candle
-    has_calculated_emas = True #TODO False
+    has_calculated_emas = False #TODO False
     candle_interval = 2
     candle_timescale = "minute"
     AM = "AFTERMARKET"
