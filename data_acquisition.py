@@ -856,6 +856,7 @@ def log_order_details(filepath, what_type_of_candle, time_entered, ema_distance,
 
 # Update the CSV file with additional details
 def update_order_details(filepath, unique_order_id, **kwargs):
+    # UOD means Update Order Details
     print(f"    [UOD] unique_order_id: {unique_order_id}")
     print(f"    [UOD] kwargs: {kwargs}")
     df = pd.read_csv(filepath)
@@ -868,18 +869,19 @@ def update_order_details(filepath, unique_order_id, **kwargs):
     dt = datetime.strptime(timestamp[:12], "%Y%m%d%H%M")  # Only use up to minutes
 
     # Format the datetime object to the desired string format (ignore seconds)
-    formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M %p")
+    formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M %p").lstrip("0").replace(" 0", " ")  # Normalize format
     print(f"    [UOD] Formatted timestamp (ignoring seconds): {formatted_timestamp}")
 
     row_found = False
     for index, row in df.iterrows():
-        row_time_formatted = row['time_entered'][:17]  # Extract the same length as `formatted_timestamp`
+        # Normalize the row's timestamp for comparison
+        row_time_formatted = row['time_entered'][:17].lstrip("0").replace(" 0", " ")
         print(f"    [UOD] Checking row at index {index}: {row_time_formatted}")
         
         if (row['ticker_symbol'] == symbol and 
             row['strike_price'] == float(strike_price) and 
             row['option_type'] == option_type and 
-            row['time_entered'][:17] == formatted_timestamp):  # Using exact match for time_entered
+            row_time_formatted == formatted_timestamp):  # Compare normalized timestamps
             print(f"    [UOD] Matching row found at index {index}: {row}")
             row_found = True
             for key, value in kwargs.items():
