@@ -188,8 +188,8 @@
         "num_of_trades": 4,
         "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 3,
-        "description": "Day 1, no trades, inbetween PDHL. Day 2, 2 trades both negitive, lost -$5,628.00, end-of-day trades message came out incorrectly, I should edit zones that are too close into TP lines. Day 2, Fixing end-of-day message reading and UOD's; 2 trades, one positive and one negitive, lost $178. Day 4, 4 trades, 2 profitable 2 negitive, made -$1,797, corrected some cominication to the config code and UOD.",
-        "important_message_ids": [1268190382965915690, 1268318075959246910, 1268562472747405436, 1268814729845932073]
+        "description": "Day 1, no trades, inbetween PDHL. Day 2, 2 trades both negitive, lost -$5,628.00, end-of-day trades message came out incorrectly, I should edit zones that are too close into TP lines. Day 2, Fixing end-of-day message reading and UOD's; 2 trades, one positive and one negitive, lost $178. Day 4, 4 trades, 2 profitable 2 negitive, made -$1,797, corrected some cominication to the config code and UOD. Day 5, a bunch of trades happened, first trade hit 200% and then a bunch of loosing trades, none got recorded because of a error. fixing that as the weekend goes.",
+        "important_message_ids": [1268190382965915690, 1268318075959246910, 1268562472747405436, 1268814729845932073, 1269041702308675634]
     },
     {
         "week_number": 0,
