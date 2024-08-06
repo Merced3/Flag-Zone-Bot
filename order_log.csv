@@ -1,2 +1,5 @@
 what_type_of_candle,time_entered,ema_distance,num_of_matches,line_degree_angle,ticker_symbol,strike_price,option_type,order_quantity,order_bid_price,total_investment,time_exited,lowest_bid,max_drawdown,highest_bid,max_gain,avg_sold_bid,total_profit,total_percentage
-
+PDHL_1 PDL,08/05/2024-01:00:04 PM,0.5508814664725605,0,2.414108384621701,SPY,513.0,put,138,0.34,4692.0,,,,,,,,
+PDHL_1 PDL,08/05/2024-01:40:04 PM,0.6642862039528836,1,1.5197356092838608,SPY,514.0,put,127,0.37,4699.0,,,,,,,,
+PDHL_1 PDL,08/05/2024-02:10:04 PM,0.5762553781854649,2,2.8595475741256746,SPY,512.0,put,151,0.31,4681.0,,,,,,,,
+PDHL_1 PDL,08/05/2024-02:26:03 PM,0.05567023966432316,3,20.17838007450812,SPY,513.0,put,142,0.33,4686.0

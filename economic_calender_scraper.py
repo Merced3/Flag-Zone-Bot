@@ -17,9 +17,12 @@ options.add_argument('--ignore-ssl-errors')
 options.add_argument('--allow-insecure-localhost')
 
 async def get_economic_calendar_data(i_timespan, star_ammount, world_type):
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+    #Set 'driver_version' to whatever driver version you have on install
+    service = ChromeService(ChromeDriverManager(driver_version="127.0.6533.89").install())
+    driver = webdriver.Chrome(service=service, options=options)
+    # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     driver.get("https://tradingeconomics.com/calendar")
-
+    # Other code...
     # Wait for the page to load and the date picker to be available
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//*[@id='aspnetForm']/div[3]/div/div/table/tbody/tr/td[1]/div/div[1]/button")))
 

@@ -192,8 +192,20 @@
         "important_message_ids": [1268190382965915690, 1268318075959246910, 1268562472747405436, 1268814729845932073, 1269041702308675634]
     },
     {
+        "week_number": 15,
+        "week_start_end_date": "08/05/2024-08/09/2024",
+        "start_ammount": 100000,
+        "end_ammount": 100000,
+        "total_made": 0,
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "Day 1, made 4 trades, first 2 trades were 2k Profit, which is great but the other 2 trades were negitive wiping it out, couldn't record end of day calculations because of errors reseting to 100k.",
+        "important_message_ids": [1270210795824873525]
+    },
+    {
         "week_number": 0,
-        "week_start_end_date": "",
+        "week_start_end_date": "00/00/2024-00/00/2024",
         "start_ammount": 0,
         "end_ammount": 0,
         "total_made": 0,

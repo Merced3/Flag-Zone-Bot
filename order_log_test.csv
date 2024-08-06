@@ -1,0 +1,7 @@
+what_type_of_candle,time_entered,ema_distance,num_of_matches,line_degree_angle,ticker_symbol,strike_price,option_type,order_quantity,order_bid_price,total_investment,time_exited,lowest_bid,max_drawdown,highest_bid,max_gain,avg_sold_bid,total_profit,total_percentage
+Bull Flag,08/05/2024-11:21 PM,0.15,2,35.7,SPY,540.0,call,10,0.34,340.00000000000006,,0.3,11.76,0.5,47.06,0.4,60.0,17.65
+Bull Flag,08/05/2024-11:22 PM,0.15,2,35.7,SPY,540.0,call,10,0.34,340.00000000000006,08/05/2024-11:22 PM,0.3,11.76,0.5,47.06,0.4,60.0,17.65
+Bull Flag,08/05/2024-11:27 PM,0.15,2,35.7,SPY,540.0,call,10,0.34,340.00000000000006,08/05/2024-11:27 PM,0.3,11.76,0.5,47.06,0.4,60.0,17.65
+Bull Flag,08/05/2024-11:30 PM,0.15,2,35.7,SPY,540.0,call,10,0.34,340.00000000000006,08/05/2024-11:30 PM,0.3,11.76,0.5,47.06,0.4,60.0,17.65
+Bull Flag,08/05/2024-11:30 PM,0.15,2,35.7,SPY,540.0,call,10,0.34,340.00000000000006,,,,,,,,
+Bull Flag,08/05/2024-11:33 PM,0.15,2,35.7,SPY,540.0,call,10,0.34,340.00000000000006,08/05/2024-11:33 PM,0.3,11.76,0.5,47.06,0.4,60.0,17.65

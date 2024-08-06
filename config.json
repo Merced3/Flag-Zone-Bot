@@ -1,7 +1,7 @@
 {
     "REAL_MONEY_ACTIVATED": false,
     "ACCOUNT_BALANCES": [
-        94194.0,
+        100000.0,
         0
     ],
     "SYMBOL": "SPY",
@@ -21,7 +21,7 @@
         -20
     ],
     "PAST_DAYS": 30,
-    "NUM_OUT_OF_MONEY": 5,
+    "NUM_OUT_OF_MONEY": 20,
     "BOX_SIZE_THRESHOLDS": [
         0.2,
         0.5

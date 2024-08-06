@@ -833,7 +833,7 @@ def check_order_type_json(candle_type, file_path = "order_candle_type.json"):
     #print(num_of_matches)
     # Compare the count with the threshold
     if num_of_matches >= ORDERS_ZONE_THRESHOLD:
-        return False  # More or equal matches than the threshold, do not allow more orders
+        return False, num_of_matches # More or equal matches than the threshold, do not allow more orders
 
     return True, num_of_matches  # Fewer matches than the threshold, allow more orders
 
@@ -857,7 +857,7 @@ def log_order_details(filepath, what_type_of_candle, time_entered, ema_distance,
 # Update the CSV file with additional details
 def update_order_details(filepath, unique_order_id, **kwargs):
     # UOD means Update Order Details
-    print(f"    [UOD] unique_order_id: {unique_order_id}")
+    print(f"\n    [UOD] unique_order_id: {unique_order_id}")
     print(f"    [UOD] kwargs: {kwargs}")
     df = pd.read_csv(filepath)
     
@@ -869,23 +869,31 @@ def update_order_details(filepath, unique_order_id, **kwargs):
     dt = datetime.strptime(timestamp[:12], "%Y%m%d%H%M")  # Only use up to minutes
 
     # Format the datetime object to the desired string format (ignore seconds)
-    formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M %p").lstrip("0").replace(" 0", " ")  # Normalize format
+    formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M %p")
     print(f"    [UOD] Formatted timestamp (ignoring seconds): {formatted_timestamp}")
 
     row_found = False
     for index, row in df.iterrows():
-        # Normalize the row's timestamp for comparison
-        row_time_formatted = row['time_entered'][:17].lstrip("0").replace(" 0", " ")
-        print(f"    [UOD] Checking row at index {index}: {row_time_formatted}")
+        # Normalize the row's timestamp for comparison, ensuring AM/PM is preserved
+        row_time_formatted = row['time_entered']
+        print(f"        [UOD 1] Checking row at index {index}: {row_time_formatted}")
         
         if (row['ticker_symbol'] == symbol and 
             row['strike_price'] == float(strike_price) and 
             row['option_type'] == option_type and 
             row_time_formatted == formatted_timestamp):  # Compare normalized timestamps
-            print(f"    [UOD] Matching row found at index {index}: {row}")
+            print(f"            [UOD 2] Matching row found at index {index}")
             row_found = True
             for key, value in kwargs.items():
-                print(f"    [UOD] Updating {key} to {value}")
+                # Ensure type compatibility
+                if pd.api.types.is_numeric_dtype(df[key]) and isinstance(value, list):
+                    value = float(value[0])
+                    print(f"                [UOD 3] Assuming the list should be a single float value: {value}")
+                if pd.api.types.is_numeric_dtype(df[key]):
+                    value = float(value)
+                if pd.api.types.is_string_dtype(df[key]):
+                    value = str(value)
+                print(f"                [UOD 3] Updating {key} to {value}")
                 df.at[index, key] = value
             break  # If the correct row is found, no need to continue looping
     

@@ -120,17 +120,43 @@ def to_float(value):
 
 def extract_trade_results(message, message_id):
     # Clean up the message to remove unwanted characters
-    clean_message = ''.join(e for e in message if (e.isalnum() or e.isspace() or e in ['$', '.', ':', '-', '✅', '❌']))
-    
+    clean_message = ''.join(e for e in message if (e.isalnum() or e.isspace() or e in ['$', '%',  '.', ':', '-', '✅', '❌']))
+    #print(f"clean_message: {clean_message}")
+
     # Pattern to extract total investment (using the previous pattern)
     investment_pattern = r"Total Investment: \$(.+)"
     investment_match = re.search(investment_pattern, clean_message)
     total_investment = float(investment_match.group(1).replace(",", "")) if investment_match else 0.0
+    #print(f"total_investment: {total_investment}")
 
+    # TODO: DEBUG STARTS HERE
+    """
+    # Start with just AVG BID
+    avg_bid_pattern = r"AVG BID:\s*\$([\d,]+\.\d{3})"
+    avg_bid_match = re.search(avg_bid_pattern, clean_message)
+    print(f"avg_bid_match: {avg_bid_match}")
+
+    # Then add TOTAL
+    total_pattern = r"TOTAL:\s*(-?\$\-?[\d,]+\.\d{2})"
+    total_match = re.search(total_pattern, clean_message)
+    print(f"total_match: {total_match}")
+
+    # Then add INDICATOR
+    indicator_pattern = r"(✅|❌)"
+    indicator_match = re.search(indicator_pattern, clean_message)
+    print(f"indicator_match: {indicator_match}")
+
+    # Then add PERCENT
+    percent_pattern = r"PERCENT:\s*(-?\d+\.\d{2})%"
+    percent_match = re.search(percent_pattern, clean_message)
+    print(f"percent_match: {percent_match}")
+    """
+    # TODO: DEBUG ENDS HERE
+    
     # Pattern to extract the average bid, total profit/loss, profit indicator, and percentage gain/loss
-    results_pattern = r"AVG BID:\s*\$(\d+\.\d{3}).*?TOTAL:\s*(-?\$\d{1,3}(?:,\d{3})*\.\d{2})(✅|❌).*?PERCENT:\s*(-?\d+\.\d{2})%"  
+    results_pattern = r"AVG BID:\s*\$([\d,]+\.\d{3})\s*TOTAL:\s*(-?\$\-?[\d,]+\.\d{2})\s*(✅|❌)\s*PERCENT:\s*(-?\d+\.\d{2})%"
     results_match = re.search(results_pattern, clean_message, re.DOTALL)
-
+    #print(f"results_match: {results_match}")
     if results_match:
         avg_bid = float(results_match.group(1))
         
@@ -155,9 +181,12 @@ async def calculate_day_performance(message_ids_dict, start_balance_str, end_bal
     trades_str_list = []
     BP_float_list = []
     for message_id in message_ids_dict.values():
+        #print(f"\n\nmessage_id: {message_id}")
         message_content = await get_message_content(message_id)
         if message_content:
+            #print(f"    Message content true, content:\n{message_content}")
             trade_info_dict = extract_trade_results(message_content, message_id)
+            #print(f"    trade info = {trade_info_dict}")
             if isinstance(trade_info_dict, str) and "Invalid" in trade_info_dict:
                 continue
             
@@ -441,6 +470,22 @@ async def main_loop():
         except Exception as e:
             await error_log_and_discord_message(e, "main", "main")
 
+def get_correct_message_ids(_message_ids_dict):
+    # Load `message_ids.json` from the file
+    json_file_path = 'message_ids.json'
+    if os.path.exists(json_file_path):
+        with open(json_file_path, 'r') as file:
+            json_message_ids_dict = json.load(file)
+            #print (f"{json_message_ids_dict}")
+    else:
+        json_message_ids_dict = {}
+
+    # Check if `message_ids_dict` is empty or if `json_message_ids_dict` has more information
+    if not _message_ids_dict or len(json_message_ids_dict) >= len(_message_ids_dict):
+        _message_ids_dict = json_message_ids_dict
+    
+    return _message_ids_dict
+
 async def reseting_values():
     global websocket_connection
     global start_of_day_account_balance
@@ -460,6 +505,8 @@ async def reseting_values():
     #send 2-min chart picture to discord chat
     pic_2m_filepath = Path(__file__).resolve().parent / f"{SYMBOL}_2-min_chart.png"
     await send_file_discord(pic_2m_filepath)
+
+    message_ids_dict = get_correct_message_ids(message_ids_dict)
 
     #Calculate/Send todays results, use the 'message_ids_dict' from ema_strategy.py
     # TODO: the ouput_message was incorrect, fix it
