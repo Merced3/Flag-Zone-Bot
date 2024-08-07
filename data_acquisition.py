@@ -885,14 +885,6 @@ def update_order_details(filepath, unique_order_id, **kwargs):
             print(f"            [UOD 2] Matching row found at index {index}")
             row_found = True
             for key, value in kwargs.items():
-                # Ensure type compatibility
-                if pd.api.types.is_numeric_dtype(df[key]) and isinstance(value, list):
-                    value = float(value[0])
-                    print(f"                [UOD 3] Assuming the list should be a single float value: {value}")
-                if pd.api.types.is_numeric_dtype(df[key]):
-                    value = float(value)
-                if pd.api.types.is_string_dtype(df[key]):
-                    value = str(value)
                 print(f"                [UOD 3] Updating {key} to {value}")
                 df.at[index, key] = value
             break  # If the correct row is found, no need to continue looping
