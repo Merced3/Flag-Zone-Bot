@@ -200,7 +200,7 @@
         "num_of_trades": 7,
         "num_of_profitable_trades": 2,
         "num_of_negitive_trades": 5,
-        "description": "Day 1, made 4 trades, first 2 trades were 2k Profit, which is great but the other 2 trades were negitive wiping it out, couldn't record end of day calculations because of errors reseting to 100k. Day 2 made -3903$, 2 profitable trades then 3 negitive ones UOD works now and end of day calculations too. Day 3, 2 negitive trades, found out a new way of caseys zones that would have made this day profitable.",
+        "description": "Day 1, made 4 trades, first 2 trades were 2k Profit, which is great but the other 2 trades were negitive wiping it out, couldn't record end of day calculations because of errors reseting to 100k. Day 2 made -3903$, 2 profitable trades then 3 negitive ones UOD works now and end of day calculations too. Day 3, 2 negitive trades, found out a new way of caseys zones that would have made this day profitable. Day 4, stuck inbetween PDHL, no trades.",
         "important_message_ids": [1270210795824873525, 1270272544271765625, 1270445119698501722, 1270454035526189117]
     },
     {

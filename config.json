@@ -23,11 +23,11 @@
     "PAST_DAYS": 30,
     "NUM_OUT_OF_MONEY": 20,
     "BOX_SIZE_THRESHOLDS": [
-        0.2,
-        0.5
+        0.5,
+        1.5
     ],
     "BOX_SPACING": 1,
-    "TRADE_IN_BUFFERS": true,
+    "TRADE_IN_BUFFERS": false,
     "GET_PDHL": true,
     "CANDLE_BUFFER": 1,
     "EMAS": [
