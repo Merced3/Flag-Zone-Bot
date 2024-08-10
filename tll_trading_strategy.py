@@ -93,9 +93,9 @@ async def execute_trading_strategy(zones):
     print(f"    [ETS INFO] what_type_of_candle = {what_type_of_candle}\n\n")
 
     last_processed_candle = None
-    #already_cleared = False #TODO FALSE
-    #num_of_candles_in_zone = 0 #TODO 0
-    #prev_what_type_of_candle = what_type_of_candle
+    already_cleared = False #TODO FALSE
+    num_of_candles_in_zone = 0 #TODO 0
+    prev_what_type_of_candle = what_type_of_candle
     has_calculated_emas = False #TODO False
     candle_interval = 2
     candle_timescale = "minute"
@@ -168,39 +168,43 @@ async def execute_trading_strategy(zones):
                     what_type_of_candle = candle_zone_handler(candle, what_type_of_candle, zones, False)
 
                     if what_type_of_candle is not None:
+                        # hopefully this solves the candle type error when it breaks out of the oposite side of the zone in less candles than 'num_of_candles_in_zone' is set to.
+                        if prev_what_type_of_candle != what_type_of_candle:
+                            print(f"    [ETS RESET] prev candle does not match current candle type, reseting jsons/values (prev = {prev_what_type_of_candle})")
+                            restart_flag_data(what_type_of_candle)
                         #record the candle data
-                        #prev_what_type_of_candle = what_type_of_candle
+                        prev_what_type_of_candle = what_type_of_candle
                         await record_priority_candle(candle, what_type_of_candle)
                         priority_candles = load_json_df('priority_candles.json')
                         num_flags = count_flags_in_json()
                         last_candle = priority_candles.iloc[-1]
                         last_candle_dict = last_candle.to_dict()
                         await identify_flag(last_candle_dict, num_flags, session, headers, what_type_of_candle)
-                        #already_cleared = False
-                        #num_of_candles_in_zone = 0
+                        already_cleared = False
+                        num_of_candles_in_zone = 0
                     else:
                         restart_flag_data(what_type_of_candle)
-                        #already_cleared = True
-                        #if not already_cleared and prev_what_type_of_candle is not None:
-                            #await record_priority_candle(candle, prev_what_type_of_candle)
-                            #priority_candles = load_json_df('priority_candles.json')
-                            #num_flags = count_flags_in_json()
-                            #last_candle = priority_candles.iloc[-1]
-                            #last_candle_dict = last_candle.to_dict()
-                            #should_reset = await identify_flag(last_candle_dict, num_flags, session, headers, prev_what_type_of_candle, False)
-                            #if should_reset:
-                                #print(f"    [ETS RESET] flag state variables, waiting for new candle to come out of zone")
-                                #prev_what_type_of_candle = None
-                                #num_of_candles_in_zone = 0
-                                #already_cleared = True
-                            #else:
-                                #num_of_candles_in_zone += 1
-                                #print(f"    [ETS Candles In Zone] {num_of_candles_in_zone}")
-                        #if not already_cleared and num_of_candles_in_zone > MIN_NUM_CANDLES: # How many candles it should ignore before restarting the whole state/priority json files
-                            #restart_flag_data(what_type_of_candle)
-                            #prev_what_type_of_candle = None
-                            #num_of_candles_in_zone = 0
-                            #already_cleared = True
+                        already_cleared = True
+                        if not already_cleared and prev_what_type_of_candle is not None:
+                            await record_priority_candle(candle, prev_what_type_of_candle)
+                            priority_candles = load_json_df('priority_candles.json')
+                            num_flags = count_flags_in_json()
+                            last_candle = priority_candles.iloc[-1]
+                            last_candle_dict = last_candle.to_dict()
+                            should_reset = await identify_flag(last_candle_dict, num_flags, session, headers, prev_what_type_of_candle, False)
+                            if should_reset:
+                                print(f"    [ETS RESET] flag state variables, waiting for new candle to come out of zone")
+                                prev_what_type_of_candle = None
+                                num_of_candles_in_zone = 0
+                                already_cleared = True
+                            else:
+                                num_of_candles_in_zone += 1
+                                print(f"    [ETS Candles In Zone] {num_of_candles_in_zone}")
+                        if not already_cleared and num_of_candles_in_zone > MIN_NUM_CANDLES: # How many candles it should ignore before restarting the whole state/priority json files
+                            restart_flag_data(what_type_of_candle)
+                            prev_what_type_of_candle = None
+                            num_of_candles_in_zone = 0
+                            already_cleared = True
                 else:
                     await asyncio.sleep(1)  # Wait for new candle data
                     update_2_min()
