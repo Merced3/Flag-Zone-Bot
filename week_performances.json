@@ -204,6 +204,18 @@
         "important_message_ids": [1270210795824873525, 1270272544271765625, 1270445119698501722, 1270454035526189117]
     },
     {
+        "week_number": 16,
+        "week_start_end_date": "08/12/2024-08/16/2024",
+        "start_ammount": 89294.0,
+        "end_ammount": 89968.0,
+        "total_made": 674.0,
+        "num_of_trades": 1,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 0,
+        "description": "Day 1, made 1 trade, broke out of PDH for a tiny 20% trade then chopped its way down.",
+        "important_message_ids": []
+    },
+    {
         "week_number": 0,
         "week_start_end_date": "00/00/2024-00/00/2024",
         "start_ammount": 0,
