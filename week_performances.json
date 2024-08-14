@@ -207,13 +207,13 @@
         "week_number": 16,
         "week_start_end_date": "08/12/2024-08/16/2024",
         "start_ammount": 89294.0,
-        "end_ammount": 89968.0,
-        "total_made": 674.0,
-        "num_of_trades": 1,
-        "num_of_profitable_trades": 1,
+        "end_ammount": 90998.0,
+        "total_made": 1704.0,
+        "num_of_trades": 2,
+        "num_of_profitable_trades": 2,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, made 1 trade, broke out of PDH for a tiny 20% trade then chopped its way down.",
-        "important_message_ids": []
+        "description": "Day 1, made 1 trade, broke out of PDH for a tiny 20% trade then chopped its way down. Day 2, chart went out of PDH and it took a call, profiting $1,030, Also change the box/zones code to be more accurate of caseys zones.",
+        "important_message_ids": [1273125335550001286]
     },
     {
         "week_number": 0,
