@@ -402,7 +402,7 @@ async def main_loop():
                         print(f"[Day {day_num + 1} of {num_days}] {current_date}")
                         #print(f"    [LENGTH DAY DATA] {len(day_data)}")
                         df_15m = pd.concat([day_data, prev_days_data])
-                        Boxes = boxes.get_v2(Boxes, tp_lines, df_15m, current_date, len(day_data), GET_PDHL)
+                        Boxes, tp_lines = boxes.get_v2(Boxes, tp_lines, df_15m, current_date, len(day_data), GET_PDHL)
                         Boxes = boxes.correct_zones_inside_other_zones(Boxes)
                         Boxes = boxes.correct_bleeding_zones(Boxes)
                         Boxes, tp_lines = boxes.correct_zones_that_are_too_close(Boxes, tp_lines)

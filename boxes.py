@@ -24,10 +24,10 @@ def get_v2(boxes_that_already_exist, tpls_that_already_exist, candle_data, curre
     if boxes_that_already_exist is None:
         if is_get_PDHL:
             PDHL_box = get_PDHL(candle_data, current_date)
-            return PDHL_box
+            return PDHL_box, None
         else:
             new_zones = get_support_resistance(candle_data, current_date, boxes_that_already_exist, print_statements)
-            return new_zones
+            return new_zones, None
 
     # If boxes exist, update their positions
     for box_name in boxes_that_already_exist:
@@ -47,7 +47,7 @@ def get_v2(boxes_that_already_exist, tpls_that_already_exist, candle_data, curre
     # Get support and resistnace zone for 'current_date'
     new_zones = get_support_resistance(candle_data, current_date, boxes_that_already_exist, print_statements)
     
-    return new_zones
+    return new_zones, tpls_that_already_exist
 
 def correct_too_big_small_boxes(candle_data, boxes, print_statements=False):
     if print_statements:    
@@ -158,12 +158,44 @@ def correct_zones_inside_other_zones(boxes, print_statements=False):
                 top_2 = buf2
                 bottom_2 = hl2
 
-            # Check if box1 has any boxes inside of it
-            if top_1 >= top_2 >= bottom_2 >= bottom_1:
-                keys_to_delete.append(name2)
-            elif top_2 >= top_1 >= bottom_1 >= bottom_2:
-                keys_to_delete.append(name1)
+            if top_1 and bottom_1 and top_2 and bottom_2:
+                corrected_name = None
+                corrected_index = index1 if index1 < index2 else index2
+                # Check if box1 has any boxes inside of it
+                if (top_1 >= top_2 >= bottom_2 >= bottom_1) or (top_2 >= top_1 >= bottom_1 >= bottom_2):
+                    # Box 1 has a box inside of it.
+                    if "PDHL" in name1 or "PDHL" in name2:
+                        keys_to_delete.append(name2 if "PDHL" in name1 else name1)
+                    elif (("resistance" in name1) and ("support" in name2)) or (("support" in name1) and ("resistance" in name2)):
+                        # Make a new PDHL
+                        corrected_name = f"PDHL_{len([name for name, _ in sorted_boxes if name.startswith('PDHL')]) + 1}"
+                        keys_to_delete.append(name1)
+                        keys_to_delete.append(name2)
 
+                        # Now Resize
+                        top_value = hl1 if "resistance" in name1 else hl2
+                        bottom_value = hl1 if "support" in name1 else hl2
+                        
+                        # Corrected box
+                        boxes[corrected_name] = (corrected_index, top_value, bottom_value) # 2 opposite zones have combined/widened
+                        if print_statements:
+                            print(f"        [OPPOSITE ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{top_value},{bottom_value})")
+                    elif (("resistance" in name1) and ("resistance" in name2)) or (("support" in name1) and ("support" in name2)):
+                        # Identical Zones are inside eachother
+                        # Make a new PDHL
+                        corrected_name = name1 if index1 < index2 else name2
+                        keys_to_delete.append(name2 if index1 < index2 else name1)
+
+                        # Now Resize
+                        if "resistance" in name1 and "resistance" in name2:
+                            Important_value= hl1 if hl1>=hl2 else hl2 #important number
+                            buffer_value= buf1 if buf1>=buf2 else buf2
+                        elif "support" in name1 and "support" in name2:
+                            Important_value= hl1 if hl1<=hl2 else hl2 #important number
+                            buffer_value= buf1 if buf1<=buf2 else buf2
+
+                        # Corrected box
+                        boxes[corrected_name] = (corrected_index, Important_value, buffer_value) # 2 identical zones have combined
     if print_statements:    
         print(f"    [CZIOZ] KEYS TO DELETE: {keys_to_delete}")
 
@@ -307,7 +339,7 @@ def correct_bleeding_zones(boxes, print_statements=False):
                         #figure out what name we need to correct so we can delete the others
                     if ("resistance" in name1 and "resistance" in name2) or ("support" in name1 and "support" in name2) or ("PDHL" in name1 and "PDHL" in name2):
                         # Make a whole new zone then forget both name 1 and 2 zones
-                        corrected_name = 'b_'+name1 if index1 > index2 else 'b_'+name2 # 'b' means double, meaning both lines are important.
+                        corrected_name = f"PDHL_{len([name for name, _ in sorted_boxes if name.startswith('PDHL')]) + 1}"
                         keys_to_delete.append(name1)
                         keys_to_delete.append(name2)
                         
@@ -403,7 +435,7 @@ def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False):
                     keys_to_delete_boxes.append(name2 if index1 > index2 else name1)
                 else:
                     # Create a new "tp_line" and add it to "tp_lines"
-                    tp_lines[TPL_name] = (TPL_x, TPL_y)
+                    tp_lines[generate_unique_name(TPL_name, tp_lines)] = (TPL_x, TPL_y)
                     keys_to_delete_boxes.append(name2 if index1 > index2 else name1)
     if print_statements:
         print(f"\n TPLs: {tp_lines}\n")
@@ -413,12 +445,11 @@ def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False):
             del boxes[key]
     
     # find if lines are too close to any zone
-    new_tpls = {}
     for tpl_name, tpl_detials in tp_lines.items():
         for box_name, box_details in boxes.items():
             tp_x, tp_y = tpl_detials 
             index, hl, buf = box_details
-            threshold_size = BOX_SIZE_THRESHOLDS[1]
+            threshold_size = BOX_SPACING
             range_hl = abs(hl - tp_y)
             range_buf = abs(buf - tp_y) # if in range and line x is less that box x, meaning line less important
             if (range_hl <= threshold_size) or (range_buf <= threshold_size):
@@ -438,3 +469,22 @@ def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False):
         print(f"Altered boxes: {boxes}\n\nTP Lines: {tp_lines}\n---------------")
 
     return boxes, tp_lines
+
+def generate_unique_name(base_name, tp_lines):
+    # Split the base name by underscore and check if the last part is numeric
+    parts = base_name.split('_')
+    
+    # Try to extract the last part as an integer, if it's not a number, start with 1
+    if parts[-1].isdigit():
+        counter = int(parts[-1])
+        base_name = '_'.join(parts[:-1])  # Reconstruct the base name without the number
+    else:
+        counter = 1
+
+    # Generate a new unique name by incrementing the counter
+    new_name = f"{base_name}_{counter}"
+    while new_name in tp_lines:
+        counter += 1
+        new_name = f"{base_name}_{counter}"
+
+    return new_name
