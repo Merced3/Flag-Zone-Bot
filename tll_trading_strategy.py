@@ -184,7 +184,7 @@ async def execute_trading_strategy(zones):
                         num_of_candles_in_zone = 0
                     else:
                         #restart_flag_data(what_type_of_candle)
-                        already_cleared = True
+                        #already_cleared = True
                         if not already_cleared and prev_what_type_of_candle is not None:
                             await record_priority_candle(candle, prev_what_type_of_candle)
                             priority_candles = load_json_df('priority_candles.json')

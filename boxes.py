@@ -173,9 +173,10 @@ def correct_zones_inside_other_zones(boxes, print_statements=False):
                         keys_to_delete.append(name2)
 
                         # Now Resize
-                        top_value = hl1 if "resistance" in name1 else hl2
-                        bottom_value = hl1 if "support" in name1 else hl2
-                        
+                        #top_value = hl1 if "resistance" in name1 else hl2
+                        #bottom_value = hl1 if "support" in name1 else hl2
+                        top_value = hl1 if hl1>hl2 else hl2
+                        bottom_value = hl1 if hl1<hl2 else hl2
                         # Corrected box
                         boxes[corrected_name] = (corrected_index, top_value, bottom_value) # 2 opposite zones have combined/widened
                         if print_statements:
@@ -346,7 +347,9 @@ def correct_bleeding_zones(boxes, print_statements=False):
                         # Now resize
                         hl_1 = top_value if "resistance" in name1 and "resistance" in name2 else bottom_value
                         hl_2 = other_top if "resistance" in name1 and "resistance" in name2 else other_bottom
-                        boxes[corrected_name] = (corrected_index, hl_1, hl_2) # the reason for 'hl_1' and 'hl_2' (high low 1st or 2nd) first is the most important meaning if this is a resistance then 1st is the top of the box and if support then bottom
+                        top_value = hl_1 if hl_1>hl_2 else hl_2
+                        bottom_value = hl_1 if hl_1<hl_2 else hl_2
+                        boxes[corrected_name] = (corrected_index, top_value, bottom_value) # the reason for 'hl_1' and 'hl_2' (high low 1st or 2nd) first is the most important meaning if this is a resistance then 1st is the top of the box and if support then bottom
                         if print_statements:
                             print(f"        [IDENTICLE ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{hl_1},{hl_2})")
                     elif ("resistance" in name1 and "PDHL" in name2) or ("PDHL" in name1 and "resistance" in name2) or ("support" in name1 and "PDHL" in name2) or ("PDHL" in name1 and "support" in name2):
@@ -366,18 +369,21 @@ def correct_bleeding_zones(boxes, print_statements=False):
                             print(f"        [SIMILAR ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{top_side},{bottom_side})")
                     elif ("resistance" in name1 and "support" in name2) or ("support" in name1 and "resistance" in name2): # support on resistance ; resistance on support
                         corrected_name = f"PDHL_{len([name for name, _ in sorted_boxes if name.startswith('PDHL')]) + 1}"
+                        
                         keys_to_delete.append(name1)
                         keys_to_delete.append(name2)
 
                         # Now Resize
-                        if "resistance" in name1:
-                            top_value = hl1
-                        if "resistance" in name2:
-                            top_value = hl2
-                        if "support" in name1:
-                            bottom_value = hl1
-                        if "support" in name2:
-                            bottom_value = hl2
+                        top_value = hl1 if hl1>hl2 else hl2
+                        bottom_value = hl1 if hl1<hl2 else hl2
+                        #if "resistance" in name1:
+                            #top_value = hl1
+                        #if "resistance" in name2:
+                            #top_value = hl2
+                        #if "support" in name1:
+                            #bottom_value = hl1
+                        #if "support" in name2:
+                            #bottom_value = hl2
                         boxes[corrected_name] = (corrected_index, top_value, bottom_value) # 2 opposite zones have combined/widened
                         if print_statements:
                             print(f"        [OPPOSITE ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{top_value},{bottom_value})")

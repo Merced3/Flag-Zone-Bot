@@ -140,26 +140,42 @@ async def get_option_bid_price(symbol, strike, expiration_date, option_type, ses
     quote_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}markets/options/chains?symbol={symbol}&expiration={expiration_date}"
     headers = {"Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", "Accept": "application/json"}
     
-    async with session.get(quote_url, headers=headers) as response:
-        if response.status != 200:
-            print(f"    Received unexpected status code {response.status}: {await response.text()}")
-            return None
+    while True:
         try:
-            response_json = await response.json()
-            # Here you'll need to navigate through the returned JSON to find the bid price of the specific option
-            options_data = response_json.get('options', {}).get('option', [])
-            target_strike = float(strike)
-            filtered_options = [option for option in options_data if option['strike'] == target_strike and option['option_type'] == option_type]
-            
-            if filtered_options:
-                # Displaying the first matching option
-                return filtered_options[0]['bid']
-            else:
-                print("Option not found")
-                return None
+            async with session.get(quote_url, headers=headers) as response:
+                if response.status != 200:
+                    print(f"    [get_option_bid_price] Received unexpected status code {response.status}: {await response.text()}")
+                    await asyncio.sleep(1)  # Wait a second before retrying
+                    continue
+                
+                try:
+                    response_json = await response.json()
+                    options_data = response_json.get('options', {}).get('option', [])
+                    target_strike = float(strike)
+                    filtered_options = [
+                        option for option in options_data 
+                        if option['strike'] == target_strike and option['option_type'] == option_type
+                    ]
+                    
+                    if filtered_options:
+                        return filtered_options[0]['bid']
+                    else:
+                        print("    [get_option_bid_price] Option not found, retrying...")
+                        await asyncio.sleep(1)  # Wait a second before retrying
+
+                except asyncio.TimeoutError:
+                    print(f"[INTERNET CONNECTION]  get_option_bid_price() Timeout Error, retrying...")
+                    await asyncio.sleep(1)  # Wait a second before retrying
+                except Exception as e:
+                    await error_log_and_discord_message(e, "order_handler", "get_option_bid_price", "Error parsing JSON")
+                    await asyncio.sleep(1)  # Wait a second before retrying
+
+        except aiohttp.ClientOSError as e:
+            print(f"[INTERNET CONNECTION] Client OS Error: {e}. Retrying...")
+            await asyncio.sleep(1)  # Wait a second before retrying
         except Exception as e:
-            await error_log_and_discord_message(e, "order_handler", "get_option_bid_price", "Error parsing JSON")
-            return None
+            print(f"Unexpected error occurred: {e}. Retrying...")
+            await asyncio.sleep(1)  # Wait a second before retrying        
 
 def calculate_max_drawdown_and_gain(start_price, lowest_price, highest_price, write_to_file=None, order_log_name=None, unique_order_id=None):
     # Calculate maximum drawdown
@@ -541,7 +557,7 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                         if unique_order_id in message_ids_dict:
                             original_msg_id = message_ids_dict[unique_order_id]
                             try:
-                                original_content = await get_message_content(original_msg_id, "412")
+                                original_content = await get_message_content(original_msg_id)
                                 if original_content:
                                     updated_content = original_content + "\n" + _message_
                                     #update discord order message
@@ -556,7 +572,7 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                         if remaining_quantity <= 0:
                             calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name, unique_order_id)
                             #print end of message calculations
-                            _message_ = await get_message_content(message_ids_dict[unique_order_id], "427")  
+                            _message_ = await get_message_content(message_ids_dict[unique_order_id])  
                             if _message_ is not None:
                                 trade_info = calculate_profit_percentage(_message_, unique_order_id)
                                 new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content
@@ -593,13 +609,9 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                 # Wait before checking again
                 await asyncio.sleep(.5)
             except aiohttp.ClientOSError as e:
-                if retry_attempts < RETRY_COUNT:
-                    print(f"Encountered an error: {e}. Retrying in {RETRY_DELAY} seconds.")
-                    await asyncio.sleep(RETRY_DELAY)
-                    retry_attempts += 1
-                else:
-                    print("Maximum retry attempts reached. Exiting the loop.")
-                    break
+                print(f"[MAFO] Encountered an error: {e}. Retrying in {RETRY_DELAY} seconds.")
+                await asyncio.sleep(RETRY_DELAY)
+                # Retry loop continues indefinitely until it succeeds or the process is stopped
 
 async def sell(quantity, unique_order_key, message_ids_dict, reason_for_selling):
     #selling logic here
@@ -734,7 +746,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                         return
                     
                 #   Quantity of the order is zero now so we log it in discord
-                _message_ = await get_message_content(message_ids_dict[unique_order_id]), "579"  
+                _message_ = await get_message_content(message_ids_dict[unique_order_id]) 
                 if _message_ is not None:
                     trade_info = calculate_profit_percentage(_message_, unique_order_id)
                     new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content
@@ -814,7 +826,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                     original_msg_id = message_ids_dict[unique_order_id]
                     #print(f"Fetching message content for order ID: {unique_order_id}, Message ID: {original_msg_id}")
                     try:
-                        original_content = await get_message_content(original_msg_id, "633") #this one works and is getting the message
+                        original_content = await get_message_content(original_msg_id)
                         if original_content:
                             updated_content = original_content + "\n" + _message_
                             #update discord order message
@@ -826,7 +838,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                 else:
                     print(f"Message ID for order {unique_order_id} not found in dictionary. Dictionary contents:\n{message_ids_dict}")
                 #   Quantity of the order is zero now so we log it in discord
-                _message_ = await get_message_content(message_ids_dict[unique_order_id], "645")  
+                _message_ = await get_message_content(message_ids_dict[unique_order_id])
                 if _message_ is not None:
                     trade_info = calculate_profit_percentage(_message_, unique_order_id)
                     new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content

@@ -97,6 +97,11 @@ async def ws_connect(queue, symbol):
             print(f"[INTERNET CONNECTION] Failed to connect at {datetime.now().isoformat()}, retrying...")
             await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
         
+        except asyncio.TimeoutError:
+            print("[INTERNET CONNECTION] Timeout Error, connection possibly too slow...")
+            await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
+
+
         except Exception as e:
             await error_log_and_discord_message(e, "data_acquisition", "ws_connect", "An error occurred. Re-establishing connection...")
             await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
