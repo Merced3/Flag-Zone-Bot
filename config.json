@@ -20,7 +20,7 @@
         "EMA 13",
         -20
     ],
-    "PAST_DAYS": 30,
+    "PAST_DAYS": 28,
     "NUM_OUT_OF_MONEY": 20,
     "BOX_SIZE_THRESHOLDS": [
         0.5,
