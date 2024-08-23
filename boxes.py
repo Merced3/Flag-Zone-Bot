@@ -324,9 +324,10 @@ def get_PDHL(candle_data, current_date):
     PDHL = {'PDHL_1': (x_pos, highest_val, lowest_val)}
     return PDHL
 
-def correct_bleeding_zones(boxes, print_statements=False):
-    keys_to_delete = []
-    
+def correct_bleeding_zones(boxes, _tp_lines, print_statements=False):
+    keys_to_delete_boxes = []
+    tp_lines = {} if _tp_lines is None else _tp_lines
+
     # Get the sorted list of box items
     sorted_boxes = sorted(boxes.items(), key=lambda x: x[1][0])
     
@@ -377,8 +378,8 @@ def correct_bleeding_zones(boxes, print_statements=False):
                         corrected_name = f"PDHL_{len([name for name, _ in sorted_boxes if name.startswith('PDHL')]) + 1}"
                         if print_statements:    
                             print(f"    [CBZ] Corrected name2: {corrected_name}")
-                        keys_to_delete.append(name1)
-                        keys_to_delete.append(name2)
+                        keys_to_delete_boxes.append(name1)
+                        keys_to_delete_boxes.append(name2)
                         
                         # Now resize
                         hl_1 = top_value if "resistance" in name1 and "resistance" in name2 else bottom_value
@@ -392,7 +393,7 @@ def correct_bleeding_zones(boxes, print_statements=False):
                     # Keep one zone, forget the other
                         corrected_name = name1 if "PDHL" in name1 else name2 # Keep key that is PDHL
                         delete_key = name2 if "PDHL" in name1 else name1 # Delete key that is not PDHL
-                        keys_to_delete.append(delete_key)
+                        keys_to_delete_boxes.append(delete_key)
 
                         # Now resize
                         (_index_, important_val, _buffer_) = boxes[delete_key] # Either resistance or support
@@ -407,34 +408,45 @@ def correct_bleeding_zones(boxes, print_statements=False):
                         corrected_name = f"PDHL_{len([name for name, _ in sorted_boxes if name.startswith('PDHL')]) + 1}"
                         if print_statements:
                             print(f"    [CBZ] Corrected name3: {corrected_name}")
-                        keys_to_delete.append(name1)
-                        keys_to_delete.append(name2)
+                        keys_to_delete_boxes.append(name1)
+                        keys_to_delete_boxes.append(name2)
 
                         # Now Resize
                         top_value = hl1 if hl1>hl2 else hl2
                         bottom_value = hl1 if hl1<hl2 else hl2
-                        #if "resistance" in name1:
-                            #top_value = hl1
-                        #if "resistance" in name2:
-                            #top_value = hl2
-                        #if "support" in name1:
-                            #bottom_value = hl1
-                        #if "support" in name2:
-                            #bottom_value = hl2
-                        boxes[corrected_name] = (corrected_index, top_value, bottom_value) # 2 opposite zones have combined/widened
-                        if print_statements:
-                            print(f"    [CBZ, OPPOSITE ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{top_value},{bottom_value})")
+                        height = top_value - bottom_value
+                        
+                        if height<=0.25:
+                            # Too Small, Make into TP_Lines
+                            if print_statements:
+                                print(f"    [CBZ] Box too small: {corrected_name}; {height}")
+                            new_name_1="TP_resistance_1"
+                            new_name_2="TP_support_1"
+                            new_name_1 = generate_unique_name(new_name_1, tp_lines)
+                            new_name_2 = generate_unique_name(new_name_2, tp_lines)
+                            TPL_x1 = index1 if "resistance" in name1 else index2
+                            TPL_x2 = index1 if "support" in name1 else index2
+                            tp_lines[new_name_1] = (TPL_x1, top_value) # resistance
+                            tp_lines[new_name_2] = (TPL_x2, bottom_value) # support
+                            if print_statements:
+                                print(f"    [CBZ] Created new Lines: {new_name_1}, ({tp_lines[new_name_1]}) | {new_name_2}, ({tp_lines[new_name_2]})")
+                        else:
+                            #continue with box creation
+                            boxes[corrected_name] = (corrected_index, top_value, bottom_value) # 2 opposite zones have combined/widened
+                            if print_statements:
+                                print(f"    [CBZ, OPPOSITE ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{top_value},{bottom_value})")
                         
             else:
                 if print_statements:
                     print(f"    [CBZ] missing value: {name1}, {top_1}, {bottom_1} | {name2}, {top_2}, {bottom_2}")
     # Remove the boxes that are inside others
-    for key in keys_to_delete:
+    for key in keys_to_delete_boxes:
         if key in boxes:
             del boxes[key]
     if print_statements:
-        print(f"    [CBZ] KEYS TO DELETE: {keys_to_delete}")
-    return boxes
+        print(f"    [CBZ] KEYS TO DELETE: {keys_to_delete_boxes}")
+
+    return boxes, tp_lines
 
 def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False, remove_TPs_too_close=False):
     if print_statements:

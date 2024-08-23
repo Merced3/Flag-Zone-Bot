@@ -404,7 +404,7 @@ async def main_loop():
                         df_15m = pd.concat([day_data, prev_days_data])
                         Boxes, tp_lines = boxes.get_v2(Boxes, tp_lines, df_15m, current_date, len(day_data), GET_PDHL)
                         Boxes = boxes.correct_zones_inside_other_zones(Boxes)
-                        Boxes = boxes.correct_bleeding_zones(Boxes)
+                        Boxes, tp_lines = boxes.correct_bleeding_zones(Boxes, tp_lines)
                         Boxes, tp_lines = boxes.correct_zones_that_are_too_close(Boxes, tp_lines)
                         prev_days_data = df_15m
                         #await asyncio.sleep(.25)
