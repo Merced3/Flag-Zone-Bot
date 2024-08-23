@@ -219,12 +219,12 @@
         "week_number": 17,
         "week_start_end_date": "08/19/2024-08/23/2024",
         "start_ammount": 95474.0,
-        "end_ammount": 96396.0,
-        "total_made": 922.0,
-        "num_of_trades": 3,
-        "num_of_profitable_trades": 2,
-        "num_of_negitive_trades": 1,
-        "description": "Made 3 trades today, 1 negitive 2 positive, 1 trade hit 100% leading to a $922 gain. Day 2 no trades, tried to break PDH but fialed multiple times. Day 3, No trades, tried to break PDHL and failed multiple times",
+        "end_ammount": 95217.0,
+        "total_made": -257.0,
+        "num_of_trades": 7,
+        "num_of_profitable_trades": 4,
+        "num_of_negitive_trades": 3,
+        "description": "Made 3 trades today, 1 negitive 2 positive, 1 trade hit 100% leading to a $922 gain. Day 2 no trades, tried to break PDH but fialed multiple times. Day 3, No trades, tried to break PDHL and failed multiple times. Day 4, 4 trades 2 negs 2 profits, last 2 trades were the biggest negitive and biggest positive trade ive ever had, lost -1,179$ toady but i noticed that all the negitive orders where far away from the emas.",
         "important_message_ids": []
     },
     {
