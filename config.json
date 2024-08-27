@@ -44,7 +44,7 @@
             "RED"
         ]
     ],
-    "EMA_MAX_DISTANCE": 5.0,
+    "EMA_MAX_DISTANCE": 0.45,
     "FLAGPOLE_CRITERIA": {
         "MIN_NUM_CANDLES": 2,
         "MAX_NUM_CANDLES": 150,
