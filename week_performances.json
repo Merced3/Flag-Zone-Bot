@@ -231,12 +231,12 @@
         "week_number": 18,
         "week_start_end_date": "08/26/2024-08/30/2024",
         "start_ammount": 95217.0,
-        "end_ammount": 95217.0,
-        "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "Day 1, no trades, inbetween PDHL. day 2, same as day 1. day 3, same as day 2. ",
+        "end_ammount": 95383.0,
+        "total_made": 166.0,
+        "num_of_trades": 2,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 1,
+        "description": "Day 1, no trades, inbetween PDHL. day 2, same as day 1. day 3, same as day 2. day 4, 2 trades 1 negitive (-$1000) 1 positive ($1166) made $166 today.",
         "important_message_ids": []
     },
     {
