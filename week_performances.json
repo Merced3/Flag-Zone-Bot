@@ -240,6 +240,18 @@
         "important_message_ids": []
     },
     {
+        "week_number": 19,
+        "week_start_end_date": "09/03/2024-00/06/2024",
+        "start_ammount": 95383.0,
+        "end_ammount": 92366.0,
+        "total_made": -3017.0,
+        "num_of_trades": 4,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 3,
+        "description": "Day 1, technically was 9/2 but that was labor day so stock market was closed. but true day one is tuesday (9/3), had 4 trades, 3 negitive 1 positive, lost $3,017. ",
+        "important_message_ids": []
+    },
+    {
         "week_number": 0,
         "week_start_end_date": "00/00/2024-00/00/2024",
         "start_ammount": 0,
