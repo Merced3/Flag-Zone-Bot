@@ -53,7 +53,7 @@
         "BEAR_MIN_ANGLE": 1.4,
         "BEAR_MAX_ANGLE": 25
     },
-    "OPTION_EXPIRATION_DTE": "1dte",
+    "OPTION_EXPIRATION_DTE": "not specified",
     "ORDERS_ZONE_THRESHOLD": 2,
     "MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION": 20
 }
