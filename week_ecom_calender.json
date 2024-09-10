@@ -1,35 +1,22 @@
 {
-    "week_timespan": "09-02-24 to 09-08-24",
+    "week_timespan": "09-09-24 to 09-15-24",
     "dates": {
-        "09-03-24": {
-            "09:00 AM": [
-                "ISM Manufacturing PMI"
-            ]
-        },
-        "09-04-24": {
+        "09-11-24": {
             "07:30 AM": [
-                "Balance of Trade"
-            ],
-            "08:45 AM": [
-                "BoC Interest Rate Decision"
-            ],
-            "09:00 AM": [
-                "JOLTs Job Openings"
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
             ]
         },
-        "09-05-24": {
-            "09:00 AM": [
-                "ISM Services PMI"
-            ]
-        },
-        "09-06-24": {
+        "09-12-24": {
             "07:30 AM": [
-                "Unemployment Rate",
-                "Non Farm Payrolls",
-                "Unemployment Rate"
-            ],
+                "PPI MoM"
+            ]
+        },
+        "09-13-24": {
             "09:00 AM": [
-                "Ivey PMI s.a"
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }
