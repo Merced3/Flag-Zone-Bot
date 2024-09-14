@@ -255,12 +255,12 @@
         "week_number": 20,
         "week_start_end_date": "09/09/2024-00/13/2024",
         "start_ammount": 91900.0,
-        "end_ammount": 86891.0,
-        "total_made": -5901.0,
+        "end_ammount": 85627.0,
+        "total_made": -6273.0,
         "num_of_trades": 5,
-        "num_of_profitable_trades": 2,
-        "num_of_negitive_trades": 6,
-        "description": "Day 1, no trades, inbetween PDHL. day 2, 2 negitive trades, lost -2,641. day 3, lost -2,368$, 2 trades were negitive but one was a winner hitting 200%. Day 4, 4 trades 2 negitive 2 positive and one trade almost hit 300%. ",
+        "num_of_profitable_trades": 3,
+        "num_of_negitive_trades": 7,
+        "description": "Day 1, no trades, inbetween PDHL. day 2, 2 negitive trades, lost -2,641. day 3, lost -2,368$, 2 trades were negitive but one was a winner hitting 200%. Day 4, 4 trades 2 negitive 2 positive and one trade almost hit 300%. day 5, 2 trades 1 win 1 loss, lost -372.00, no big moves today.",
         "important_message_ids": []
     },
     {
