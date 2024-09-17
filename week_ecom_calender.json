@@ -1,22 +1,22 @@
 {
-    "week_timespan": "09-09-24 to 09-15-24",
+    "week_timespan": "09-16-24 to 09-22-24",
     "dates": {
-        "09-11-24": {
+        "09-17-24": {
             "07:30 AM": [
-                "Core Inflation Rate MoM",
-                "Core Inflation Rate YoY",
-                "Inflation Rate MoM",
-                "Inflation Rate YoY"
+                "Inflation Rate YoY",
+                "Retail Sales MoM"
             ]
         },
-        "09-12-24": {
+        "09-18-24": {
             "07:30 AM": [
-                "PPI MoM"
-            ]
-        },
-        "09-13-24": {
-            "09:00 AM": [
-                "Michigan Consumer Sentiment Prel"
+                "Building Permits Prel"
+            ],
+            "01:00 PM": [
+                "Fed Interest Rate Decision",
+                "FOMC Economic Projections"
+            ],
+            "01:30 PM": [
+                "Fed Press Conference"
             ]
         }
     }
