@@ -269,10 +269,10 @@
         "start_ammount": 85627.0,
         "end_ammount": 0,
         "total_made": 0,
-        "num_of_trades": 0,
+        "num_of_trades": 2,
         "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "Day1, no trades inbetween PDHL.",
+        "num_of_negitive_trades": 2,
+        "description": "Day1, no trades inbetween PDHL. day 2, 2 negitive trades, lost $-2,882. ",
         "important_message_ids": []
     },
     {
