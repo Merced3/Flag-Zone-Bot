@@ -267,12 +267,12 @@
         "week_number": 21,
         "week_start_end_date": "09/16/2024-09/20/2024",
         "start_ammount": 85627.0,
-        "end_ammount": 0,
+        "end_ammount": 82744.0,
         "total_made": 0,
-        "num_of_trades": 2,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 2,
-        "description": "Day1, no trades inbetween PDHL. day 2, 2 negitive trades, lost $-2,882. Day 3, no trades, inbetween PDHL casey lost money today.",
+        "num_of_trades": 4,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 3,
+        "description": "Day1, no trades inbetween PDHL. day 2, 2 negitive trades, lost $-2,882. Day 3, no trades, inbetween PDHL casey lost money today. day 4, 2 trades 1 neg 1 positive, lost 1$ today. ",
         "important_message_ids": []
     },
     {
