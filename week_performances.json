@@ -276,6 +276,18 @@
         "important_message_ids": []
     },
     {
+        "week_number": 22,
+        "week_start_end_date": "09/23/2024-09/27/2024",
+        "start_ammount": 84940.0,
+        "end_ammount": 0,
+        "total_made": 2124.0,
+        "num_of_trades": 2,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 2,
+        "description": "Day 2, made 2 trades both negitive, lost -$2,124 today.",
+        "important_message_ids": []
+    },
+    {
         "week_number": 0,
         "week_start_end_date": "00/00/2024-00/00/2024",
         "start_ammount": 0,
