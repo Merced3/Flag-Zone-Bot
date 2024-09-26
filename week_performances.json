@@ -284,7 +284,7 @@
         "num_of_trades": 6,
         "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 5,
-        "description": "Day 1, made 2 trades both negitive, lost -$2,124 today. Day 2, made 2 trades, 1 profitable, 1 negitive, lost -$337. day 3, 2 negitive trades, 1 didn't have a clean break from zone the other trade did but it all failed, lost -$1,935. ",
+        "description": "Day 1, made 2 trades both negitive, lost -$2,124 today. Day 2, made 2 trades, 1 profitable, 1 negitive, lost -$337. day 3, 2 negitive trades, 1 didn't have a clean break from zone the other trade did but it all failed, lost -$1,935. Day 4 no trades, inbetween PDHL.",
         "important_message_ids": [1288509457361276943]
     },
     {
