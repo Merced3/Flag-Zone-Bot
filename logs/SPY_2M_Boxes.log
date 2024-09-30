@@ -1,0 +1,5 @@
+15m) Start and End days: 2024-08-20, 2024-09-26
+{'PDHL_1': (546, 574.71, 568.08), 'PDHL_2': (499, 566.58, 565.17), 'PDHL_4': (338, 543.38, 542.68), 'PDHL_5': (331, 539.96, 539.44), 'PDHL_6': (266, 554.43, 552.74), 'PDHL_7': (83, 558.32, 557.29), 'resistance_1': (53, 563.18, 562.38), 'resistance_2': (0, 560.84, 560.1)}
+
+Take Profit Lines: {'TP_support_1': (628, 567.6), 'TP_support_2': (612, 568.1), 'TP_support_3': (472, 559.9), 'TP_resistance_1': (468, 563.11), 'TP_resistance_2': (431, 559.4), 'TP_resistance_3': (415, 555.36), 'TP_resistance_4': (340, 547.71), 'TP_support_4': (260, 549.46), 'TP_support_5': (260, 549.46), 'TP_PDHL_3': (234, 560.81), 'TP_resistance_5': (259, 551.6), 'TP_support_6': (259, 549.51), 'TP_resistance_6': (233, 564.2), 'TP_resistance_7': (233, 564.2), 'TP_resistance_8': (195, 563.68), 'TP_resistance_9': (156, 561.65), 'TP_support_7': (174, 555.04), 'TP_resistance_10': (104, 563.91), 'TP_support_8': (122, 559.05), 'TP_support_9': (77, 554.98), 'TP_resistance_11': (28, 562.11)}
+
