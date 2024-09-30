@@ -18,7 +18,8 @@ options.add_argument('--allow-insecure-localhost')
 
 async def get_economic_calendar_data(i_timespan, star_ammount, world_type):
     #Set 'driver_version' to whatever driver version you have on install
-    service = ChromeService(ChromeDriverManager(driver_version="127.0.6533.89").install())
+    # Initialize the WebDriver without specifying a version
+    service = ChromeService(ChromeDriverManager().install())  # Automatically install the correct version
     driver = webdriver.Chrome(service=service, options=options)
     # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
     driver.get("https://tradingeconomics.com/calendar")
@@ -234,4 +235,4 @@ async def main():
     await get_economic_calendar_data("week", 3, "america")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main()) 
