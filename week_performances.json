@@ -288,6 +288,18 @@
         "important_message_ids": [1288509457361276943]
     },
     {
+        "week_number": 23,
+        "week_start_end_date": "09/30/2024-10/04/2024",
+        "start_ammount": 80544.0,
+        "end_ammount": 0,
+        "total_made": 0,
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "Day 1, fixed a chrome driver version error, inbetween PDHL no trades.",
+        "important_message_ids": [1290309673282572372]
+    },
+    {
         "week_number": 0,
         "week_start_end_date": "00/00/2024-00/00/2024",
         "start_ammount": 0,

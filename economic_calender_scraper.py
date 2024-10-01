@@ -9,6 +9,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
+import subprocess
+
+chrome_version = subprocess.run(
+    ['chrome', '--version'], capture_output=True, text=True).stdout
+print(f"[economic_calender_scraper.py] Chrome version: {chrome_version}")
+
+driver_version = subprocess.run(
+    ['chromedriver', '--version'], capture_output=True, text=True).stdout
+print(f"[economic_calender_scraper.py] ChromeDriver version: {driver_version}")
 
 # Initialize the WebDriver with options to suppress SSL errors
 options = webdriver.ChromeOptions()

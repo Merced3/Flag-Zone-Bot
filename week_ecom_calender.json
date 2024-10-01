@@ -1,25 +1,29 @@
 {
-    "week_timespan": "09-23-24 to 09-29-24",
+    "week_timespan": "09-30-24 to 10-06-24",
     "dates": {
-        "09-26-24": {
-            "07:30 AM": [
-                "Durable Goods Orders MoM",
-                "GDP Growth Rate QoQ Final"
-            ],
-            "08:20 AM": [
-                "Fed Chair Powell Speech"
-            ]
-        },
-        "09-27-24": {
-            "07:30 AM": [
-                "Core PCE Price Index MoM",
-                "Personal Income MoM",
-                "Personal Spending MoM"
-            ]
-        },
         "09-30-24": {
-            "12:00 PM": [
+            "12:55 PM": [
                 "Fed Chair Powell Speech"
+            ]
+        },
+        "10-01-24": {
+            "09:00 AM": [
+                "ISM Manufacturing PMI",
+                "JOLTs Job Openings"
+            ]
+        },
+        "10-03-24": {
+            "09:00 AM": [
+                "ISM Services PMI"
+            ]
+        },
+        "10-04-24": {
+            "07:30 AM": [
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ],
+            "09:00 AM": [
+                "Ivey PMI s.a"
             ]
         }
     }
