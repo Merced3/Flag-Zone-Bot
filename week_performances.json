@@ -291,12 +291,12 @@
         "week_number": 23,
         "week_start_end_date": "09/30/2024-10/04/2024",
         "start_ammount": 80544.0,
-        "end_ammount": 0,
-        "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
+        "end_ammount": 81470.0,
+        "total_made": 926.0,
+        "num_of_trades": 1,
+        "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, fixed a chrome driver version error, inbetween PDHL no trades. Day 2, no trades inbetween PDHL. day 3, no trades, inbetween PDHL. day 4, no trades, inbetween PDHL. ",
+        "description": "Day 1, fixed a chrome driver version error, inbetween PDHL no trades. Day 2, no trades inbetween PDHL. day 3, no trades, inbetween PDHL. day 4, no trades, inbetween PDHL. Day 5, one trade, made 926$, i love how this week was nothing but consolidation and we had 1 oportunity to make money and one trade made more money that i did working 80hr this week.",
         "important_message_ids": [1290309673282572372]
     },
     {
