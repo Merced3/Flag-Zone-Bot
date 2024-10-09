@@ -1,29 +1,31 @@
 {
-    "week_timespan": "09-30-24 to 10-06-24",
+    "week_timespan": "10-07-24 to 10-13-24",
     "dates": {
-        "09-30-24": {
-            "12:55 PM": [
-                "Fed Chair Powell Speech"
-            ]
-        },
-        "10-01-24": {
-            "09:00 AM": [
-                "ISM Manufacturing PMI",
-                "JOLTs Job Openings"
-            ]
-        },
-        "10-03-24": {
-            "09:00 AM": [
-                "ISM Services PMI"
-            ]
-        },
-        "10-04-24": {
+        "10-08-24": {
             "07:30 AM": [
-                "Non Farm Payrolls",
-                "Unemployment Rate"
+                "Balance of Trade"
+            ]
+        },
+        "10-09-24": {
+            "01:00 PM": [
+                "FOMC Minutes"
+            ]
+        },
+        "10-10-24": {
+            "07:30 AM": [
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
+            ]
+        },
+        "10-11-24": {
+            "07:30 AM": [
+                "Unemployment Rate",
+                "PPI MoM"
             ],
             "09:00 AM": [
-                "Ivey PMI s.a"
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }
