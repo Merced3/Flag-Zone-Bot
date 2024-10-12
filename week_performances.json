@@ -303,12 +303,12 @@
         "week_number": 24,
         "week_start_end_date": "10/07/2024-10/11/2024",
         "start_ammount": 81470.0,
-        "end_ammount": 82645.0,
-        "total_made": 1175.0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 2,
-        "num_of_negitive_trades": 1,
-        "description": "Day 1, no trades, kept on going down through resistance zone meaning buffers, no trades alowed in buffers. day 2, 1 trade, made 726$. Day 3, 2 trades, one positive (+100% total win of 30%) one negitive (-20%), negitive trade was a incorrectly identified flag, made 449$ today. Day 4, no trades, inbetween PDHL.",
+        "end_ammount": 81899.0,
+        "total_made": 429.0,
+        "num_of_trades": 5,
+        "num_of_profitable_trades": 3,
+        "num_of_negitive_trades": 2,
+        "description": "Day 1, no trades, kept on going down through resistance zone meaning buffers, no trades alowed in buffers. day 2, 1 trade, made 726$. Day 3, 2 trades, one positive (+100% total win of 30%) one negitive (-20%), negitive trade was a incorrectly identified flag, made 449$ today. Day 4, no trades, inbetween PDHL. day 5, 2 trades one positive one negitive, lost -$746.",
         "important_message_ids": [1293658501138350252, 1293666311028736054, 1293778814270177311]
     },
     {
