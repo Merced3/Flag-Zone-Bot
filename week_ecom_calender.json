@@ -1,31 +1,19 @@
 {
-    "week_timespan": "10-07-24 to 10-13-24",
+    "week_timespan": "10-14-24 to 10-20-24",
     "dates": {
-        "10-08-24": {
+        "10-15-24": {
             "07:30 AM": [
-                "Balance of Trade"
-            ]
-        },
-        "10-09-24": {
-            "01:00 PM": [
-                "FOMC Minutes"
-            ]
-        },
-        "10-10-24": {
-            "07:30 AM": [
-                "Core Inflation Rate MoM",
-                "Core Inflation Rate YoY",
-                "Inflation Rate MoM",
                 "Inflation Rate YoY"
             ]
         },
-        "10-11-24": {
+        "10-17-24": {
             "07:30 AM": [
-                "Unemployment Rate",
-                "PPI MoM"
-            ],
-            "09:00 AM": [
-                "Michigan Consumer Sentiment Prel"
+                "Retail Sales MoM"
+            ]
+        },
+        "10-18-24": {
+            "07:30 AM": [
+                "Building Permits Prel"
             ]
         }
     }
