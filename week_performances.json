@@ -314,13 +314,13 @@
     {
         "week_number": 25,
         "week_start_end_date": "10/14/2024-10/18/2024",
-        "start_ammount": 0,
-        "end_ammount": 0,
-        "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
+        "start_ammount":81899.0,
+        "end_ammount": 83983.0,
+        "total_made": 2084.0,
+        "num_of_trades": 2,
+        "num_of_profitable_trades": 2,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, 2 trades one profitable and one negitive but but power and internet went out, first message ID will explain it. ",
+        "description": "Day 1, 2 trades one profitable and one negitive but but power and internet went out, first message ID will explain it. Day 2, amazing performance, 2 profitable trades one hit +200% profit and the other hit 50% profit.",
         "important_message_ids": [1295739609828819056]
     },
     {
