@@ -1,19 +1,15 @@
 {
-    "week_timespan": "10-14-24 to 10-20-24",
+    "week_timespan": "10-21-24 to 10-27-24",
     "dates": {
-        "10-15-24": {
-            "07:30 AM": [
-                "Inflation Rate YoY"
+        "10-23-24": {
+            "08:45 AM": [
+                "BoC Interest Rate Decision",
+                "BoC Monetary Policy Report"
             ]
         },
-        "10-17-24": {
+        "10-25-24": {
             "07:30 AM": [
-                "Retail Sales MoM"
-            ]
-        },
-        "10-18-24": {
-            "07:30 AM": [
-                "Building Permits Prel"
+                "Durable Goods Orders MoM"
             ]
         }
     }
