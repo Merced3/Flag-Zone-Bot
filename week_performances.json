@@ -332,7 +332,7 @@
         "num_of_trades": 3,
         "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 2,
-        "description": "Day 1, 2 trades both negitive, lost -$2490. Day 2, stayed between PDHL. Day 3, one trade made 934$.",
+        "description": "Day 1, 2 trades both negitive, lost -$2490. Day 2, stayed between PDHL. Day 3, one trade made 934$. day 4 started late, no trades inbetween PDHL.",
         "important_message_ids": [1298066478775406714]
     },
     {
