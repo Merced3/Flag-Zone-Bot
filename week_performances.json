@@ -336,6 +336,18 @@
         "important_message_ids": [1298066478775406714]
     },
     {
+        "week_number": 27,
+        "week_start_end_date": "10/28/2024-11/01/2024",
+        "start_ammount": 83281.0,
+        "end_ammount": 83281.0,
+        "total_made": 0,
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "Day 1, no trades, inbetween PDHL.",
+        "important_message_ids": []
+    },
+    {
         "week_number": 0,
         "week_start_end_date": "00/00/2024-00/00/2024",
         "start_ammount": 0,

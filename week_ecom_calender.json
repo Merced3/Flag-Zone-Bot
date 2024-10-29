@@ -1,15 +1,30 @@
 {
-    "week_timespan": "10-21-24 to 10-27-24",
+    "week_timespan": "10-28-24 to 11-03-24",
     "dates": {
-        "10-23-24": {
-            "08:45 AM": [
-                "BoC Interest Rate Decision",
-                "BoC Monetary Policy Report"
+        "10-29-24": {
+            "09:00 AM": [
+                "JOLTs Job Openings"
             ]
         },
-        "10-25-24": {
+        "10-30-24": {
             "07:30 AM": [
-                "Durable Goods Orders MoM"
+                "GDP Growth Rate QoQ Adv"
+            ]
+        },
+        "10-31-24": {
+            "07:30 AM": [
+                "Core PCE Price Index MoM",
+                "Personal Income MoM",
+                "Personal Spending MoM"
+            ]
+        },
+        "11-01-24": {
+            "07:30 AM": [
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ],
+            "09:00 AM": [
+                "ISM Manufacturing PMI"
             ]
         }
     }
