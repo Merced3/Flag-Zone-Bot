@@ -339,12 +339,12 @@
         "week_number": 27,
         "week_start_end_date": "10/28/2024-11/01/2024",
         "start_ammount": 83281.0,
-        "end_ammount": 83281.0,
-        "total_made": 0,
-        "num_of_trades": 0,
+        "end_ammount": 82371.0,
+        "total_made": -910.0,
+        "num_of_trades": 1,
         "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "Day 1, no trades, inbetween PDHL. Day 2, no trades.",
+        "num_of_negitive_trades": 1,
+        "description": "Day 1, no trades, inbetween PDHL. Day 2, no trades.Day 3, went above PDHL, made a flag then failed, one trade lost -910$..",
         "important_message_ids": []
     },
     {
