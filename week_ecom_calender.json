@@ -1,30 +1,33 @@
 {
-    "week_timespan": "10-28-24 to 11-03-24",
+    "week_timespan": "11-04-24 to 11-10-24",
     "dates": {
-        "10-29-24": {
-            "09:00 AM": [
-                "JOLTs Job Openings"
+        "11-05-24": {
+            "08:30 AM": [
+                "Balance of Trade"
+            ],
+            "10:00 AM": [
+                "ISM Services PMI"
             ]
         },
-        "10-30-24": {
-            "07:30 AM": [
-                "GDP Growth Rate QoQ Adv"
+        "11-06-24": {
+            "10:00 AM": [
+                "Ivey PMI s.a"
             ]
         },
-        "10-31-24": {
-            "07:30 AM": [
-                "Core PCE Price Index MoM",
-                "Personal Income MoM",
-                "Personal Spending MoM"
+        "11-07-24": {
+            "02:00 PM": [
+                "Fed Interest Rate Decision"
+            ],
+            "02:30 PM": [
+                "Fed Press Conference"
             ]
         },
-        "11-01-24": {
-            "07:30 AM": [
-                "Non Farm Payrolls",
+        "11-08-24": {
+            "08:30 AM": [
                 "Unemployment Rate"
             ],
-            "09:00 AM": [
-                "ISM Manufacturing PMI"
+            "10:00 AM": [
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }
