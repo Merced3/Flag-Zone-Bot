@@ -18,6 +18,7 @@ import time
 from datetime import datetime, timedelta
 import os
 import math
+import re
 from pathlib import Path
 import csv
 
@@ -97,11 +98,6 @@ async def ws_connect(queue, symbol):
             print(f"[INTERNET CONNECTION] Failed to connect at {datetime.now().isoformat()}, retrying...")
             await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
         
-        except asyncio.TimeoutError:
-            print("[INTERNET CONNECTION] Timeout Error, connection possibly too slow...")
-            await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
-
-
         except Exception as e:
             await error_log_and_discord_message(e, "data_acquisition", "ws_connect", "An error occurred. Re-establishing connection...")
             await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
@@ -166,7 +162,7 @@ async def get_candle_data(api_key, symbol, interval, timescale, start_date, end_
     
         print(f"response: {response}\n") # i want to print conditions somehow
 
-# Check if 'results' key is in the data
+        # Check if 'results' key is in the data
         if 'results' in data:
             #print("Results is true!!!")
             df = pd.DataFrame(data['results'])
@@ -269,6 +265,157 @@ def get_current_candle_index(log_file_path = Path(__file__).resolve().parent / '
     # The index of the last candle is the length of the lines list minus 1
     return len(lines) - 1
 
+def candle_zone_handler(candle, type_of_candle, boxes, first_candle = False):
+    if boxes:
+        for box_name, (x_pos, high_low_of_day, buffer) in boxes.items(): 
+            # Determine zone type
+            zone_type = "support" if "support" in box_name else "resistance" if "resistance" in box_name else "PDHL"
+            PDH_or_PDL = high_low_of_day  # PDH for resistance, PDL for support
+            box_top = PDH_or_PDL if zone_type in ["resistance", "PDHL"] else buffer  # PDH or Buffer as top for resistance/PDHL
+            box_bottom = buffer if zone_type in ["resistance", "PDHL"] else PDH_or_PDL  # Buffer as bottom for resistance/PDHL
+            check_is_in_another_zone = True
+            action = None # Initialize action to None or any default value
+            # Check if the candle shoots through the zone
+            if candle['open'] < box_bottom:
+                if candle['close'] > box_top:
+                    # Candle shoots up through the zone
+                    action = "[START 1]" # CALLS
+                    candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
+                    check_is_in_another_zone = True
+                elif box_bottom < candle['close'] < box_top:
+                    # Went up, closed Inside of box
+                    action = '[END 2]'
+            elif candle['open'] > box_top:
+                if candle['close'] < box_bottom:
+                    # Candle shoots down through the zone
+                    action = "[START 3]" # PUTS
+                    candle_type = "PDL" if zone_type in ["support", "PDHL"] else "Buffer" #buffer if resistance
+                    check_is_in_another_zone = True
+                elif box_top > candle['close'] > box_bottom:
+                    #went down, closed Inside of box
+                    action = "[END 4]"
+            elif candle['close'] > box_top and candle['open'] <= box_top:
+                # Candle closes above the zone, potentially starting an upward trend
+                action = "[START 5]" # CALLS
+                candle_type = "PDH" if zone_type in ["resistance", "PDHL"] else "Buffer" #buffer is support
+            elif candle['close'] < box_bottom and candle['open'] >= box_bottom:
+                # Candle closes below the zone, potentially starting a downward trend
+                action = "[START 6]" # PUTS
+                candle_type = "PDL" if zone_type in ["support", "PDHL"] else "Buffer" #buffer if resistance
+                            
+            
+            # I only want this to run on the first candle
+            if 'PDHL_1' in box_name and first_candle: 
+                # Above zone
+                if candle['open'] > box_top and candle['close'] > box_top:
+                    # whole candle is above zone
+                    candle_type = "PDH"
+                    action = "[START 8]"
+                elif candle['open'] < box_top and candle['close'] > box_top:
+                    # candle is coming out above zone
+                    candle_type = "PDH"
+                    action = "[START 9]"
+                
+                # Below zone
+                if candle['open'] < box_bottom and candle['close'] < box_bottom:
+                    # whole candle is below zone
+                    candle_type = "PDL"
+                    action = "[START 10]"
+                if candle['open'] > box_bottom and candle['close'] < box_bottom:
+                    # candle is coming out below zone
+                    candle_type = "PDL"
+                    action = "[START 11]"
+                check_is_in_another_zone = True
+
+            if check_is_in_another_zone:
+                # Additional checks to refine action based on closing inside any other zone
+                for other_box_name, (_, other_high_low_of_day, other_buffer) in boxes.items():
+                    if other_box_name != box_name:  # Ensure we're not checking the same zone
+                        other_box_top = other_high_low_of_day if "resistance" in other_box_name or "PDHL" in other_box_name else other_buffer
+                        other_box_bottom = other_buffer if "resistance" in other_box_name or "PDHL" in other_box_name else other_high_low_of_day
+                                        
+                        # Check if the candle closed inside this other zone
+                        if other_box_bottom <= candle['close'] <= other_box_top:
+                            # Modify action to [END #] since we closed inside of another zone
+                            action = "[END 7]"
+                            #print(f"    [MODIFIED ACTION] Candle closed inside another zone ({other_box_name}), changing action to {action}.")
+                            break  # Exit the loop since we've found a zone that modifies the action
+            
+            if action:
+                what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
+                #havent_cleared = True if what_type_of_candle is not None else False
+                print(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}")
+                return what_type_of_candle 
+    else:
+        print("    [CZH] No Boxes were found...")        
+    if type_of_candle is not None:
+        return type_of_candle
+
+def candle_ema_handler(candle, option_1_or_2 = 2):
+    # option one, we we have to be above or below all emas to be assigning a candle that it is 'bullish' or 'bearish'
+    # option two, we use the 200 ema as the decider, when were above the 200 were bullish and below were bearish
+
+    # Initialize the type of the candle as None
+    type_candle = None
+    
+    # Load EMA values
+    EMAs = load_json_df('EMAs.json')
+    if EMAs.empty:
+        print("    [CEH] ERROR: 'EMAs.json' data is unavailable.")
+
+    last_EMA = EMAs.iloc[-1]
+    last_EMA_dict = last_EMA.to_dict()
+    #print(f"    [CEH] Last EMA Values: {last_EMA_dict}, Price: {candle['close']}")
+
+    # Extract EMA values
+    ema_13 = last_EMA_dict.get('13')
+    ema_48 = last_EMA_dict.get('48')
+    ema_200 = last_EMA_dict.get('200')
+    
+    if ema_13 is None or ema_48 is None or ema_200 is None:
+        print("        [candle_ema_handler] ERROR: Missing EMA data.")
+        return type_candle
+    
+    # Get the current/closing price of the candle
+    current_price = candle['close']
+
+    if option_1_or_2 == 1:
+        # Determine the highest and lowest EMA values
+        top_ema = max(ema_13, ema_48, ema_200)
+        btm_ema = min(ema_13, ema_48, ema_200)
+
+        # Determine the type of candle based on its position relative to the EMAs
+        if current_price > top_ema:
+            type_candle = "bullish"  # Candle is above all EMAs
+        elif current_price < btm_ema:
+            type_candle = "bearish"  # Candle is below all EMAs
+        else:
+            type_candle = None  # Candle is between the EMAs (neutral)
+    else: # option 2
+        #print(f"    [CEH] 200ema: {ema_200}; close price: {current_price}")
+        if current_price > ema_200:
+            type_candle = "bullish"
+        elif current_price < ema_200:
+            type_candle = "bearish"
+        else:
+            type_candle = None
+
+    return type_candle
+
+def candle_close_in_zone(candle, boxes):
+    for box_name, (x_pos, high_low_of_day, buffer) in boxes.items(): 
+        # Determine the top and bottom of the box
+        box_top = max(high_low_of_day, buffer)
+        box_btm = min(high_low_of_day, buffer)
+
+        # Check if the candle's close price is within the box range
+        if box_btm < candle['close'] < box_top:
+            # Candle closed inside of a zone, so return True
+            return True
+    
+    # Candle did not close inside any of the boxes
+    return False
+
 async def get_current_price(symbol: str) -> float:
     url = "wss://ws.tradier.com/v1/markets/events"  # Replace with your actual WebSocket URL
     try:
@@ -304,12 +451,12 @@ async def get_current_price(symbol: str) -> float:
 async def add_markers(event_type, x=None, y=None, percentage=None):
     
     log_file_path = Path(__file__).resolve().parent / 'logs/SPY_2M.log'
-    if x is not None and y is not None:
-        x_coord = x
-        y_coord = y
-    else:
-        x_coord = get_current_candle_index(log_file_path)
-        y_coord = await get_current_price(SYMBOL)
+    #if x is not None and y is not None:
+        #x_coord = x
+        #y_coord = y
+    #else:
+    x_coord = get_current_candle_index(log_file_path) if x is None else x
+    y_coord = await get_current_price(SYMBOL) if y is None else y
     print(f"    [MARKER] {x_coord}, {y_coord}, {event_type}")
 
     x_coord += 1
@@ -317,7 +464,10 @@ async def add_markers(event_type, x=None, y=None, percentage=None):
     marker_styles = {
         'buy': {'marker': '^', 'color': 'blue'},
         'trim': {'marker': 'o', 'color': 'red'},
-        'sell': {'marker': 'v', 'color': 'red'}
+        'sell': {'marker': 'v', 'color': 'red'},
+        'sim_trim_lwst': {'marker': 'o', 'color': 'orange'},
+        'sim_trim_avg': {'marker': 'o', 'color': 'yellow'},
+        'sim_trim_win': {'marker': 'o', 'color': 'green'}
     }
     
     marker = {
@@ -438,28 +588,27 @@ async def get_certain_candle_data(api_key, symbol, interval, timescale, start_da
 
 async def get_candle_data_and_merge(aftermarket_file, premarket_file, candle_interval, candle_timescale, am, pm, merged_file_name):
     PD_AM, CD_PM = None, None
-    #SPY_2_minute_AFTERMARKET.csv
+    
+    # Load Aftermarket and Premarket Data
     start_date, end_date = get_dates(1, False)
-    print(f"\n[AM] Start and End: {start_date}, {end_date}")
     PD_AM = await get_certain_candle_data(cred.POLYGON_API_KEY, SYMBOL, candle_interval, candle_timescale, start_date, end_date, am)
-    #SPY_2_minute_PREMARKET.csv
+    
     start_date, end_date = get_dates(1, True)
-    print(f"\n[PM] Start and End days: {start_date}, {end_date}")
     CD_PM = await get_certain_candle_data(cred.POLYGON_API_KEY, SYMBOL, candle_interval, candle_timescale, start_date, end_date, pm)
-    #more code...
+    
+    # Combine data if both are present
     if PD_AM is not None and CD_PM is not None:
-        # Merge dataframes
         merged_df = pd.concat([PD_AM, CD_PM], ignore_index=True)
+        
         # Calculate EMAs and save to CSV
         for ema_config in EMA:
             window, color = ema_config
             ema_column_name = f"EMA_{window}"
             merged_df[ema_column_name] = merged_df['close'].ewm(span=window, adjust=False).mean()
+        
         merged_df.to_csv(merged_file_name, index=False)
-        print(f"\nData saved: {merged_file_name}")
-        for window, _ in EMA:
-            ema_column_name = f"EMA_{window}"
-            print(f"EMA {window}: {merged_df[ema_column_name].iloc[-1]}")
+        print(f"\nData saved with initial EMA calculation: {merged_file_name}")
+        
     else:
         print("Aftermarket or premarket data not available. EMA calculation skipped.")
 
@@ -507,7 +656,7 @@ def update_ema_json(json_path, new_ema_values):
     with open(json_path, 'w') as file:
         json.dump(ema_data, file, indent=4)
 
-    update_2_min()
+    update_2_min() # updating visual chart
 
 #the functions below were a test to see if i could get the realtime ema data from polygon
 async def get_ema_data(timespan, adjusted, window, series_type, order):
@@ -561,7 +710,7 @@ def load_json_df(file_path):
         data = json.load(file)
     return pd.DataFrame(data)
 
-async def above_below_ema(state, threshold=None):
+async def above_below_ema(state, threshold=None, price=None):
     """
     Determines if the current price is above or below the 13 EMA and by what margin.
 
@@ -575,7 +724,8 @@ async def above_below_ema(state, threshold=None):
     """
 
     # Get current price
-    price = await get_current_price(SYMBOL)
+    if price is None:
+        price = await get_current_price(SYMBOL)
 
     # Load EMA values
     EMAs = load_json_df('EMAs.json')
@@ -585,7 +735,7 @@ async def above_below_ema(state, threshold=None):
     
     last_EMA = EMAs.iloc[-1]
     last_EMA_dict = last_EMA.to_dict()
-    print(f"        [EMA] Last EMA Values: {last_EMA_dict}, Price: {price}")
+    #print(f"        [EMA] Last EMA Values: {last_EMA_dict}, Price: {price}")
     
     # Ensure price is correctly positioned relative to all EMAs
     for ema, ema_value in last_EMA_dict.items():
@@ -601,6 +751,25 @@ async def above_below_ema(state, threshold=None):
     within_threshold = (distance <= threshold) if threshold is not None else True
 
     return True, within_threshold, distance  # Return True for correct EMA positioning and the threshold check result
+
+async def start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle):
+    # Set new starting point
+    current_hl = candle['high'] if candle_type == "bull" else candle['low']
+    important_candle_value = current_oc_high if candle_type == "bull" else current_oc_low
+    start_point = (candle['candle_index'], important_candle_value, current_hl)
+    print(f"    [IDF] {'Highest' if candle_type=='bull' else 'Lowest'} Point: {start_point}")
+    await reset_flag_internal_values(candle, what_type_of_candle)
+    return start_point, [], None, None, 0
+
+async def reset_flag_internal_values(candle, what_type_of_candle):
+    clear_priority_candles(what_type_of_candle) #resetting priority candle values because previous candles before the highest one serves no purpose
+    await record_priority_candle(candle, what_type_of_candle)
+    return [], None, None
+
+def restart_flag_data(what_type_of_candle):
+    clear_priority_candles(what_type_of_candle)
+    restart_state_json(True)
+    resolve_flags()  
 
 def resolve_flags(json_file='line_data.json'):
     
@@ -649,7 +818,7 @@ def determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_
         reasons.append("Trade time conflicts with economic events")
     return "; ".join(reasons) if reasons else "No specific reason"
 
-def restart_state_json(reset_all, state_file_path="state.json", reset_side=None):
+def restart_state_json(reset_all, state_file_path="state.json"):
     """
     Initializes or resets the state.json file to default values or specific sections.
 
@@ -659,44 +828,18 @@ def restart_state_json(reset_all, state_file_path="state.json", reset_side=None)
     reset_side (str): which side to reset, "bear" or "bull".
     """
     initial_state = {
-        'current_high': None,
-        'highest_point': None,
-        'lower_highs': [],
-        'current_low': None,
-        'lowest_point': None,
-        'higher_lows': [],
+        'flag_counter': 0,
+        'start_point': None,
         'slope': None,
         'intercept': None,
-        'previous_candles': []
-    }
-    if reset_all:
-        with open(state_file_path, 'w') as file:
-            json.dump(initial_state, file, indent=4)
-        print("    [RESET] State JSON file has been reset to initial state.")
-    elif not reset_all and reset_side is not None:
-        # Load existing state from file
-        try:
-            with open(state_file_path, 'r') as file:
-                state = json.load(file)
-        except (FileNotFoundError, json.JSONDecodeError):
-            print("    [ERROR] State file not found or is corrupt. Resetting to initial state.")
-            state = initial_state
-
-        # Apply selective resets based on the specified side
-        if reset_side == "bull":
-            state['current_high'] = None
-            state['highest_point'] = None
-            state['lower_highs'] = []
-        elif reset_side == "bear":
-            state['current_low'] = None
-            state['lowest_point'] = None
-            state['higher_lows'] = []
+        'candle_points': []
         
-        # Save the updated state back to the file
-        with open(state_file_path, 'w') as file:
-            json.dump(state, file, indent=4)
-        print(f"    [RESET] State JSON file has been reset for {reset_side} side.")
-
+    }
+    
+    with open(state_file_path, 'w') as file:
+        json.dump(initial_state, file, indent=4)
+    print("    [RESET] State JSON file has been reset to initial state.")
+    
 def initialize_ema_json(json_path):
     """Ensure the EMA JSON file exists and is valid; initialize if not."""
     if not os.path.exists(json_path) or os.stat(json_path).st_size == 0:
@@ -708,12 +851,10 @@ def initialize_ema_json(json_path):
     except json.JSONDecodeError:
         return []
 
-def clear_priority_candles(havent_cleared, type_candle, json_file='priority_candles.json'):
-    if havent_cleared:
-        with open(json_file, 'w') as file:
-            json.dump([], file, indent=4)
-        print(f"    [RESET] {json_file}; what_type_of_candle = {type_candle}")
-        havent_cleared = False
+def clear_priority_candles(type_candle, json_file='priority_candles.json'):
+    with open(json_file, 'w') as file:
+        json.dump([], file, indent=4)
+    print(f"    [RESET] {json_file}; what_type_of_candle = {type_candle}")
 
 async def record_priority_candle(candle, type_candles, json_file='priority_candles.json'):
     # Load existing data or initialize an empty list
@@ -723,8 +864,9 @@ async def record_priority_candle(candle, type_candles, json_file='priority_candl
         # Check if 'type' of the last candle exists and does not equal 'type_candles'
         if candles_data and candles_data[-1]['type'] != type_candles:
             # If the types don't match, clear the priority candles
-            clear_priority_candles(True, type_candles, json_file)
+            clear_priority_candles(type_candles, json_file)
             restart_state_json(True)
+            resolve_flags()
             candles_data = []  # Reset candles_data to be an empty list after clearing
     except (FileNotFoundError, json.JSONDecodeError):
         candles_data = []
@@ -758,15 +900,30 @@ async def read_ema_json(position):
         return None
     
 def get_latest_ema_values(ema_type):
-    try:
-        with open("EMAs.json", "r") as file:
-            emas = json.load(file)
-            latest_ema = emas[-1][ema_type]  # 'ema_type' is a string like "13", "48", or "200"
-            index_ema = emas[-1]['x']
+    # ema_type must be a string, Ex: "13" or "48", "200" ect...
+    ema_type = str(ema_type)
+    filepath = "EMAs.json"
 
-            return latest_ema, index_ema
-    except (FileNotFoundError, KeyError) as e:
-        print(f"EMA error: {e}")
+    # Check if the file is empty before reading
+    if os.stat(filepath).st_size == 0:
+        print(f"    [GLEV] EMAs.json is empty.")
+        return None, None
+
+    try:
+        # Read the EMA data from the JSON file
+        with open(filepath, "r") as file:
+            emas = json.load(file)
+
+        if not emas:  # Check if the file is empty or contains no data
+            print("    [GLEV] EMAs.json is empty or contains no data.")
+            return None, None
+        latest_ema = emas[-1][ema_type]
+        #print(f"Latest emas: {latest_ema}")
+        index_ema = emas[-1]['x']
+
+        return latest_ema, index_ema
+    except (FileNotFoundError, KeyError, json.JSONDecodeError) as e:
+        print(f"    [GLEV] EMA error: {e}")
         return None, None
 
 def is_ema_broke(ema_type, symbol, timeframe, cp):
@@ -807,10 +964,7 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
     
     return False
 
-#def respecting_ema_num():
-    # Go one by one, get the most recent candle then the same ema in that position.
-
-def read_last_n_lines(file_path, n): #code from a previous ema tradegy, thought it may help. pls edit if need be.
+def read_last_n_lines(file_path, n):
     # Ensure the logs directory exists
     if not os.path.exists(LOGS_DIR):
         os.makedirs(LOGS_DIR)
@@ -881,7 +1035,7 @@ def update_order_details(filepath, unique_order_id, **kwargs):
     for index, row in df.iterrows():
         # Normalize the row's timestamp for comparison, ensuring AM/PM is preserved
         row_time_formatted = row['time_entered']
-        #print(f"        [UOD 1] Checking row at index {index}: {row_time_formatted}")
+        print(f"        [UOD 1] Checking row at index {index}: {row_time_formatted}")
         
         if (row['ticker_symbol'] == symbol and 
             row['strike_price'] == float(strike_price) and 
@@ -922,21 +1076,25 @@ def is_angle_valid(slope, config, bearish=False):
     Parameters:
     slope (float): The slope of the line.
     config (dict): Configuration dictionary containing angle criteria.
+    bearish (bool): Specifies if the angle check is for a bearish flag. Default is False (bullish).
 
     Returns:
-    bool: True if the angle is within the valid range, False otherwise.
+    tuple: (bool, float) - A boolean indicating if the angle is valid, and the calculated angle in degrees.
     """
+    # Calculate the angle in degrees from the slope
     angle = math.atan(slope) * (180 / math.pi)
     
-    if bearish:
-        min_angle = config["FLAGPOLE_CRITERIA"]["BEAR_MIN_ANGLE"]
-        max_angle = config["FLAGPOLE_CRITERIA"]["BEAR_MAX_ANGLE"]
-    else:
-        min_angle = config["FLAGPOLE_CRITERIA"]["BULL_MIN_ANGLE"]
-        max_angle = config["FLAGPOLE_CRITERIA"]["BULL_MAX_ANGLE"]
+    # Extract min and max angles from config
+    min_angle = config["FLAGPOLE_CRITERIA"]["MIN_ANGLE"]
+    max_angle = config["FLAGPOLE_CRITERIA"]["MAX_ANGLE"]
 
-    print(f"                [IAV Slope Angle] {angle} degrees for {'Bear' if bearish else 'Bull'} flag")
-    return min_angle <= angle <= max_angle
+    # Adjust the angle check based on bullish or bearish criteria
+    if bearish:
+        is_valid = max_angle <= angle <= min_angle  # Bearish has positive angles (upward)
+    else:
+        is_valid = -min_angle <= angle <= -max_angle  # Bullish has negative angles (downward)
+
+    return is_valid, angle
 
 def check_valid_points(line_name):
     line_data_path = Path('line_data.json')
@@ -963,42 +1121,23 @@ def check_valid_points(line_name):
                     return point_1_valid, point_2_valid, None
     return False, False, None
 
-def update_state(state_file_path, current_high, highest_point, lower_highs, current_low, lowest_point, higher_lows, slope, intercept, candle):
+def update_state(state_file_path, flag_counter, start_point, candle_points, slope, intercept):
     with open(state_file_path, 'r') as file:
         state = json.load(file)
 
-    state['current_high'] = current_high
-    state['highest_point'] = highest_point
-
-    # Create a new list for lower_highs based on the condition
-    new_lower_highs = [tuple(lh) for lh in lower_highs if lh[0] > highest_point[0]]
-    # Update lower_highs if there are new values, otherwise empty the list
-    if new_lower_highs:
-        unique_new_lower_highs = set(new_lower_highs)
-        state['lower_highs'] = list(unique_new_lower_highs)
-    else:
-        state['lower_highs'] = []
-        state['previous_candles'] = []
-
-    state['current_low'] = current_low
-    state['lowest_point'] = lowest_point
-
-    # Create a new list for higher_lows based on the condition
-    new_higher_lows = [tuple(hl) for hl in higher_lows if hl[0] > lowest_point[0]]
-    # Update higher_lows if there are new values, otherwise empty the list
-    if new_higher_lows:
-        unique_new_higher_lows = set(new_higher_lows)
-        state['higher_lows'] = list(unique_new_higher_lows)
-    else:
-        state['higher_lows'] = []
-        state['previous_candles'] = []
-
+    state['flag_counter'] = flag_counter
+    state['start_point'] = start_point
     state['slope'] = slope
     state['intercept'] = intercept
 
-    # Add the current candle to previous_candles, avoiding duplicates
-    if candle['candle_index'] not in [c['candle_index'] for c in state['previous_candles']]:
-        state['previous_candles'].append(candle)
+    # Create a new list for higher_lows based on the condition
+    new_candle_points = [tuple(cp) for cp in candle_points if cp[0] > start_point[0]]
+    # Update higher_lows if there are new values, otherwise empty the list
+    if new_candle_points:
+        unique_new_candle_points = set(new_candle_points)
+        state['candle_points'] = list(unique_new_candle_points)
+    else:
+        state['candle_points'] = []
 
     with open(state_file_path, 'w') as file:
         json.dump(state, file, indent=4)
@@ -1038,3 +1177,44 @@ def empty_log(filename):
 
     print(f"[CLEARED]'{filename}.log' has been emptied.")
 
+def get_test_data_and_allocate(folder_name):
+    # Define paths to the test data directory and the target files
+    test_data_dir = Path(LOGS_DIR) / 'test_data' / folder_name
+    boxes_tpls_path = test_data_dir / 'Boxes_tpls.log'
+    ema_source_path = test_data_dir / 'EMAs.json'
+    candle_source_path = test_data_dir / 'SPY_2M.log'
+
+    # Define paths for target files to clear and populate
+    all_emas_path = Path(LOGS_DIR) / 'all_EMAs.json'
+    all_candles_path = Path(LOGS_DIR) / 'all_candles.log'
+
+    # Clear the contents of 'all_EMAs.json' and 'all_candles.log' to prevent mixing old data with new
+    all_emas_path.write_text('[]')
+    all_candles_path.write_text('')
+
+    # Read and parse 'Boxes_tpls.log' to extract zones and TPLs
+    with open(boxes_tpls_path, 'r') as boxes_tpls_file:
+        lines = boxes_tpls_file.readlines()
+        # Assume zones are always on line 2 and TPLs are on line 4
+        zones = eval(lines[1].strip())  # Convert string representation of dict to an actual dict
+        
+        # Extract dictionary from TPL lines using regex
+        tpl_lines = None
+        if len(lines) > 3 and lines[3].strip() != '{}':
+            match = re.search(r'\{.*\}', lines[3].strip())
+            if match:
+                tpl_lines = eval(match.group(0))  # Safely extract and evaluate only the dictionary part
+
+    # Copy data from 'EMAs.json' in the folder to 'all_EMAs.json'
+    with open(ema_source_path, 'r') as ema_source_file:
+        ema_data = ema_source_file.read()
+        with open(all_emas_path, 'w') as all_emas_file:
+            all_emas_file.write(ema_data)
+
+    # Copy data from 'SPY_2M.log' in the folder to 'all_candles.log'
+    with open(candle_source_path, 'r') as candle_source_file:
+        candle_data = candle_source_file.read()
+        with open(all_candles_path, 'w') as all_candles_file:
+            all_candles_file.write(candle_data)
+
+    return zones, tpl_lines
