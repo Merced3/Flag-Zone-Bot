@@ -8,7 +8,7 @@ async def error_log_and_discord_message(e, script_name, func_name, custom_messag
     error_traceback = traceback.format_exc()
     current_time = datetime.now().isoformat()
 
-    #from print_discord_messages import print_discord 
+    from print_discord_messages import print_discord 
 
     if "()" in func_name:
         func_name = func_name.replace("()", "")
@@ -40,5 +40,5 @@ async def error_log_and_discord_message(e, script_name, func_name, custom_messag
         f"Traceback:\n{error_traceback}"
     )
 
-    #await print_discord(discord_error_message)
+    await print_discord(discord_error_message)
     print(detailed_error_message)

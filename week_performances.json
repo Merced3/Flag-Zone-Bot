@@ -363,13 +363,13 @@
         "week_number": 29,
         "week_start_end_date": "11/11/2024-11/15/2024",
         "start_ammount": 87092.0,
-        "end_ammount": 0,
+        "end_ammount": 87092.0,
         "total_made": 0,
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "",
-        "important_message_ids": []
+        "description": "Day 1, alot of errors fixed, no trades, tried to break PDH but failed.",
+        "important_message_ids": [1305537787428081756]
     },
     {
         "week_number": 0,

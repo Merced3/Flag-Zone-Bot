@@ -1,11 +1,7 @@
 {
-    "current_high": null,
-    "highest_point": null,
-    "lower_highs": [],
-    "current_low": null,
-    "lowest_point": null,
-    "higher_lows": [],
+    "flag_counter": 0,
+    "start_point": null,
     "slope": null,
     "intercept": null,
-    "previous_candles": []
+    "candle_points": []
 }

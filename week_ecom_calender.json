@@ -1,33 +1,25 @@
 {
-    "week_timespan": "11-04-24 to 11-10-24",
+    "week_timespan": "11-11-24 to 11-17-24",
     "dates": {
-        "11-05-24": {
+        "11-13-24": {
             "08:30 AM": [
-                "Balance of Trade"
-            ],
-            "10:00 AM": [
-                "ISM Services PMI"
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
             ]
         },
-        "11-06-24": {
-            "10:00 AM": [
-                "Ivey PMI s.a"
-            ]
-        },
-        "11-07-24": {
-            "02:00 PM": [
-                "Fed Interest Rate Decision"
-            ],
-            "02:30 PM": [
-                "Fed Press Conference"
-            ]
-        },
-        "11-08-24": {
+        "11-14-24": {
             "08:30 AM": [
-                "Unemployment Rate"
+                "PPI MoM"
             ],
-            "10:00 AM": [
-                "Michigan Consumer Sentiment Prel"
+            "03:00 PM": [
+                "Fed Chair Powell Speech"
+            ]
+        },
+        "11-15-24": {
+            "08:30 AM": [
+                "Retail Sales MoM"
             ]
         }
     }

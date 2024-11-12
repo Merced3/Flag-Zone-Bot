@@ -8,7 +8,7 @@ from buy_option import buy_option_cp
 from economic_calender_scraper import check_order_time_to_event_time
 from order_handler import get_profit_loss_orders_list, sell_rest_of_active_order
 from error_handler import error_log_and_discord_message
-from data_acquisition import get_current_candle_index, calculate_save_EMAs, get_candle_data_and_merge, above_below_ema, load_json_df, read_last_n_lines, load_message_ids, check_order_type_json, add_candle_type_to_json, determine_order_cancel_reason, initialize_ema_json, restart_state_json, record_priority_candle, clear_priority_candles, update_state, check_valid_points, is_angle_valid, resolve_flags, count_flags_in_json, log_order_details, candle_zone_handler, candle_ema_handler, candle_close_in_zone, start_new_flag_values, restart_flag_data
+from data_acquisition import get_current_candle_index, calculate_save_EMAs, get_candle_data_and_merge, above_below_ema, load_json_df, read_last_n_lines, load_message_ids, check_order_type_json, add_candle_type_to_json, determine_order_cancel_reason, initialize_ema_json, restart_state_json, record_priority_candle, clear_priority_candles, update_state, check_valid_points, is_angle_valid, resolve_flags, count_flags_in_json, log_order_details, candle_zone_handler, candle_ema_handler, candle_close_in_zone, start_new_flag_values, restart_flag_data, reset_json
 from pathlib import Path
 import pytz
 import cred
@@ -93,7 +93,7 @@ async def execute_trading_strategy(zones):
     print(f"    [ETS INFO] what_type_of_candle = {what_type_of_candle}\n\n")
 
     last_processed_candle = None
-    has_calculated_emas = False #TODO False
+    has_calculated_emas = True #TODO False
     candle_interval = 2
     candle_timescale = "minute"
     AM = "AFTERMARKET"
@@ -138,7 +138,7 @@ async def execute_trading_strategy(zones):
                         if not has_calculated_emas and candle_list:
                             # Perform final fetch and merge to cover all premarket and aftermarket data
                             await get_candle_data_and_merge(aftermarket_file, premarket_file, candle_interval, candle_timescale, AM, PM, merged_file_name)
-
+                            reset_json('EMAs.json', [])
                             # Calculate EMAs for the candle list accumulated until the 15-minute mark
                             for _candle in reversed(candle_list):
                                 index_val_in_list = len(candle_list) - candle_list.index(_candle) - 1
@@ -188,17 +188,17 @@ async def execute_trading_strategy(zones):
 
                     if bull_or_bear_candle is not None:
                         #record the candle data
-                        await record_priority_candle(candle, what_type_of_candle)
+                        await record_priority_candle(candle, what_type_of_candle, bull_or_bear_candle)
                         priority_candles = load_json_df('priority_candles.json')
                         num_flags = count_flags_in_json()
                         last_candle = priority_candles.iloc[-1]
                         last_candle_dict = last_candle.to_dict()
-                        await identify_flag(last_candle_dict, num_flags, session, headers, bull_or_bear_candle, able_to_buy)
+                        await identify_flag(last_candle_dict, num_flags, session, headers, what_type_of_candle, bull_or_bear_candle, able_to_buy)
                     else:
-                        restart_flag_data(what_type_of_candle)
+                        restart_flag_data(what_type_of_candle, bull_or_bear_candle)
                 else:
                     await asyncio.sleep(1)  # Wait for new candle data
-                    update_2_min()
+                    update_2_min() # i hate how this has to update every second just for the boxes to be garanteed to chow up...
 
         except Exception as e:
             await error_log_and_discord_message(e, "tll_trading_strategy", "execute_trading_strategy")
@@ -222,8 +222,8 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
     intercept = state.get('intercept', None)
     breakout_detected = None
 
-    # Check if the 'type' key exists in the candle dictionary
-    if 'type' in candle:
+    # Check if the 'zone_type' key exists in the candle dictionary
+    if 'zone_type' in candle:
         line_name = f"flag_{num_flags}"
         candle_type = "bull" if bull_or_bear_candle == "bullish" else "bear"
         current_oc_high = candle['close'] if candle['close']>=candle['open'] else candle['open']
@@ -240,10 +240,10 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
             if slope is not None and intercept is not None:
                 print("    [IDF PBD 1] process_breakout_detection()")
                 slope, intercept, breakout_detected = await process_breakout_detection(
-                    line_name, candle_points, start_point, slope, intercept, candle, config, session, headers, what_type_of_candle, able_to_buy, breakout_type=candle_type
+                    line_name, slope, intercept, candle, session, headers, what_type_of_candle, able_to_buy, breakout_type=candle_type
                 )
                 
-            start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle)
+            start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle, bull_or_bear_candle)
                 
         else:
             # 'oc' means Open or Close
@@ -277,7 +277,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
         elif slope is not None and intercept is not None:
             print("    [IDF PBD 2] process_breakout_detection()")
             slope, intercept, breakout_detected = await process_breakout_detection(
-                line_name, candle_points, start_point, slope, intercept, candle, config, session, headers, what_type_of_candle, able_to_buy, breakout_type=candle_type
+                line_name, slope, intercept, candle, session, headers, what_type_of_candle, able_to_buy, breakout_type=candle_type
             )
             if not breakout_detected:
                 slope, intercept, first_point, second_point = calculate_slope_intercept(candle_points, start_point, candle_type)
@@ -288,14 +288,14 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                     update_line_data(line_name, line_type, "active", first_point, second_point)
                 else:
                     print(f"    [IDF INVALID SLOPE] Angle/Degree outside of range: {angle}")
-                    start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle)
+                    start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle, bull_or_bear_candle)
             elif breakout_detected: 
                 if flag_counter < 2:
                     flag_counter = flag_counter +1
                     print(f"    [IDF] Forming flag {flag_counter} for current start_point.")
                 else:
                     print(f"    [IDF] Maximum flags reached for start_point, resetting start_point and candle_points.")
-                    start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle)
+                    start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle, bull_or_bear_candle)
     else:
         print(f"    [IDF No Support Candle] type = {what_type_of_candle}")    
     

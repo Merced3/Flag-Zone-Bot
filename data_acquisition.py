@@ -752,22 +752,55 @@ async def above_below_ema(state, threshold=None, price=None):
 
     return True, within_threshold, distance  # Return True for correct EMA positioning and the threshold check result
 
-async def start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle):
+def clear_priority_candles(type_candle, dir_candle, json_file='priority_candles.json'):
+    with open(json_file, 'w') as file:
+        json.dump([], file, indent=4)
+    print(f"    [RESET] {json_file}; what_type_of_candle = {type_candle}; bull_or_bear_candle = {dir_candle}")
+
+async def record_priority_candle(candle, zone_type_candle, bull_or_bear_candle, json_file='priority_candles.json'):
+    # Load existing data or initialize an empty list
+    try:
+        with open(json_file, 'r') as file:
+            candles_data = json.load(file)
+        # Check if 'type' of the last candle exists and does not equal 'type_candles'
+        if candles_data and candles_data[-1]['zone_type'] != zone_type_candle:
+            # If the types don't match, clear the priority candles
+            clear_priority_candles(zone_type_candle, bull_or_bear_candle, json_file)
+            restart_state_json(True)
+            resolve_flags()
+            candles_data = []  # Reset candles_data to be an empty list after clearing
+    except (FileNotFoundError, json.JSONDecodeError):
+        candles_data = []
+
+    current_candle_index = get_current_candle_index()
+
+    # Append the new candle data along with its type
+    candle_with_type = candle.copy()
+    candle_with_type['zone_type'] = zone_type_candle
+    candle_with_type['dir_type'] = bull_or_bear_candle
+    candle_with_type['candle_index'] = current_candle_index
+    candles_data.append(candle_with_type)
+
+    # Save updated data back to the file
+    with open(json_file, 'w') as file:
+        json.dump(candles_data, file, indent=4)
+
+async def start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle, bull_or_bear_candle):
     # Set new starting point
     current_hl = candle['high'] if candle_type == "bull" else candle['low']
     important_candle_value = current_oc_high if candle_type == "bull" else current_oc_low
     start_point = (candle['candle_index'], important_candle_value, current_hl)
     print(f"    [IDF] {'Highest' if candle_type=='bull' else 'Lowest'} Point: {start_point}")
-    await reset_flag_internal_values(candle, what_type_of_candle)
+    await reset_flag_internal_values(candle, what_type_of_candle, bull_or_bear_candle)
     return start_point, [], None, None, 0
 
-async def reset_flag_internal_values(candle, what_type_of_candle):
-    clear_priority_candles(what_type_of_candle) #resetting priority candle values because previous candles before the highest one serves no purpose
-    await record_priority_candle(candle, what_type_of_candle)
+async def reset_flag_internal_values(candle, what_type_of_candle, bull_or_bear_candle):
+    clear_priority_candles(what_type_of_candle, bull_or_bear_candle) #resetting priority candle values because previous candles before the highest one serves no purpose
+    await record_priority_candle(candle, what_type_of_candle, bull_or_bear_candle)
     return [], None, None
 
-def restart_flag_data(what_type_of_candle):
-    clear_priority_candles(what_type_of_candle)
+def restart_flag_data(what_type_of_candle, bull_or_bear_candle):
+    clear_priority_candles(what_type_of_candle, bull_or_bear_candle)
     restart_state_json(True)
     resolve_flags()  
 
@@ -850,38 +883,6 @@ def initialize_ema_json(json_path):
             return json.load(file) if isinstance(json.load(file), list) else []
     except json.JSONDecodeError:
         return []
-
-def clear_priority_candles(type_candle, json_file='priority_candles.json'):
-    with open(json_file, 'w') as file:
-        json.dump([], file, indent=4)
-    print(f"    [RESET] {json_file}; what_type_of_candle = {type_candle}")
-
-async def record_priority_candle(candle, type_candles, json_file='priority_candles.json'):
-    # Load existing data or initialize an empty list
-    try:
-        with open(json_file, 'r') as file:
-            candles_data = json.load(file)
-        # Check if 'type' of the last candle exists and does not equal 'type_candles'
-        if candles_data and candles_data[-1]['type'] != type_candles:
-            # If the types don't match, clear the priority candles
-            clear_priority_candles(type_candles, json_file)
-            restart_state_json(True)
-            resolve_flags()
-            candles_data = []  # Reset candles_data to be an empty list after clearing
-    except (FileNotFoundError, json.JSONDecodeError):
-        candles_data = []
-
-    current_candle_index = get_current_candle_index()
-
-    # Append the new candle data along with its type
-    candle_with_type = candle.copy()
-    candle_with_type['type'] = type_candles
-    candle_with_type['candle_index'] = current_candle_index
-    candles_data.append(candle_with_type)
-
-    # Save updated data back to the file
-    with open(json_file, 'w') as file:
-        json.dump(candles_data, file, indent=4)
 
 async def read_ema_json(position):
     try:
