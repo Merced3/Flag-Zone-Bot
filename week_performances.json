@@ -364,11 +364,11 @@
         "week_start_end_date": "11/11/2024-11/15/2024",
         "start_ammount": 87092.0,
         "end_ammount": 87092.0,
-        "total_made": -30.0,
-        "num_of_trades": 2,
-        "num_of_profitable_trades": 1,
-        "num_of_negitive_trades": 1,
-        "description": "Day 1, alot of errors fixed, no trades, tried to break PDH but failed. Day 2, made 2 trades, one lost -35% and other trade hit over 200%, only lost 30$ today. Day 3, no trades, no errors.",
+        "total_made": -1032.0,
+        "num_of_trades": 4,
+        "num_of_profitable_trades": 2,
+        "num_of_negitive_trades": 2,
+        "description": "Day 1, alot of errors fixed, no trades, tried to break PDH but failed. Day 2, made 2 trades, one lost -35% and other trade hit over 200%, only lost 30$ today. Day 3, no trades, no errors. Day 4, 2 trades, first one was negitive 52%, biggest loss yet, then the other trade hit positive 100%, lost -1002$. ",
         "important_message_ids": [1305537787428081756]
     },
     {
