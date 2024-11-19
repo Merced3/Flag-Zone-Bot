@@ -1,25 +1,10 @@
 {
-    "week_timespan": "11-11-24 to 11-17-24",
+    "week_timespan": "11-18-24 to 11-24-24",
     "dates": {
-        "11-13-24": {
+        "11-19-24": {
             "08:30 AM": [
-                "Core Inflation Rate MoM",
-                "Core Inflation Rate YoY",
-                "Inflation Rate MoM",
-                "Inflation Rate YoY"
-            ]
-        },
-        "11-14-24": {
-            "08:30 AM": [
-                "PPI MoM"
-            ],
-            "03:00 PM": [
-                "Fed Chair Powell Speech"
-            ]
-        },
-        "11-15-24": {
-            "08:30 AM": [
-                "Retail Sales MoM"
+                "Inflation Rate YoY",
+                "Building Permits Prel"
             ]
         }
     }
