@@ -375,13 +375,13 @@
         "week_number": 30,
         "week_start_end_date": "11/18/2024-11/22/2024",
         "start_ammount": 87011.0,
-        "end_ammount": 87011.0,
-        "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "Day 1, no trades, had internet problems that wasnt solved until 5pm.",
-        "important_message_ids": []
+        "end_ammount": 86555.0,
+        "total_made": -456.0,
+        "num_of_trades": 2,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 1,
+        "description": "Day 1, no trades, had internet problems that wasnt solved until 5pm. Day 2, made 2 trades, one trade hit 100% and the other hit -37%. lost a total of 456$. ",
+        "important_message_ids": [1308070734777815112]
     },
     {
         "week_number": 0,
