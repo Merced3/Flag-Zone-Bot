@@ -376,11 +376,11 @@
         "week_start_end_date": "11/18/2024-11/22/2024",
         "start_ammount": 87011.0,
         "end_ammount": 86555.0,
-        "total_made": -456.0,
-        "num_of_trades": 2,
+        "total_made": -2056.0,
+        "num_of_trades": 3,
         "num_of_profitable_trades": 1,
-        "num_of_negitive_trades": 1,
-        "description": "Day 1, no trades, had internet problems that wasnt solved until 5pm. Day 2, made 2 trades, one trade hit 100% and the other hit -37%. lost a total of 456$. Day 3, no trades inbetween PDHL.",
+        "num_of_negitive_trades": 2,
+        "description": "Day 1, no trades, had internet problems that wasnt solved until 5pm. Day 2, made 2 trades, one trade hit 100% and the other hit -37%. lost a total of 456$. Day 3, no trades inbetween PDHL. Day 4, 1 negitive trade $1600, for some reason it stopped looking for flag after a certain number of candles, i need to look into this.",
         "important_message_ids": [1308070734777815112]
     },
     {
