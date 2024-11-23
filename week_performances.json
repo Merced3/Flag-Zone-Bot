@@ -380,7 +380,7 @@
         "num_of_trades": 3,
         "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 2,
-        "description": "Day 1, no trades, had internet problems that wasnt solved until 5pm. Day 2, made 2 trades, one trade hit 100% and the other hit -37%. lost a total of 456$. Day 3, no trades inbetween PDHL. Day 4, 1 negitive trade $1600, for some reason it stopped looking for flag after a certain number of candles, i need to look into this.",
+        "description": "Day 1, no trades, had internet problems that wasnt solved until 5pm. Day 2, made 2 trades, one trade hit 100% and the other hit -37%. lost a total of 456$. Day 3, no trades inbetween PDHL. Day 4, 1 negitive trade $1600, for some reason it stopped looking for flag after a certain number of candles, i need to look into this. day 5, no trades, inbetween PDHL.",
         "important_message_ids": [1308070734777815112]
     },
     {
