@@ -50,7 +50,8 @@
         "MIN_NUM_CANDLES": 2,
         "MAX_NUM_CANDLES": 150,
         "MIN_ANGLE": 60,
-        "MAX_ANGLE": 0
+        "MAX_ANGLE": 0,
+        "START_POINT_MAX_NUM_FLAGS": 3
     },
     "OPTION_EXPIRATION_DTE": "not specified",
     "ORDERS_ZONE_THRESHOLD": 2,

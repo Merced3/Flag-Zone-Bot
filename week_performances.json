@@ -392,7 +392,7 @@
         "num_of_trades": 4,
         "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 3,
-        "description": "Day 1, 4 trades 1 profitable 3 negitive lost -$2429.",
+        "description": "Day 1, 4 trades 1 profitable 3 negitive lost -$2429. Day 2, no trades inbetween PDHL but end of day broke above for a couple of candles. ",
         "important_message_ids": [1310721415653363733]
     },
     {

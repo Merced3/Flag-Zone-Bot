@@ -42,6 +42,7 @@ OPTION_EXPIRATION_DTE = config["OPTION_EXPIRATION_DTE"]
 EMA_MAX_DISTANCE = config["EMA_MAX_DISTANCE"]
 MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION = config["MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION"]
 TRADE_IN_BUFFERS = config["TRADE_IN_BUFFERS"]
+START_POINT_MAX_NUM_FLAGS = config["FLAGPOLE_CRITERIA"]["START_POINT_MAX_NUM_FLAGS"]
 
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
 LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{SYMBOL}_{TIMEFRAMES[0]}.log')  # Adjust the path accordingly
@@ -290,7 +291,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                     print(f"    [IDF INVALID SLOPE] Angle/Degree outside of range: {angle}")
                     start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle, bull_or_bear_candle)
             elif breakout_detected: 
-                if flag_counter < 2:
+                if flag_counter < START_POINT_MAX_NUM_FLAGS:
                     flag_counter = flag_counter +1
                     print(f"    [IDF] Forming flag {flag_counter} for current start_point.")
                 else:
