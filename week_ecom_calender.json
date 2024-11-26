@@ -1,10 +1,29 @@
 {
-    "week_timespan": "11-18-24 to 11-24-24",
+    "week_timespan": "11-25-24 to 12-01-24",
     "dates": {
-        "11-19-24": {
+        "11-26-24": {
+            "02:00 PM": [
+                "FOMC Minutes"
+            ]
+        },
+        "11-27-24": {
             "08:30 AM": [
-                "Inflation Rate YoY",
-                "Building Permits Prel"
+                "Core PCE Price Index MoM",
+                "Durable Goods Orders MoM",
+                "GDP Growth Rate QoQ 2nd Est",
+                "Personal Income MoM",
+                "Personal Spending MoM"
+            ]
+        },
+        "11-29-24": {
+            "08:30 AM": [
+                "GDP Growth Rate Annualized",
+                "GDP Growth Rate QoQ"
+            ]
+        },
+        "12-02-24": {
+            "10:00 AM": [
+                "ISM Manufacturing PMI"
             ]
         }
     }

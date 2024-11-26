@@ -384,16 +384,16 @@
         "important_message_ids": [1308070734777815112]
     },
     {
-        "week_number": 0,
-        "week_start_end_date": "00/00/2024-00/00/2024",
-        "start_ammount": 0,
-        "end_ammount": 0,
-        "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "",
-        "important_message_ids": []
+        "week_number": 31,
+        "week_start_end_date": "11/25/2024-11/29/2024",
+        "start_ammount": 84955.00,
+        "end_ammount": 82526.00,
+        "total_made": -2429.00,
+        "num_of_trades": 4,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 3,
+        "description": "Day 1, 4 trades 1 profitable 3 negitive lost -$2429.",
+        "important_message_ids": [1310721415653363733]
     },
     {
         "week_number": 0,
