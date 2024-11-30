@@ -387,12 +387,12 @@
         "week_number": 31,
         "week_start_end_date": "11/25/2024-11/29/2024",
         "start_ammount": 84955.00,
-        "end_ammount": 80462.00,
-        "total_made": -4493.00,
-        "num_of_trades": 6,
-        "num_of_profitable_trades": 1,
+        "end_ammount": 82170.00,
+        "total_made": -2785.00,
+        "num_of_trades": 8,
+        "num_of_profitable_trades": 3,
         "num_of_negitive_trades": 5,
-        "description": "Day 1, 4 trades 1 profitable 3 negitive lost -$2429. Day 2, no trades inbetween PDHL but end of day broke above for a couple of candles. Day 3, 2 negitive trades, both good setups, lost -$2,064. day 4 thankgiving, stock market closed.",
+        "description": "Day 1, 4 trades 1 profitable 3 negitive lost -$2429. Day 2, no trades inbetween PDHL but end of day broke above for a couple of candles. Day 3, 2 negitive trades, both good setups, lost -$2,064. day 4 thankgiving, stock market closed. day 5, made $1,708.0, 2 profitable trades, whole day trended up, 1 trade was $672 (20%) and the other was $1036 (50%).",
         "important_message_ids": [1310721415653363733]
     },
     {
