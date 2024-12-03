@@ -396,16 +396,16 @@
         "important_message_ids": [1310721415653363733]
     },
     {
-        "week_number": 0,
-        "week_start_end_date": "00/00/2024-00/00/2024",
-        "start_ammount": 0,
-        "end_ammount": 0,
-        "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "",
-        "important_message_ids": []
+        "week_number": 32,
+        "week_start_end_date": "12/02/2024-12/06/2024",
+        "start_ammount": 82170.00,
+        "end_ammount": 81751.0,
+        "total_made": -419.00,
+        "num_of_trades": 2,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 1,
+        "description": "day 1, Today was a choppy day, 1 profitable $855 20.83%, 1 negitive -$1,274 31.11%. ",
+        "important_message_ids": [1313374336194711615]
     },
     {
         "week_number": 0,

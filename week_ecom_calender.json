@@ -1,29 +1,40 @@
 {
-    "week_timespan": "11-25-24 to 12-01-24",
+    "week_timespan": "12-02-24 to 12-08-24",
     "dates": {
-        "11-26-24": {
-            "02:00 PM": [
-                "FOMC Minutes"
-            ]
-        },
-        "11-27-24": {
-            "08:30 AM": [
-                "Core PCE Price Index MoM",
-                "Durable Goods Orders MoM",
-                "GDP Growth Rate QoQ 2nd Est",
-                "Personal Income MoM",
-                "Personal Spending MoM"
-            ]
-        },
-        "11-29-24": {
-            "08:30 AM": [
-                "GDP Growth Rate Annualized",
-                "GDP Growth Rate QoQ"
-            ]
-        },
         "12-02-24": {
             "10:00 AM": [
                 "ISM Manufacturing PMI"
+            ]
+        },
+        "12-03-24": {
+            "10:00 AM": [
+                "JOLTs Job Openings"
+            ]
+        },
+        "12-04-24": {
+            "10:00 AM": [
+                "ISM Services PMI"
+            ],
+            "01:45 PM": [
+                "Fed Chair Powell Speech"
+            ]
+        },
+        "12-05-24": {
+            "08:30 AM": [
+                "Balance of Trade"
+            ],
+            "10:00 AM": [
+                "Ivey PMI s.a"
+            ]
+        },
+        "12-06-24": {
+            "08:30 AM": [
+                "Unemployment Rate",
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ],
+            "10:00 AM": [
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }
