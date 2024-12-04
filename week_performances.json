@@ -404,7 +404,7 @@
         "num_of_trades": 2,
         "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 1,
-        "description": "day 1, Today was a choppy day, 1 profitable $855 20.83%, 1 negitive -$1,274 31.11%. ",
+        "description": "day 1, Today was a choppy day, 1 profitable $855 20.83%, 1 negitive -$1,274 31.11%. day 2, no trades inbetween PDHL.",
         "important_message_ids": [1313374336194711615]
     },
     {
