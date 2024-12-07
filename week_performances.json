@@ -399,12 +399,12 @@
         "week_number": 32,
         "week_start_end_date": "12/02/2024-12/06/2024",
         "start_ammount": 82170.00,
-        "end_ammount": 83651.0,
-        "total_made": 1481.00,
-        "num_of_trades": 4,
+        "end_ammount": 82201.0,
+        "total_made": 31,
+        "num_of_trades": 6,
         "num_of_profitable_trades": 3,
-        "num_of_negitive_trades": 1,
-        "description": "day 1, Today was a choppy day, 1 profitable $855 20.83%, 1 negitive -$1,274 31.11%. day 2, no trades inbetween PDHL. day 3, 2 trades, both positive made $1,328. Day 4, had 2 trades, first immediatly stopped out because of the new stop loss settings and didn't loose anything for $0.00, 2nd trade made $572.00, im already liking the stop loss change.",
+        "num_of_negitive_trades": 3,
+        "description": "day 1, Today was a choppy day, 1 profitable $855 20.83%, 1 negitive -$1,274 31.11%. day 2, no trades inbetween PDHL. day 3, 2 trades, both positive made $1,328. Day 4, had 2 trades, first immediatly stopped out because of the new stop loss settings and didn't loose anything for $0.00, 2nd trade made $572.00, im already liking the stop loss change. Day 5, 2 bull flags ended up chopping and failing, lost -$1450.",
         "important_message_ids": [1313374336194711615]
     },
     {
