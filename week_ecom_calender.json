@@ -1,40 +1,20 @@
 {
-    "week_timespan": "12-02-24 to 12-08-24",
+    "week_timespan": "12-09-24 to 12-15-24",
     "dates": {
-        "12-02-24": {
-            "10:00 AM": [
-                "ISM Manufacturing PMI"
-            ]
-        },
-        "12-03-24": {
-            "10:00 AM": [
-                "JOLTs Job Openings"
-            ]
-        },
-        "12-04-24": {
-            "10:00 AM": [
-                "ISM Services PMI"
-            ],
-            "01:45 PM": [
-                "Fed Chair Powell Speech"
-            ]
-        },
-        "12-05-24": {
+        "12-11-24": {
             "08:30 AM": [
-                "Balance of Trade"
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
             ],
-            "10:00 AM": [
-                "Ivey PMI s.a"
+            "09:45 AM": [
+                "BoC Interest Rate Decision"
             ]
         },
-        "12-06-24": {
+        "12-12-24": {
             "08:30 AM": [
-                "Unemployment Rate",
-                "Non Farm Payrolls",
-                "Unemployment Rate"
-            ],
-            "10:00 AM": [
-                "Michigan Consumer Sentiment Prel"
+                "PPI MoM"
             ]
         }
     }
