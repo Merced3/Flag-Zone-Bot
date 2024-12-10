@@ -416,7 +416,7 @@
         "num_of_trades": 2,
         "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 2,
-        "description": "day 1, made 2 trades one positive (21.99%) and one negitive (-23.68%), lost -73$.",
+        "description": "day 1, made 2 trades one positive (21.99%) and one negitive (-23.68%), lost -73$. Day 2, Error from code startup, wasnt able to get any data today.",
         "important_message_ids": []
     },
     {
