@@ -1,20 +1,34 @@
 {
-    "week_timespan": "12-09-24 to 12-15-24",
+    "week_timespan": "12-16-24 to 12-22-24",
     "dates": {
-        "12-11-24": {
+        "12-17-24": {
             "08:30 AM": [
-                "Core Inflation Rate MoM",
-                "Core Inflation Rate YoY",
-                "Inflation Rate MoM",
-                "Inflation Rate YoY"
-            ],
-            "09:45 AM": [
-                "BoC Interest Rate Decision"
+                "Inflation Rate YoY",
+                "Retail Sales MoM"
             ]
         },
-        "12-12-24": {
+        "12-18-24": {
             "08:30 AM": [
-                "PPI MoM"
+                "Building Permits Prel"
+            ],
+            "02:00 PM": [
+                "Fed Interest Rate Decision",
+                "FOMC Economic Projections"
+            ],
+            "02:30 PM": [
+                "Fed Press Conference"
+            ]
+        },
+        "12-19-24": {
+            "08:30 AM": [
+                "GDP Growth Rate QoQ Final"
+            ]
+        },
+        "12-20-24": {
+            "08:30 AM": [
+                "Core PCE Price Index MoM",
+                "Personal Income MoM",
+                "Personal Spending MoM"
             ]
         }
     }

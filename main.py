@@ -362,7 +362,8 @@ async def main_loop():
     # Process the data to get zones and lines
     Boxes = None
     tp_lines = None
-    while True:
+    keep_loop = True
+    while keep_loop:
         try:
             new_york = pytz.timezone('America/New_York')
             current_time = datetime.now(new_york)
@@ -446,8 +447,7 @@ async def main_loop():
                     await print_discord(setup_economic_news_message())
                 await asyncio.gather(
                     process_data(queue),
-                    execute_trading_strategy(Boxes),
-                    #execute_200ema_strategy()
+                    execute_trading_strategy(Boxes) # Strategy starts
                 )
             else:
                 print("The market is closed...")
@@ -456,17 +456,8 @@ async def main_loop():
                     await reseting_values()
                     chart_visualization.should_close = True
                     already_ran = False
-
-                if current_time < market_open_time:
-                    delta_until_open = market_open_time - current_time
-                else:
-                    next_day = current_time + timedelta(days=1)
-                    next_market_open_time = new_york.localize(datetime.combine(next_day.date(), datetime.strptime("09:30:00", "%H:%M:%S").time()))
-                    delta_until_open = next_market_open_time - current_time
-
-                print(f"Sleeping for {delta_until_open.seconds:,} seconds until the market opens.")
-                await asyncio.sleep(delta_until_open.seconds)
-                continue
+                    keep_loop = False
+                break
         except Exception as e:
             await error_log_and_discord_message(e, "main", "main")
 
