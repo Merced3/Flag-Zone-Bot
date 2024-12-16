@@ -348,9 +348,44 @@ async def initial_setup():
     print(f"We have logged in as {bot.user}")
     await print_discord(f"Starting Bot, Real Money Activated" if IS_REAL_MONEY else f"Starting Bot, Paper Trading Activated")
 
+#async def main(): Keeping this just incase
+    #await initial_setup()
+    #await main_loop()
+
 async def main():
-    await initial_setup()
-    await main_loop()
+    new_york = pytz.timezone('America/New_York')
+
+    while True:
+        # Get the current time in New York timezone
+        current_time = datetime.now(new_york)
+
+        # Check if today is Monday to Friday
+        if current_time.weekday() in range(0, 5):  # 0=Monday, 4=Friday
+            # Check if the time is exactly or after 9:20 AM New York time
+            target_time = new_york.localize(
+                datetime.combine(current_time.date(), datetime.strptime("09:20:00", "%H:%M:%S").time())
+            )
+
+            if current_time >= target_time:
+                print(f"Running initial_setup and main_loop at {current_time.strftime('%Y-%m-%d %H:%M:%S')} (New York Time).")
+                await initial_setup()  # Run the initial setup
+                await main_loop()      # Run the main loop
+
+                # Wait until tomorrow
+                print("Waiting until tomorrow's 9:20 AM...")
+                while True:
+                    next_time = datetime.now(new_york)
+                    if next_time.weekday() in range(0, 5) and next_time.hour == 9 and next_time.minute == 20:
+                        break
+                    await asyncio.sleep(10)  # Check every 10 seconds
+        else:
+            # It's a weekend, keep checking for Monday
+            print(f"Today is {current_time.strftime('%A')}. Market is closed.")
+            while True:
+                next_time = datetime.now(new_york)
+                if next_time.weekday() in range(0, 5) and next_time.hour == 9 and next_time.minute == 20:
+                    break
+                await asyncio.sleep(10)  # Check every 10 seconds
 
 async def main_loop():
     global websocket_connection
