@@ -363,8 +363,8 @@ async def main():
             current_date = current_time.date()  # Extract the date (e.g., 2024-06-12)
 
             # Debug: Print current time and date
-            print(f"[DEBUG] Current time: {current_time.strftime('%Y-%m-%d %H:%M:%S')} (New York Time)")
-            print(f"[DEBUG] Last run date: {last_run_date}, Today's date: {current_date}")
+            #print(f"[DEBUG] Current time: {current_time.strftime('%Y-%m-%d %H:%M:%S')} (New York Time)")
+            #print(f"[DEBUG] Last run date: {last_run_date}, Today's date: {current_date}")
 
             # Check if today is Monday to Friday
             if current_time.weekday() in range(0, 5):  # 0=Monday, 4=Friday
@@ -381,11 +381,11 @@ async def main():
                     last_run_date = current_date  # Update the last run date
 
                     print("[INFO] initial_setup and main_loop completed successfully.")
-                    print("Waiting until tomorrow's 9:20 AM...")
+                    print("Waiting until tomorrow's 8:20 AM...")
 
                 # Debug: If already ran today
-                elif last_run_date == current_date:
-                    print(f"[DEBUG] Already ran today at {current_date}. Waiting for tomorrow.")
+                #elif last_run_date == current_date:
+                    #print(f"[DEBUG] Already ran today at {current_date}. Waiting for tomorrow.")
 
             else:
                 # It's a weekend
@@ -497,14 +497,20 @@ async def main_loop():
                     execute_trading_strategy(Boxes) # Strategy starts
                 )
             else:
-                print("The market is closed...")
                 if websocket_connection is not None:
                     data_acquisition.should_close = True  # Signal to close WebSocket
                     await reseting_values()
                     chart_visualization.should_close = True
                     already_ran = False
                     keep_loop = False
-                break
+                if current_time <= market_open_time:
+                    # Calculate the seconds until the market opens
+                    delta_until_open = (market_open_time - current_time).total_seconds()
+                    print(f"The market is about to open. Waiting {int(delta_until_open)} seconds...")
+                    await asyncio.sleep(delta_until_open)
+                elif market_close_time <= current_time:
+                    print("The market is closed...")
+                    break
         except Exception as e:
             await error_log_and_discord_message(e, "main", "main")
 
