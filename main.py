@@ -354,38 +354,50 @@ async def initial_setup():
 
 async def main():
     new_york = pytz.timezone('America/New_York')
+    last_run_date = None  # To track the last date the functions ran
 
     while True:
-        # Get the current time in New York timezone
-        current_time = datetime.now(new_york)
+        try:
+            # Get the current time in New York timezone
+            current_time = datetime.now(new_york)
+            current_date = current_time.date()  # Extract the date (e.g., 2024-06-12)
 
-        # Check if today is Monday to Friday
-        if current_time.weekday() in range(0, 5):  # 0=Monday, 4=Friday
-            # Check if the time is exactly or after 9:20 AM New York time
-            target_time = new_york.localize(
-                datetime.combine(current_time.date(), datetime.strptime("09:20:00", "%H:%M:%S").time())
-            )
+            # Debug: Print current time and date
+            print(f"[DEBUG] Current time: {current_time.strftime('%Y-%m-%d %H:%M:%S')} (New York Time)")
+            print(f"[DEBUG] Last run date: {last_run_date}, Today's date: {current_date}")
 
-            if current_time >= target_time:
-                print(f"Running initial_setup and main_loop at {current_time.strftime('%Y-%m-%d %H:%M:%S')} (New York Time).")
-                await initial_setup()  # Run the initial setup
-                await main_loop()      # Run the main loop
+            # Check if today is Monday to Friday
+            if current_time.weekday() in range(0, 5):  # 0=Monday, 4=Friday
+                # Set target time to 9:20 AM New York time
+                target_time = new_york.localize(
+                    datetime.combine(current_time.date(), datetime.strptime("09:20:00", "%H:%M:%S").time())
+                )
 
-                # Wait until tomorrow
-                print("Waiting until tomorrow's 9:20 AM...")
-                while True:
-                    next_time = datetime.now(new_york)
-                    if next_time.weekday() in range(0, 5) and next_time.hour == 9 and next_time.minute == 20:
-                        break
-                    await asyncio.sleep(10)  # Check every 10 seconds
-        else:
-            # It's a weekend, keep checking for Monday
-            print(f"Today is {current_time.strftime('%A')}. Market is closed.")
-            while True:
-                next_time = datetime.now(new_york)
-                if next_time.weekday() in range(0, 5) and next_time.hour == 9 and next_time.minute == 20:
-                    break
-                await asyncio.sleep(10)  # Check every 10 seconds
+                # Check if it's time to run and hasn't already run today
+                if current_time >= target_time and last_run_date != current_date:
+                    print(f"[INFO] Running initial_setup and main_loop at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+                    await initial_setup()  # Run the initial setup
+                    await main_loop()      # Run the main loop
+                    last_run_date = current_date  # Update the last run date
+
+                    print("[INFO] initial_setup and main_loop completed successfully.")
+                    print("Waiting until tomorrow's 9:20 AM...")
+
+                # Debug: If already ran today
+                elif last_run_date == current_date:
+                    print(f"[DEBUG] Already ran today at {current_date}. Waiting for tomorrow.")
+
+            else:
+                # It's a weekend
+                print(f"[INFO] Today is {current_time.strftime('%A')}. Market is closed. Waiting for Monday...")
+
+            # Sleep for 10 seconds before checking again
+            await asyncio.sleep(10)
+
+        except Exception as e:
+            print(f"[ERROR] Exception in main loop: {e}")
+            await asyncio.sleep(10)  # Avoid tight loops in case of errors
+
 
 async def main_loop():
     global websocket_connection
