@@ -423,12 +423,12 @@
         "week_number": 34,
         "week_start_end_date": "12/16/2024-12/20/2024",
         "start_ammount": 83051.0,
-        "end_ammount": 81937.0,
-        "total_made": -2014.0,
-        "num_of_trades": 4,
-        "num_of_profitable_trades": 1,
-        "num_of_negitive_trades": 3,
-        "description": "day 1, 2 trades 1 positive ($794 19.11%) 1 negitive (-$57 -1.37%). Day 2, 2 trades both negitive, lost $2,751. ",
+        "end_ammount": 81807.0,
+        "total_made": -1244.0,
+        "num_of_trades": 7,
+        "num_of_profitable_trades": 2,
+        "num_of_negitive_trades": 5,
+        "description": "day 1, 2 trades 1 positive ($794 19.11%) 1 negitive (-$57 -1.37%). Day 2, 2 trades both negitive, lost $2,751. Day 3, 3 trades 1 profitable ($974.00, 23.79%) 2 negitive but are incorrect buys, fixed some of it, Lost in total $-130.00, -0.16%.",
         "important_message_ids": []
     },
     {
