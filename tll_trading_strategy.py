@@ -431,9 +431,9 @@ async def handle_breakout_and_order(what_type_of_candle, trendline_y, line_name,
         ema_condition_met, ema_price_distance_met, ema_distance = await above_below_ema('above', EMA_MAX_DISTANCE)
     else:  # 'Bear'
         ema_condition_met, ema_price_distance_met, ema_distance = await above_below_ema('below', EMA_MAX_DISTANCE)
-    
+
     #check if points are valid
-    vp_1, vp_2, line_degree_angle = check_valid_points(line_name) #vp means valid point
+    vp_1, vp_2, line_degree_angle, correct_flag = check_valid_points(line_name, line_type) #vp means valid point
 
     # Check if trade limits have been reached in this zone
     multi_order_condition_met, num_of_matches = check_order_type_json(what_type_of_candle)
@@ -442,7 +442,7 @@ async def handle_breakout_and_order(what_type_of_candle, trendline_y, line_name,
     time_result = check_order_time_to_event_time(MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION)
 
     print(f"                [HBAO CONDITIONS] {ema_condition_met}, {vp_1}, {vp_2}, {multi_order_condition_met}, {ema_price_distance_met}, {time_result}")
-    if ema_condition_met and vp_1 and vp_2 and multi_order_condition_met and ema_price_distance_met and time_result: # if all conditions met, then authorize order, buy
+    if ema_condition_met and vp_1 and vp_2 and multi_order_condition_met and ema_price_distance_met and time_result and correct_flag: # if all conditions met, then authorize order, buy
         action = 'call' if line_type == 'Bull' else 'put'
         print(f"                [HBAO ORDER CONFIRMED] Buy Signal ({action.upper()})")
         success, strike_price, quantity, entry_bid_price, order_cost = await buy_option_cp(is_real_money, symbol, action, session, headers, STRATEGY_NAME)
@@ -457,7 +457,7 @@ async def handle_breakout_and_order(what_type_of_candle, trendline_y, line_name,
         update_line_data(line_name=line_name, line_type=line_type, status="complete")
         return True
     else:
-        reason = determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, multi_order_condition_met, time_result)
+        reason = determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, correct_flag, multi_order_condition_met, time_result)
         
         action = 'CALL' if line_type == 'Bull' else 'PUT'
         print(f"                [HBAO ORDER CANCELED] Buy Signal ({action}); {reason}.")

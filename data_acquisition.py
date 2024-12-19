@@ -836,7 +836,7 @@ def resolve_flags(json_file='line_data.json'):
     with open(line_data_path, 'w') as file:
         json.dump(updated_line_data, file, indent=4)
 
-def determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, multi_order_condition_met, time_result):
+def determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, correct_flag, multi_order_condition_met, time_result):
     reasons = []
     if not ema_condition_met:
         reasons.append("Price not aligned with EMAs")
@@ -845,6 +845,8 @@ def determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_
     if not vp_1 or not vp_2:
         point = "Point 1 None" if not vp_1 else "Point 2 None"
         reasons.append(f"Invalid points; {point}")
+    if not correct_flag:
+        reasons.append("Incorrect Flag values for given flag")
     if not multi_order_condition_met:
         reasons.append("Number of trades limit outside of zone reached")
     if not time_result:
@@ -1097,7 +1099,7 @@ def is_angle_valid(slope, config, bearish=False):
 
     return is_valid, angle
 
-def check_valid_points(line_name):
+def check_valid_points(line_name, line_type):
     line_data_path = Path('line_data.json')
     if line_data_path.exists():
         with open(line_data_path, 'r') as file:
@@ -1118,9 +1120,17 @@ def check_valid_points(line_name):
                         y_diff = point_2['y'] - point_1['y']
                         angle = math.degrees(math.atan2(y_diff, x_diff))
 
-                        return point_1_valid, point_2_valid, angle
-                    return point_1_valid, point_2_valid, None
-    return False, False, None
+                        correct_flag = None # Flag
+                        if line_type == 'Bull': 
+                            # Check if point 1 is higher than point 2, if so then it's a correct bull flag, else not corret flag and not correct buy.
+                            correct_flag = True if ((point_1['x'] < point_2['x']) and (point_1['y']>point_2['y'])) else False
+                        else: 
+                            # Check if point 1 is Lower than point 2, if so then it's a correct Bear flag, else not corret flag and not correct buy.
+                            correct_flag = True if ((point_1['x'] < point_2['x']) and (point_1['y']<point_2['y'])) else False
+                        
+                        return point_1_valid, point_2_valid, angle, correct_flag
+                    return point_1_valid, point_2_valid, None, None
+    return False, False, None, None
 
 def update_state(state_file_path, flag_counter, start_point, candle_points, slope, intercept):
     with open(state_file_path, 'r') as file:
