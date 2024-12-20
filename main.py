@@ -6,7 +6,7 @@ from buy_option import message_ids_dict, used_buying_power
 from ema_strategy import execute_200ema_strategy
 from economic_calender_scraper import get_economic_calendar_data, setup_economic_news_message
 from print_discord_messages import bot, print_discord, get_message_content, send_file_discord
-from error_handler import error_log_and_discord_message
+from error_handler import error_log_and_discord_message, print_log
 import data_acquisition
 import chart_visualization
 import asyncio
@@ -79,8 +79,12 @@ def write_to_log(data, symbol, timeframe):
         json_data = json.dumps(data)
         file.write(json_data + "\n")
 
-def clear_log(symbol, timeframe):
-    filepath = LOGS_DIR / f"{symbol}_{timeframe}.log"
+def clear_log(symbol=None, timeframe=None, terminal_log=None):
+    filepath = None
+    if symbol and timeframe:
+        filepath = LOGS_DIR / f"{symbol}_{timeframe}.log"
+    if terminal_log:
+        filepath = LOGS_DIR / terminal_log
     if filepath.exists():
         filepath.unlink() 
 
@@ -89,7 +93,7 @@ def read_log_file(log_file_path):
         with open(log_file_path, 'r') as file:
             return file.read()
     except FileNotFoundError:
-        print(f"File {log_file_path} not found.")
+        print_log(f"File {log_file_path} not found.")
         return ""
 
 def write_log_data_as_string(data, symbol, timeframe):
@@ -238,16 +242,16 @@ def load_from_csv(filename):
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         return df
     except FileNotFoundError:
-        print(f"File {filename} not found.")
+        print_log(f"File {filename} not found.")
         return None
     except Exception as e:
-        print(f"An error occurred while loading {filename}: {e}")
+        print_log(f"An error occurred while loading {filename}: {e}")
         return None
 
 
 
 async def process_data(queue):
-    print("Starting process_data()...")
+    print_log("Starting process_data()...")
     global current_candles, candle_counts
     timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(MARKET_OPEN_TIME, MARKET_CLOSE_TIME, timedelta(seconds=CANDLE_DURATION[tf]))] for tf in TIMEFRAMES}
     buffer_timestamps = {tf: [add_seconds_to_time(t, CANDLE_BUFFER) for t in timestamps[tf]] for tf in timestamps}
@@ -257,7 +261,7 @@ async def process_data(queue):
             now = datetime.now(new_york_tz)
             f_now = now.strftime('%H:%M:%S')
             if now >= MARKET_CLOSE_TIME:
-                print("Ending process_data()...")
+                print_log("Ending process_data()...")
                 break
 
             message = await queue.get()
@@ -290,7 +294,7 @@ async def process_data(queue):
                         
                         f_current_time = datetime.now().strftime("%H:%M:%S")
                         candle_counts[timeframe] += 1
-                        print(f"[{f_current_time}] Candle count for {timeframe}: {candle_counts[timeframe]}")
+                        print_log(f"[{f_current_time}] Candle count for {timeframe}: {candle_counts[timeframe]}")
                         
                         #remove the timestamp from the list so we don't write to the log again.
                         if f_now in timestamps[timeframe]:
@@ -345,7 +349,7 @@ async def initial_setup():
     global end_of_day_account_balance
 
     await bot.wait_until_ready()
-    print(f"We have logged in as {bot.user}")
+    print_log(f"We have logged in as {bot.user}")
     await print_discord(f"Starting Bot, Real Money Activated" if IS_REAL_MONEY else f"Starting Bot, Paper Trading Activated")
 
 #async def main(): Keeping this just incase
@@ -375,13 +379,13 @@ async def main():
 
                 # Check if it's time to run and hasn't already run today
                 if current_time >= target_time and last_run_date != current_date:
-                    print(f"[INFO] Running initial_setup and main_loop at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+                    print_log(f"[INFO] Running initial_setup and main_loop at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
                     await initial_setup()  # Run the initial setup
                     await main_loop()      # Run the main loop
                     last_run_date = current_date  # Update the last run date
 
-                    print("[INFO] initial_setup and main_loop completed successfully.")
-                    print("Waiting until tomorrow's 8:20 AM...")
+                    print_log("[INFO] initial_setup and main_loop completed successfully.")
+                    print_log("Waiting until tomorrow's 8:20 AM...")
 
                 # Debug: If already ran today
                 #elif last_run_date == current_date:
@@ -389,13 +393,13 @@ async def main():
 
             else:
                 # It's a weekend
-                print(f"[INFO] Today is {current_time.strftime('%A')}. Market is closed. Waiting for Monday...")
+                print_log(f"[INFO] Today is {current_time.strftime('%A')}. Market is closed. Waiting for Monday...")
 
             # Sleep for 10 seconds before checking again
             await asyncio.sleep(10)
 
         except Exception as e:
-            print(f"[ERROR] Exception in main loop: {e}")
+            print_log(f"[ERROR] Exception in main loop: {e}")
             await asyncio.sleep(10)  # Avoid tight loops in case of errors
 
 
@@ -425,7 +429,7 @@ async def main_loop():
                 await ensure_economic_calendar_data()
 
                 start_date, end_date = get_dates(DAYS)
-                print(f"15m) Start and End days: \n{start_date}, {end_date}\n")
+                print_log(f"15m) Start and End days: \n{start_date}, {end_date}\n")
 
                 candle_15m_data = load_from_csv(f"{SYMBOL}_15_minute_candles.csv")
                 if candle_15m_data is None:
@@ -447,7 +451,7 @@ async def main_loop():
                     for day_num in range(num_days):
                         current_date = days[day_num]
                         day_data = candle_15m_data[candle_15m_data['date'] == current_date]
-                        print(f"[Day {day_num + 1} of {num_days}] {current_date}")
+                        print_log(f"[Day {day_num + 1} of {num_days}] {current_date}")
                         #print(f"    [LENGTH DAY DATA] {len(day_data)}")
                         df_15m = pd.concat([day_data, prev_days_data])
                         Boxes, tp_lines = boxes.get_v2(Boxes, tp_lines, df_15m, current_date, len(day_data), GET_PDHL)
@@ -456,7 +460,7 @@ async def main_loop():
                         Boxes, tp_lines = boxes.correct_zones_that_are_too_close(Boxes, tp_lines)
                         prev_days_data = df_15m
                         #await asyncio.sleep(.25)
-                    print(" ") # space at the end of console log for visual clarity
+                    print_log(" ") # space at the end of console log for visual clarity
                     setup_global_boxes(Boxes, tp_lines)
                     update_15_min()
                     
@@ -467,9 +471,9 @@ async def main_loop():
                     write_log_data_as_string(boxes_info, SYMBOL, f"{TIMEFRAMES[0]}_Boxes")
 
                 elif candle_15m_data is None or candle_15m_data.empty or 'timestamp' not in candle_15m_data.columns:
-                    print(f"    [ERROR] Error loading or invalid data in {SYMBOL}_15_minute_candles.csv")
+                    print_log(f"    [ERROR] Error loading or invalid data in {SYMBOL}_15_minute_candles.csv")
                 else:
-                    print("    [ERROR] No candle data was retrieved or 'timestamp' column is missing.")
+                    print_log("    [ERROR] No candle data was retrieved or 'timestamp' column is missing.")
             
             if market_open_time <= current_time <= market_close_time:
                 if websocket_connection is None:  # Only create a new connection if there isn't one
@@ -506,10 +510,10 @@ async def main_loop():
                 if current_time <= market_open_time:
                     # Calculate the seconds until the market opens
                     delta_until_open = (market_open_time - current_time).total_seconds()
-                    print(f"The market is about to open. Waiting {int(delta_until_open)} seconds...")
+                    print_log(f"The market is about to open. Waiting {int(delta_until_open)} seconds...")
                     await asyncio.sleep(delta_until_open)
                 elif market_close_time <= current_time:
-                    print("The market is closed...")
+                    print_log("The market is closed...")
                     break
         except Exception as e:
             await error_log_and_discord_message(e, "main", "main")
@@ -558,15 +562,17 @@ async def reseting_values():
     await print_discord(output_message)
     #reset all values
     used_buying_power.clear()
-    print("[RESET] Cleared 'used_buying_power' list.")
+    print_log("[RESET] Cleared 'used_buying_power' list.")
 
-    #save new data in dicord, send log file, with boxes in the file,
+    #save new data in dicord, send log files
     whole_log = read_log_file(LOGS_DIR / f"{SYMBOL}_{TIMEFRAMES[0]}.log")
     write_log_data_as_string(whole_log, SYMBOL, f"{TIMEFRAMES[0]}_Boxes")
     new_log_file_path = LOGS_DIR / f"{SYMBOL}_{TIMEFRAMES[0]}_Boxes.log"
     await send_file_discord(new_log_file_path) #Send file
     await send_file_discord('EMAs.json')
     await send_file_discord('markers.json')
+    terminal_log_file_path = LOGS_DIR / "terminal_output.log"
+    await send_file_discord(terminal_log_file_path)
 
     #clear 'message_ids.json' file
     reset_json('message_ids.json', {})
@@ -589,7 +595,7 @@ async def reseting_values():
     config["ACCOUNT_BALANCES"][0] = end_of_day_account_balance 
     config["ACCOUNT_BALANCES"][1] = 0
     with open(config_path, 'w') as f:
-        print(f"[RESET] Updated file: config.json")
+        print_log(f"[RESET] Updated file: config.json")
         json.dump(config, f, indent=4)  # Save the updated config
     start_of_day_account_balance = end_of_day_account_balance
     end_of_day_account_balance = 0
@@ -599,12 +605,13 @@ async def reseting_values():
     csv_files = Path(__file__).resolve().parent.glob('*.csv')
     for file in csv_files:
         if file.name != 'order_log.csv':
-            print(f"[RESET] Deleting File: {file.name}")
+            print_log(f"[RESET] Deleting File: {file.name}")
             file.unlink()  # Delete the file
 
     #clear the Logs, logs/[ticker_symbol]_2M.log file. Don't delete it just clear it.
     clear_log(SYMBOL, "2M")
     clear_log(SYMBOL, "2M_Boxes")
+    clear_log(None, None, "terminal_output.log")
 
     # Find all the files that have 'order_log' in them and delete them
     order_log_files = glob.glob('./*order_log*')
@@ -613,9 +620,9 @@ async def reseting_values():
         try:
             if os.path.basename(file) != 'order_log.csv':
                 os.remove(file)
-                print(f"[RESET] Order log file {file} deleted.")
+                print_log(f"[RESET] Order log file {file} deleted.")
         except Exception as e:
-            print(f"An error occurred while deleting {file}: {e}")
+            print_log(f"An error occurred while deleting {file}: {e}")
 
 async def shutdown(loop, root=None):
     """Shutdown tasks and the Discord bot."""
@@ -640,7 +647,7 @@ if __name__ == "__main__":
     try:
         loop.run_forever()
     except KeyboardInterrupt:
-        print("Manually interrupted, cleaning up...")
+        print_log("Manually interrupted, cleaning up...")
         loop.run_until_complete(shutdown(loop))
     finally:
         loop.close()

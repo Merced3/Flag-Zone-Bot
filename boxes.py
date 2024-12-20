@@ -2,6 +2,7 @@
 import pandas as pd
 from pathlib import Path
 import json
+from error_handler import error_log_and_discord_message, print_log
 
 config_path = Path(__file__).resolve().parent / 'config.json'
 def read_config():
@@ -51,10 +52,10 @@ def get_v2(boxes_that_already_exist, tpls_that_already_exist, candle_data, curre
 
 def correct_too_big_small_boxes(candle_data, boxes, print_statements=False):
     if print_statements:    
-        print(f"\n---------------------\nResizing Boxes that are too Small or Big:")
+        print_log(f"\n---------------------\nResizing Boxes that are too Small or Big:")
 
     if print_statements:    
-        print(f"Boxes Before Processing: {boxes}\n")
+        print_log(f"Boxes Before Processing: {boxes}\n")
     
     if not isinstance(candle_data.index, pd.DatetimeIndex):
         candle_data['timestamp'] = pd.to_datetime(candle_data['timestamp'])
@@ -71,13 +72,13 @@ def correct_too_big_small_boxes(candle_data, boxes, print_statements=False):
         
         # Debug info
         if print_statements:
-            print(f"Processing box: {box_name} at position {box_candle_pos}")
-            print(f"candle_data length: {len(candle_data)}")
-            print(f"candle_data.index: {candle_data.index}")
+            print_log(f"Processing box: {box_name} at position {box_candle_pos}")
+            print_log(f"candle_data length: {len(candle_data)}")
+            print_log(f"candle_data.index: {candle_data.index}")
 
         # Check if box_candle_pos is within bounds
         if box_candle_pos >= len(candle_data):
-            print(f"Skipping {box_name} because box_candle_pos {box_candle_pos} is out of bounds for candle_data length {len(candle_data)}")
+            print_log(f"Skipping {box_name} because box_candle_pos {box_candle_pos} is out of bounds for candle_data length {len(candle_data)}")
             continue
         
         box_date = candle_data.index[box_candle_pos].date()
@@ -119,13 +120,13 @@ def correct_too_big_small_boxes(candle_data, boxes, print_statements=False):
             break
         else:
             if print_statements:    
-                print(f"{box_name} Has No Suitable Candle Within Threshold, adjusted to closest value")
+                print_log(f"{box_name} Has No Suitable Candle Within Threshold, adjusted to closest value")
 
         corrected_pos = min(corrected_pos, box_candle_pos)
         corrected_boxes[box_name] = (corrected_pos, keep_value, corrected_value)
 
     if print_statements:    
-        print(f"Correctly Sized Boxes: {corrected_boxes}\n---------------------\n")
+        print_log(f"Correctly Sized Boxes: {corrected_boxes}\n---------------------\n")
     return corrected_boxes
 
 def correct_zones_inside_other_zones(boxes, print_statements=False):
@@ -169,7 +170,7 @@ def correct_zones_inside_other_zones(boxes, print_statements=False):
                         if (("resistance" in name1) and ("PDHL" in name2) and (top_1>=top_2>=bottom_2>=bottom_1)) or (("support" in name1) and ("PDHL" in name2) and (top_1>=top_2>=bottom_2>=bottom_1)):
                             #if a PDHL is inside of a resistance or support zone.
                             if print_statements:
-                                print(f"    [CZIOZ] name1: {name1}; {index1}\n    [CZIOZ] name2: {name2}; {index2}")
+                                print_log(f"    [CZIOZ] name1: {name1}; {index1}\n    [CZIOZ] name2: {name2}; {index2}")
                             
                             corrected_name = name1 if "PDHL" in name1 else name2
                             corrected_index = index1 if index1 < index2 else index2
@@ -184,7 +185,7 @@ def correct_zones_inside_other_zones(boxes, print_statements=False):
                                 bottom_value = hl1 if "support" in name1 else hl2
                             else:
                                 if print_statements:
-                                    print(f"    [CZIOZ] No Support for '{name1}' and '{name2}'")
+                                    print_log(f"    [CZIOZ] No Support for '{name1}' and '{name2}'")
                             # Corrected box
                             boxes[corrected_name] = (corrected_index, top_value, bottom_value)
                             keys_to_delete.append(name2 if "PDHL" in name1 else name1)
@@ -195,7 +196,7 @@ def correct_zones_inside_other_zones(boxes, print_statements=False):
                         # Make a new PDHL
                         corrected_name = f"PDHL_{len([name for name, _ in sorted_boxes if name.startswith('PDHL')]) + 1}"
                         if print_statements:
-                            print(f"    [CZIOZ] Corrected name1: {corrected_name}")
+                            print_log(f"    [CZIOZ] Corrected name1: {corrected_name}")
                         keys_to_delete.append(name1)
                         keys_to_delete.append(name2)
 
@@ -209,13 +210,13 @@ def correct_zones_inside_other_zones(boxes, print_statements=False):
                         # Corrected box
                         boxes[corrected_name] = (corrected_index, top_value, bottom_value) # 2 opposite zones have combined/widened
                         if print_statements:
-                            print(f"    [CZIOZ, OPPOSITE ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{top_value},{bottom_value})")
+                            print_log(f"    [CZIOZ, OPPOSITE ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{top_value},{bottom_value})")
                     elif (("resistance" in name1) and ("resistance" in name2)) or (("support" in name1) and ("support" in name2)):
                         # Identical Zones are inside eachother
                         # Make a new PDHL
                         if print_statements:     
-                            print(f"    [CZIOZ] name1: {name1}, {index1}, {hl1}, {buf1}")
-                            print(f"    [CZIOZ] name2: {name2}, {index2}, {hl2}, {buf2}")
+                            print_log(f"    [CZIOZ] name1: {name1}, {index1}, {hl1}, {buf1}")
+                            print_log(f"    [CZIOZ] name2: {name2}, {index2}, {hl2}, {buf2}")
                         corrected_name = name1 if index1 < index2 else name2
                         keys_to_delete.append(name2 if index1 < index2 else name1)
 
@@ -230,9 +231,9 @@ def correct_zones_inside_other_zones(boxes, print_statements=False):
                         # Corrected box
                         boxes[corrected_name] = (corrected_index, Important_value, buffer_value) # 2 identical zones have combined
                         if print_statements: 
-                            print(f"    [CZIOZ] new Box: {corrected_name}, {corrected_index}, {Important_value}, {buffer_value}")
+                            print_log(f"    [CZIOZ] new Box: {corrected_name}, {corrected_index}, {Important_value}, {buffer_value}")
     if print_statements:    
-        print(f"    [CZIOZ] KEYS TO DELETE: {keys_to_delete}")
+        print_log(f"    [CZIOZ] KEYS TO DELETE: {keys_to_delete}")
 
     # Remove the boxes that are inside others
     for key in keys_to_delete:
@@ -356,7 +357,7 @@ def correct_bleeding_zones(boxes, _tp_lines, print_statements=False):
                 bottom_2 = hl2
             
             if print_statements:
-                print(f"{name1}: ({index1}, {top_1}, {bottom_1}) | {name2}: ({index1}, {top_2}, {bottom_2})")
+                print_log(f"{name1}: ({index1}, {top_1}, {bottom_1}) | {name2}: ({index1}, {top_2}, {bottom_2})")
             
             if top_1 and bottom_1 and top_2 and bottom_2:
                 corrected_name = None
@@ -364,7 +365,7 @@ def correct_bleeding_zones(boxes, _tp_lines, print_statements=False):
                     
                 if (top_1 >= top_2 >= bottom_1 >= bottom_2) or (top_2 >= top_1 >= bottom_2 >= bottom_1):
                     if print_statements:    
-                        print(f"    [CBZ, Meshed zones detected] {name1}, ({index1},{hl1},{buf1}) ; {name2}, ({index2},{hl2},{buf2})")
+                        print_log(f"    [CBZ, Meshed zones detected] {name1}, ({index1},{hl1},{buf1}) ; {name2}, ({index2},{hl2},{buf2})")
                         
                     # Stating values that other if-statements can use
                     top_value = top_1 if top_1 >= top_2 else top_2
@@ -377,7 +378,7 @@ def correct_bleeding_zones(boxes, _tp_lines, print_statements=False):
                         # Make a whole new zone then forget both name 1 and 2 zones
                         corrected_name = f"PDHL_{len([name for name, _ in sorted_boxes if name.startswith('PDHL')]) + 1}"
                         if print_statements:    
-                            print(f"    [CBZ] Corrected name2: {corrected_name}")
+                            print_log(f"    [CBZ] Corrected name2: {corrected_name}")
                         keys_to_delete_boxes.append(name1)
                         keys_to_delete_boxes.append(name2)
                         
@@ -388,7 +389,7 @@ def correct_bleeding_zones(boxes, _tp_lines, print_statements=False):
                         bottom_value = hl_1 if hl_1<hl_2 else hl_2
                         boxes[corrected_name] = (corrected_index, top_value, bottom_value) # the reason for 'hl_1' and 'hl_2' (high low 1st or 2nd) first is the most important meaning if this is a resistance then 1st is the top of the box and if support then bottom
                         if print_statements:
-                            print(f"    [CBZ, IDENTICLE ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{hl_1},{hl_2})")
+                            print_log(f"    [CBZ, IDENTICLE ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{hl_1},{hl_2})")
                     elif ("resistance" in name1 and "PDHL" in name2) or ("PDHL" in name1 and "resistance" in name2) or ("support" in name1 and "PDHL" in name2) or ("PDHL" in name1 and "support" in name2):
                     # Keep one zone, forget the other
                         corrected_name = name1 if "PDHL" in name1 else name2 # Keep key that is PDHL
@@ -403,11 +404,11 @@ def correct_bleeding_zones(boxes, _tp_lines, print_statements=False):
                         bottom_side = bottom_value if "support" in delete_key else base_bottom
                         boxes[corrected_name] = (corrected_index, top_side, bottom_side) # PDHL has been edited/widened
                         if print_statements:
-                            print(f"    [CBZ, SIMILAR ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{top_side},{bottom_side})")
+                            print_log(f"    [CBZ, SIMILAR ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{top_side},{bottom_side})")
                     elif ("resistance" in name1 and "support" in name2) or ("support" in name1 and "resistance" in name2): # support on resistance ; resistance on support
                         corrected_name = f"PDHL_{len([name for name, _ in sorted_boxes if name.startswith('PDHL')]) + 1}"
                         if print_statements:
-                            print(f"    [CBZ] Corrected name3: {corrected_name}")
+                            print_log(f"    [CBZ] Corrected name3: {corrected_name}")
                         keys_to_delete_boxes.append(name1)
                         keys_to_delete_boxes.append(name2)
 
@@ -419,7 +420,7 @@ def correct_bleeding_zones(boxes, _tp_lines, print_statements=False):
                         if height<=0.25:
                             # Too Small, Make into TP_Lines
                             if print_statements:
-                                print(f"    [CBZ] Box too small: {corrected_name}; {height}")
+                                print_log(f"    [CBZ] Box too small: {corrected_name}; {height}")
                             new_name_1="TP_resistance_1"
                             new_name_2="TP_support_1"
                             new_name_1 = generate_unique_name(new_name_1, tp_lines)
@@ -429,28 +430,28 @@ def correct_bleeding_zones(boxes, _tp_lines, print_statements=False):
                             tp_lines[new_name_1] = (TPL_x1, top_value) # resistance
                             tp_lines[new_name_2] = (TPL_x2, bottom_value) # support
                             if print_statements:
-                                print(f"    [CBZ] Created new Lines: {new_name_1}, ({tp_lines[new_name_1]}) | {new_name_2}, ({tp_lines[new_name_2]})")
+                                print_log(f"    [CBZ] Created new Lines: {new_name_1}, ({tp_lines[new_name_1]}) | {new_name_2}, ({tp_lines[new_name_2]})")
                         else:
                             #continue with box creation
                             boxes[corrected_name] = (corrected_index, top_value, bottom_value) # 2 opposite zones have combined/widened
                             if print_statements:
-                                print(f"    [CBZ, OPPOSITE ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{top_value},{bottom_value})")
+                                print_log(f"    [CBZ, OPPOSITE ZONES COMBINED] Alteration: {corrected_name}, ({corrected_index},{top_value},{bottom_value})")
                         
             else:
                 if print_statements:
-                    print(f"    [CBZ] missing value: {name1}, {top_1}, {bottom_1} | {name2}, {top_2}, {bottom_2}")
+                    print_log(f"    [CBZ] missing value: {name1}, {top_1}, {bottom_1} | {name2}, {top_2}, {bottom_2}")
     # Remove the boxes that are inside others
     for key in keys_to_delete_boxes:
         if key in boxes:
             del boxes[key]
     if print_statements:
-        print(f"    [CBZ] KEYS TO DELETE: {keys_to_delete_boxes}")
+        print_log(f"    [CBZ] KEYS TO DELETE: {keys_to_delete_boxes}")
 
     return boxes, tp_lines
 
 def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False, remove_TPs_too_close=False):
     if print_statements:
-        print(f"Starting CZTATC")
+        print_log(f"Starting CZTATC")
     keys_to_delete_boxes = []
     keys_to_delete_lines = []
     tp_lines = {} if _tp_lines is None else _tp_lines
@@ -489,7 +490,7 @@ def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False, r
                     tp_lines[new_name_2] = (TPL_x, TPL_y2)
                     keys_to_delete_boxes.append(name2 if index1 > index2 else name1)
                     if print_statements:
-                        print(f"    [CZTATC] Deleting1: {name2 if index1 > index2 else name1}; and NOT deleting: {name2 if index1 < index2 else name1}")
+                        print_log(f"    [CZTATC] Deleting1: {name2 if index1 > index2 else name1}; and NOT deleting: {name2 if index1 < index2 else name1}")
                 elif "PDHL" in name1 and "PDHL" in name2:
                     name_to_delete, name_to_keep = (name2,name1) if index1 > index2 else (name1,name2)
                     # if 'name_to_delete' is 'PDHL_1' DO NOT DELETE IT. make the other one a TP Line
@@ -499,8 +500,8 @@ def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False, r
                         new_name_1 = generate_unique_name(new_name_1, tp_lines)
                         new_name_2 = generate_unique_name(new_name_2, tp_lines)
                         if print_statements:
-                            print(f"    [CZTATC] New Name1: {new_name_1}")
-                            print(f"    [CZTATC] New Name2: {new_name_2}")
+                            print_log(f"    [CZTATC] New Name1: {new_name_1}")
+                            print_log(f"    [CZTATC] New Name2: {new_name_2}")
                         TPL_x1 = index1 if index1 < index2 else index2
                         TPL_x2 = TPL_x1
                         if index1 < index2:
@@ -523,8 +524,8 @@ def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False, r
                         new_name_1 = generate_unique_name(new_name_1, tp_lines)
                         new_name_2 = generate_unique_name(new_name_2, tp_lines)
                         if print_statements:
-                            print(f"    [CZTATC] New Name1: {new_name_1}")
-                            print(f"    [CZTATC] New Name2: {new_name_2}")
+                            print_log(f"    [CZTATC] New Name1: {new_name_1}")
+                            print_log(f"    [CZTATC] New Name2: {new_name_2}")
                         TPL_x1 = index2 if "PDHL_1" in name1 else index1
                         TPL_x2 = TPL_x1
                         if "PDHL_1" in name1:
@@ -539,29 +540,29 @@ def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False, r
                         keys_to_delete_boxes.append(name_to_delete)
 
                     if print_statements:
-                        print(f"    [CZTATC] Deleting2: {name_to_delete}; and NOT deleting: {name_to_keep}")
+                        print_log(f"    [CZTATC] Deleting2: {name_to_delete}; and NOT deleting: {name_to_keep}")
 
                 else:
                     name_to_delete, name_to_keep = (name2,name1) if index1 > index2 else (name1,name2)
                     # if the name we want to keep is in 'keys_to_delete_boxes' then were near nothing and don't need to delete anything.
                     if name_to_keep not in keys_to_delete_boxes:
                         if print_statements:
-                            print(f"    [CZTATC] name1: {name1}; {index1}\n    [CZTATC] name2: {name2}; {index2}")
+                            print_log(f"    [CZTATC] name1: {name1}; {index1}\n    [CZTATC] name2: {name2}; {index2}")
                         # Create a new "tp_line" and add it to "tp_lines"
                         tp_lines[generate_unique_name(TPL_name, tp_lines)] = (TPL_x, TPL_y)
                         
                         keys_to_delete_boxes.append(name_to_delete)
                     
                         if print_statements:
-                            print(f"    [CZTATC] Deleting3: {name_to_delete}; and NOT deleting: {name_to_keep}")
+                            print_log(f"    [CZTATC] Deleting3: {name_to_delete}; and NOT deleting: {name_to_keep}")
     if print_statements:
-        print(f"\n TPLs: {tp_lines}\n")
+        print_log(f"\n TPLs: {tp_lines}\n")
     
     for key in keys_to_delete_boxes:
         if key in boxes:
             del boxes[key]
     if print_statements:
-        print(f"    [CZTATC] KEY BOXES TO DELETE: {keys_to_delete_boxes}")
+        print_log(f"    [CZTATC] KEY BOXES TO DELETE: {keys_to_delete_boxes}")
     
     # find if lines are too close to any zone
     for tpl_name, tpl_detials in tp_lines.items():
@@ -578,18 +579,18 @@ def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False, r
                         keys_to_delete_lines.append(tpl_name)
                     else:
                         if print_statements:
-                            print(f"NOT REMOVING '{tpl_name}' Because 'remove_TPs_too_close' is set too '{remove_TPs_too_close}'.")
+                            print_log(f"NOT REMOVING '{tpl_name}' Because 'remove_TPs_too_close' is set too '{remove_TPs_too_close}'.")
                     if print_statements:
                         if range_hl <= threshold_size:
-                            print(f"LINE: '{tpl_name}' to close to '{box_name}'\nRange hl: {range_hl}\n")
+                            print_log(f"LINE: '{tpl_name}' to close to '{box_name}'\nRange hl: {range_hl}\n")
                         if range_buf <= threshold_size:
-                            print(f"LINE: '{tpl_name}' to close to '{box_name}'\nRange buf: {range_buf}\n")
+                            print_log(f"LINE: '{tpl_name}' to close to '{box_name}'\nRange buf: {range_buf}\n")
     for key in keys_to_delete_lines:
         if key in tp_lines:
             del tp_lines[key]
 
     if print_statements:
-        print(f"Altered boxes: {boxes}\n\nTP Lines: {tp_lines}\n---------------")
+        print_log(f"Altered boxes: {boxes}\n\nTP Lines: {tp_lines}\n---------------")
 
     return boxes, tp_lines
 

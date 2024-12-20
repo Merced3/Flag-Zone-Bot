@@ -11,6 +11,7 @@ from pathlib import Path
 import json
 import threading
 import time
+from error_handler import error_log_and_discord_message, print_log
 
 df_15_min = None
 df_2_min = None
@@ -42,13 +43,13 @@ def setup_global_chart(tk_root, tk_canvas):
     global root, canvas, boxes, tp_lines
     root = tk_root
     canvas = tk_canvas
-    print("    [setup_global_chart] setting global root and canvas")
+    print_log("    [setup_global_chart] setting global root and canvas")
 
 def setup_global_boxes(_boxes, _tp_lines):
     global boxes, tp_lines
     boxes = _boxes
     tp_lines = _tp_lines
-    print("    [setup_global_boxes] setting global boxes and tp_lines")
+    print_log("    [setup_global_boxes] setting global boxes and tp_lines")
 
 def update_chart_periodically(root, canvas, boxes, tp_lines, symbol, log_file_path):
     global df_2_min, should_close
@@ -66,7 +67,7 @@ def update_chart_periodically(root, canvas, boxes, tp_lines, symbol, log_file_pa
         # Check if DataFrame is empty (no data)
         if new_df.empty:
             if is_waiting_for_data:
-                print("    [chart_visualization.py, UCP] Waiting for live candles...")
+                print_log("    [chart_visualization.py, UCP] Waiting for live candles...")
                 is_waiting_for_data = False  # Reset flag after first announcement
         else:
             # Reset flag as data is now available
@@ -80,7 +81,7 @@ def update_chart_periodically(root, canvas, boxes, tp_lines, symbol, log_file_pa
                 root.after(0, lambda: update_plot(canvas, df_2_min, boxes, tp_lines, symbol, "2-min"))
 
         if should_close:
-            print("    [chart_visualization.py, UCP] Closing the GUI...")
+            print_log("    [chart_visualization.py, UCP] Closing the GUI...")
             root.quit()
             break
         # Short sleep to prevent excessive CPU usage
@@ -96,7 +97,7 @@ def read_log_to_df(log_file_path):
     # If the file does not exist, create an empty file
     if not log_file_path.exists():
         log_file_path.touch()
-        print(f"    [RLTD] Created new log file: {log_file_path}")
+        print_log(f"    [RLTD] Created new log file: {log_file_path}")
         return pd.DataFrame()
     # Read the log file and return a DataFrame
     try:
@@ -112,9 +113,9 @@ def read_log_to_df(log_file_path):
                     if 'timestamp' in json_data:
                         data.append(json_data)
                     else:
-                        print("    [RLTD] Line in log file missing 'timestamp':", line)
+                        print_log("    [RLTD] Line in log file missing 'timestamp':", line)
                 except json.JSONDecodeError as e:
-                    print("    [RLTD] Error decoding line in log file:", line, "\nError:", e)
+                    print_log("    [RLTD] Error decoding line in log file:", line, "\nError:", e)
 
             if not data:  # Check if no valid data was found
                 return pd.DataFrame()
@@ -124,7 +125,7 @@ def read_log_to_df(log_file_path):
             df.set_index('timestamp', inplace=True)
             return df
     except Exception as e:
-        print(f"    [RLTD] Error reading log file: {e}")
+        print_log(f"    [RLTD] Error reading log file: {e}")
         return pd.DataFrame()
 
 def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
@@ -181,9 +182,9 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
                 for marker in markers:
                     ax.scatter(marker['x'], marker['y'], **marker['style'])
             else:
-                print("    [UP] markers.json file is empty.")
+                print_log("    [UP] markers.json file is empty.")
         except FileNotFoundError:
-            print("    [UP] No markers.json file found.")
+            print_log("    [UP] No markers.json file found.")
 
         lines_file_path = Path(__file__).resolve().parent / 'line_data.json'
 
@@ -211,12 +212,12 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
                         ax.plot([], [], ' ', label="Waiting for EMAs...")
                         ax.legend(loc='upper left')
             else:
-                print("    [UP] EMA data file is empty. Skipping EMA plot.")
+                print_log("    [UP] EMA data file is empty. Skipping EMA plot.")
                 # Optionally, plot a dummy line to show a waiting message
                 ax.plot([], [], ' ', label="Waiting for EMAs...")
                 ax.legend(loc='upper left')
         except FileNotFoundError:
-            print("    [UP] EMA data file not found.")
+            print_log("    [UP] EMA data file not found.")
 
         # <<<<<<<<<Check and plot Bull/Bear Flags HERE>>>>>>>>>>
         try:
@@ -233,7 +234,7 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
                         try:
                             lines = json.loads(content)
                         except json.JSONDecodeError as e:
-                            print(f"    [UP] Error decoding JSON from line_data.json: {e}")
+                            print_log(f"    [UP] Error decoding JSON from line_data.json: {e}")
                             lines = []
 
                 for line in lines:
@@ -249,9 +250,9 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
                     # Draw the line on the chart
                     ax.plot([start_x, end_x], [start_y, end_y], color=color, linewidth=1)
             else:
-                print("    [UP] line_data.json file is empty.")
+                print_log("    [UP] line_data.json file is empty.")
         except FileNotFoundError:
-            print("    [UP] No line_data.json file found.")
+            print_log("    [UP] No line_data.json file found.")
 
     # <<<<<<<<<Check and plot 'Take Profit dotted lines' HERE>>>>>>>>>>
     if tp_lines:
@@ -272,7 +273,7 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
                 #the line should be straight Horizontal accross the screen
                 ax.plot([x, x_end], [y, y], color=line_color, linewidth=1, linestyle=':') # ':' makes the line dotted
         except FileNotFoundError:
-            print("    [UP] No TAKE PROFITS line data found.")
+            print_log("    [UP] No TAKE PROFITS line data found.")
 
     # Redraw the canvas
     canvas.draw()
@@ -281,28 +282,28 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
 def update_15_min(print_statements=False):
     global canvas, root, df_15_min, boxes, tp_lines
     if print_statements:
-        print("    [update_15_min] function called")
+        print_log("    [update_15_min] function called")
     if root and df_15_min is not None:
         try:
             # Post the update task to the Tkinter main loop
             root.after(0, lambda: update_plot(canvas, df_15_min, boxes, tp_lines, SYMBOL, "15-min"))
         except Exception as e:
-            print(f"    [update_15_min] Error updating 15-min chart: {e}")
+            print_log(f"    [update_15_min] Error updating 15-min chart: {e}")
     else:
-        print("    [update_15_min] GUI or data not initialized.")
+        print_log("    [update_15_min] GUI or data not initialized.")
 
 def update_2_min(print_statements=False):
     global root, df_2_min, boxes, tp_lines
     if print_statements:
-        print("    [update_2_min] function called")
+        print_log("    [update_2_min] function called")
     if root and df_2_min is not None:
         try:
             # Post the update task to the Tkinter main loop
             root.after(0, lambda: update_plot(canvas, df_2_min, boxes, tp_lines, SYMBOL, "2-min"))
         except Exception as e:
-            print(f"    [update_2_min] Error updating 2-min chart: {e}")
+            print_log(f"    [update_2_min] Error updating 2-min chart: {e}")
     else:
-        print("    [update_2_min] GUI or data not initialized.")
+        print_log("    [update_2_min] GUI or data not initialized.")
 
 def plot_candles_and_boxes(df_15, symbol, df_2=None):
     global df_15_min, df_2_min, should_close

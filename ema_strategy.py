@@ -1,7 +1,7 @@
 import os
 import json
 import asyncio
-from error_handler import error_log_and_discord_message
+from error_handler import error_log_and_discord_message, print_log
 from data_acquisition import read_ema_json, get_current_candle_index, above_below_ema, read_last_n_lines, load_message_ids
 from buy_option import buy_option_cp
 import cred
@@ -29,12 +29,12 @@ LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{SYMBOL}_{TIMEFRAMES[0]}.log')
 last_processed_candle = None
 last_processed_ema = None
 async def execute_200ema_strategy():
-    print("Starting execute_200ema_strategy()...")
+    print_log("Starting execute_200ema_strategy()...")
     global last_processed_candle
     global last_processed_ema
 
     message_ids_dict = load_message_ids()
-    print("message_ids_dict: ", message_ids_dict)
+    print_log("message_ids_dict: ", message_ids_dict)
 
 
     async with aiohttp.ClientSession() as session:  # Initialize HTTP session
@@ -54,17 +54,17 @@ async def execute_200ema_strategy():
                     candle_pos = get_current_candle_index()
                     ema_x = last_processed_ema["x"]
                     desired_ema = last_processed_ema[ema_type]
-                    print(f"    [EMA STRATEGY] candle (X, OHLC): ( {candle_pos}, ({candle['open']}, {candle['high']}, {candle['low']}, {candle['close']})); {ema_type}ema: {ema_x}, {desired_ema}")
+                    print_log(f"    [EMA STRATEGY] candle (X, OHLC): ( {candle_pos}, ({candle['open']}, {candle['high']}, {candle['low']}, {candle['close']})); {ema_type}ema: {ema_x}, {desired_ema}")
                     
                     if candle['open'] < desired_ema < candle['close']:
                         #candle closed over ema
-                        print("Buy Call")
+                        print_log("Buy Call")
                         if await above_below_ema('above'): # i think this will help with alternating between orders.
                             await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'call', session, headers, STRATEGY_NAME)
 
                     elif candle['close'] < desired_ema < candle['open']:
                         #candle closed below ema
-                        print("Buy Put")
+                        print_log("Buy Put")
                         if await above_below_ema('below'): # i think this will help with alternating between orders.
                             await buy_option_cp(IS_REAL_MONEY, SYMBOL, 'put', session, headers, STRATEGY_NAME)
 

@@ -1,5 +1,5 @@
 #print_discord_messages.py
-from error_handler import error_log_and_discord_message
+from error_handler import error_log_and_discord_message, print_log
 import asyncio
 import os
 import cred
@@ -36,7 +36,7 @@ async def edit_discord_message(message_id, new_content, delete_last_message=None
             async for old_message in channel.history(limit=1):
                 await old_message.delete()
     else:
-        print("Channel not found.")
+        print_log("Channel not found.")
 
 async def get_message_content(message_id, line=None):
     channel = bot.get_channel(cred.DISCORD_CHANNEL_ID)
@@ -49,17 +49,17 @@ async def get_message_content(message_id, line=None):
             #print(f"Got Message!")
             return message.content  # Return the message content
         except Exception as e:
-            print(f"Message Does Not Exist!")
+            print_log(f"Message Does Not Exist!")
             #await error_log_and_discord_message(e, "print_discord_messages", "get_message_content", "An error occurred when trying to fetch the message content")
             return None
     else:
-        print("Channel not found.")
+        print_log("Channel not found.")
         return None
 
 async def print_discord(message1, message2=None, button_data=None, delete_last_message=None, show_print_statement=None, retries=3, backoff_factor=1):
     message_channel = bot.get_channel(cred.DISCORD_CHANNEL_ID)
     if message_channel is None:
-        print(f"Error: Could not find a channel with ID {cred.DISCORD_CHANNEL_ID}.")
+        print_log(f"Error: Could not find a channel with ID {cred.DISCORD_CHANNEL_ID}.")
         return
 
     if delete_last_message:
@@ -67,9 +67,9 @@ async def print_discord(message1, message2=None, button_data=None, delete_last_m
             try:
                 await old_message.delete()
             except discord.NotFound:
-                print("Previous message not found for deletion.")
+                print_log("Previous message not found for deletion.")
             except discord.HTTPException as e:
-                print(f"Failed to delete previous message due to an HTTP error: {str(e)}")
+                print_log(f"Failed to delete previous message due to an HTTP error: {str(e)}")
 
     view = await create_view(button_data) if button_data else None
 
@@ -81,16 +81,16 @@ async def print_discord(message1, message2=None, button_data=None, delete_last_m
                 sent_message = await message_channel.send(content=message1, view=view) if button_data else await message_channel.send(message1)
             return sent_message
         except (discord.HTTPException, discord.NotFound) as e:
-            print(f"Discord API error on attempt {attempt+1}: {str(e)}")
+            print_log(f"Discord API error on attempt {attempt+1}: {str(e)}")
             if attempt < retries - 1:  # If it's not the last attempt, wait before retrying
                 await asyncio.sleep(backoff_factor * (2 ** attempt))
-    print("Failed to send message after retries.")
+    print_log("Failed to send message after retries.")
     return None
 
 async def send_file_discord(file_path,  retries=3, backoff_factor=1):
     channel = bot.get_channel(cred.DISCORD_CHANNEL_ID)
     if channel is None:
-        print(f"Could not find channel with ID {cred.DISCORD_CHANNEL_ID}")
+        print_log(f"Could not find channel with ID {cred.DISCORD_CHANNEL_ID}")
         return
     
     for attempt in range(retries):
@@ -101,7 +101,7 @@ async def send_file_discord(file_path,  retries=3, backoff_factor=1):
                 await channel.send(file=image_file)
                 return
         except (discord.HTTPException, discord.NotFound) as e:
-            print(f"Discord API error on attempt {attempt+1}: {str(e)}")
+            print_log(f"Discord API error on attempt {attempt+1}: {str(e)}")
             if attempt < retries - 1:  # If it's not the last attempt, wait before retrying
                 await asyncio.sleep(backoff_factor * (2 ** attempt))
-    print("Failed to send file after retries.")
+    print_log("Failed to send file after retries.")

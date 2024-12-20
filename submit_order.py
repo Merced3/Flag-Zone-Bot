@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import requests
 from print_discord_messages import print_discord, get_message_content, edit_discord_message
 import aiohttp
-from error_handler import error_log_and_discord_message
+from error_handler import error_log_and_discord_message, print_log
 from pathlib import Path
 import json
 import sys
@@ -47,7 +47,7 @@ async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_dat
     
     async with session.get(option_chain_url, headers=headers) as response:
         if response.status != 200:
-            print(f"Received unexpected status code {response.status}: {await response.text()}")
+            print_log(f"Received unexpected status code {response.status}: {await response.text()}")
             return None
         try:
             response_json = await response.json()
@@ -75,7 +75,7 @@ async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_dat
                     if lower_bound <= ask <= upper_bound:
                         return strike, ask
             
-            print("No contracts found within the specified price ranges.")
+            print_log("No contracts found within the specified price ranges.")
             return None
             
         except Exception as e:
@@ -87,7 +87,7 @@ async def get_current_price(symbol, session, headers):
 
     async with session.get(quote_url, headers=headers) as response:  # And here
         if response.status != 200:
-            print(f"Received unexpected status code {response.status}: {await response.text()}")
+            print_log(f"Received unexpected status code {response.status}: {await response.text()}")
             return None
         try:
             response_json = await response.json()
@@ -109,7 +109,7 @@ async def submit_option_order_v2(strategy_name, symbol, strike, option_type,  ex
 
     async with session.get(option_chain_url, headers=headers) as response:
         if response.status != 200:
-            print(f"Received unexpected status code {response.status}: {await response.text()}")
+            print_log(f"Received unexpected status code {response.status}: {await response.text()}")
             return None
         try:
             response_json = await response.json()
@@ -134,7 +134,7 @@ async def submit_option_order_v2(strategy_name, symbol, strike, option_type,  ex
                         percentage_of_balance -= 0.01  # Decrease the percentage and recheck
                         if percentage_of_balance <= 0:
                             # If the percentage drops too low (e.g., below 1%), cancel the order
-                            print("Not enough buying power for even a single contract.")
+                            print_log("Not enough buying power for even a single contract.")
                             return None
             else:
                 await error_log_and_discord_message(e, "submit_order", "submit_option_order_v2", "Error getting option [ask] price")
@@ -210,10 +210,10 @@ async def submit_option_order(real_money_activated, symbol, strike, option_type,
     if order_type == 'limit':
         payload["price"] = bid
 
-    print(f"    Submitting order with payload: {payload}") #---------------------------------------------------------------------
+    print_log(f"    Submitting order with payload: {payload}") #---------------------------------------------------------------------
 
     response = requests.post(order_url, headers=headers, data=payload)
-    print(f"    response: {response}")
+    print_log(f"    response: {response}")
 
     if response.status_code == 200:
         response_data = response.json()
@@ -281,7 +281,7 @@ async def get_order_status(strategy_name, real_money_activated, order_id, b_s, t
                 sys.stdout.flush()
 
                 if status == 'filled':
-                    print("")  # Print a newline to move to the next line after the order is filled
+                    print_log("")  # Print a newline to move to the next line after the order is filled
                     unique_order_key = f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"#generate_unique_key(ticker_symbol, cp, strike, expiration_date, order_timestamp)
                     order_price = float(order.get('avg_fill_price', 0))
                     order_quantity = int(order.get('quantity', 0))
@@ -310,18 +310,18 @@ async def get_order_status(strategy_name, real_money_activated, order_id, b_s, t
                                     #update discord order message
                                     await edit_discord_message(original_msg_id, updated_content, True)
                                 else:
-                                    print(f"Could not retrieve original message content for ID {original_msg_id}")
+                                    print_log(f"Could not retrieve original message content for ID {original_msg_id}")
                             except Exception as e:  # Catch any exception to avoid stopping the loop
                                 await error_log_and_discord_message(e, "submit_order", "get_order_status", "An error occurred while getting or edditing message")
                         else:
-                            print(f"Message ID for order {unique_order_key} not found in dictionary. Dictionary contents:\n{message_ids_dict}")
+                            print_log(f"Message ID for order {unique_order_key} not found in dictionary. Dictionary contents:\n{message_ids_dict}")
                     return unique_order_key, order_price, order_quantity
                 elif status == 'canceled':
-                    print("")
+                    print_log("")
                     await print_discord(f"{ticker_symbol} Order Canceled", delete_last_message=True)
                     return status
                 elif status == 'rejected':
-                    print("")
+                    print_log("")
                     await print_discord(f"{ticker_symbol} Order Rejected", delete_last_message=True)
                     return status
             i += 1
@@ -338,11 +338,11 @@ def get_expiration(expiration_date):
         expiration_day_of_week = expiration_date_str.weekday()  # Monday is 0 and Sunday is 6
         # Check if the expiration date is a Saturday (5) or Sunday (6)
         if expiration_day_of_week in [5, 6]:
-            print(f"Canceled the buy, Invalid expiration date (weekend): {expiration_date}")
+            print_log(f"Canceled the buy, Invalid expiration date (weekend): {expiration_date}")
             return
         return expiration_date
     else:
-        print(f"Canceled the buy, Invalid expiration date: {expiration_date}")
+        print_log(f"Canceled the buy, Invalid expiration date: {expiration_date}")
         return
         
 def calculate_quantity(cost_per_contract, order_size_for_account):

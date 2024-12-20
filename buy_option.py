@@ -1,4 +1,4 @@
-from error_handler import error_log_and_discord_message
+from error_handler import error_log_and_discord_message, print_log
 from order_handler import get_unique_order_id_and_is_active, manage_active_order, sell_rest_of_active_order, manage_active_fake_order
 from submit_order import find_what_to_buy, submit_option_order, submit_option_order_v2, get_order_status, get_expiration, calculate_quantity
 from data_acquisition import get_account_balance, add_markers
@@ -44,7 +44,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, header
 
     # Check if there's an active order of the same type
     if current_order_active and prev_option_type == cp:
-        print(f"Canceling buy Order, same order type '{cp}' is already active.")
+        print_log(f"Canceling buy Order, same order type '{cp}' is already active.")
         return False, None, None, None, None
     elif current_order_active and prev_option_type != cp:
         # Sell the current active order if it's of a different type
@@ -121,7 +121,7 @@ Order Cost Buffer exceded BP
                 loop = asyncio.get_event_loop()
                 task = loop.create_task(manage_active_order(active_order, message_ids_dict))
                 if task.done():
-                    print("Task completed.")
+                    print_log("Task completed.")
                 return True, strike_price, quantity, active_order["entry_price"], order_cost
         else:
             active_order = await submit_option_order_v2(strategy_name, ticker_symbol, strike_price, cp, expiration_date, session, headers, message_ids_dict, buying_power)
@@ -133,10 +133,10 @@ Order Cost Buffer exceded BP
                 loop = asyncio.get_event_loop()
                 task = loop.create_task(manage_active_fake_order(active_order, message_ids_dict))
                 if task.done():
-                    print("Task completed.")
+                    print_log("Task completed.")
                 return True, strike_price, quantity, active_order["entry_price"], order_cost
             else:
-                print("Canceled Trade")
+                print_log("Canceled Trade")
         #return True
 
     except Exception as e:

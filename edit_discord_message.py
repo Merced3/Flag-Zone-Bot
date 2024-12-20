@@ -8,11 +8,12 @@ complications. trying to keep the orders as real-representative as possible.
 from print_discord_messages import bot, print_discord, edit_discord_message, get_message_content
 from pathlib import Path
 import asyncio
+from error_handler import error_log_and_discord_message, print_log
 from order_handler import calculate_profit_percentage, generate_sell_info
 import cred
 
 async def bot_start():
-    print(f"Running bot_start()...")
+    print_log(f"Running bot_start()...")
     await bot.start(cred.DISCORD_TOKEN)
 
 async def edit_sell_rest_of_order(unique_order_id, message_id):
@@ -39,9 +40,9 @@ async def edit_sell_trim_of_order(unique_order_id, message_id, sell_quantity, to
         await edit_discord_message(message_id, updated_content)
 
 async def edit_sell_message():
-    print(f"Running edit_sell_message()...")
+    print_log(f"Running edit_sell_message()...")
     await bot.wait_until_ready()
-    print(f"We have logged in as {bot.user}")
+    print_log(f"We have logged in as {bot.user}")
     await print_discord(f"Starting Bot message editor")
 
     unique_order_id = "SPY-call-553.0-20240815-20240815122242162738"
@@ -57,9 +58,9 @@ async def edit_sell_message():
 
 async def edit_end_of_day_calculations(message_id):
     #this is for when EODC doesn't work correctly
-    print(f"Running edit_end_of_day_calculations()...")
+    print_log(f"Running edit_end_of_day_calculations()...")
     await bot.wait_until_ready()
-    print(f"We have logged in as {bot.user}")
+    print_log(f"We have logged in as {bot.user}")
     await print_discord(f"Starting Bot message editor:")
 
     # actually the meat of the program
@@ -95,13 +96,13 @@ Profit/Loss: $1,894.00
 Percent Gain/Loss: 2.01%
     """
     await edit_discord_message(message_id, updated_content)
-    print("\nDone!")
+    print_log("\nDone!")
 
 
 
 
 if __name__ == "__main__":
-    print(f"Starting...")
+    print_log(f"Starting...")
     loop = asyncio.get_event_loop()
     tasks = [
         loop.create_task(bot_start()),

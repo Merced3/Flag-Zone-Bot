@@ -4,7 +4,7 @@ import pandas as pd
 import pandas_market_calendars as mcal
 import numpy as np
 from chart_visualization import update_2_min
-from error_handler import error_log_and_discord_message
+from error_handler import error_log_and_discord_message, print_log
 import websockets
 from websockets.exceptions import InvalidStatusCode
 from requests.exceptions import ConnectionError, Timeout
@@ -53,14 +53,14 @@ def load_message_ids():
 
 async def ws_connect(queue, symbol):
     global should_close
-    print("Starting ws_connect()...")
+    print_log("Starting ws_connect()...")
     should_close = False
 
     while True:
         try:
             session_id = get_session_id()
             if session_id is None:
-                print("Failed to get a new session ID. Retrying in 1 second...")
+                print_log("Failed to get a new session ID. Retrying in 1 second...")
                 await asyncio.sleep(1)
                 continue
 
@@ -72,30 +72,34 @@ async def ws_connect(queue, symbol):
                     "linebreak": True
                 })
                 await websocket.send(payload)
-                print(f">>> {payload}, {datetime.now().isoformat()}")
-                print("[Hr:Mn:Sc]")
+                print_log(f">>> {payload}, {datetime.now().isoformat()}")
+                print_log("[Hr:Mn:Sc]")
 
                 async for message in websocket:
                     if should_close:
-                        print("Closing WebSocket connection.")
+                        print_log("Closing WebSocket connection.")
                         await websocket.close()
                         return
 
                     await queue.put(message)
 
+        except asyncio.TimeoutError:
+            print_log("[SERVER-SIDE TIMEOUT] The WebSocket server did not respond in time. Retrying...")
+            await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
+
         except InvalidStatusCode as e:
             if e.status_code == 502:
-                print("Encountered a server-side error (HTTP 502). There's nothing we can do about it at this moment.")
+                print_log("Encountered a server-side error (HTTP 502). There's nothing we can do about it at this moment.")
             else:
-                print(f"Encountered a server-side error (HTTP {e.status_code}).")
+                print_log(f"Encountered a server-side error (HTTP {e.status_code}).")
             await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
 
         except websockets.ConnectionClosed:
-            print("WebSocket connection closed. Re-establishing connection...")
+            print_log("WebSocket connection closed. Re-establishing connection...")
             await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
 
         except (ConnectionError, NewConnectionError, MaxRetryError, Timeout) as e:
-            print(f"[INTERNET CONNECTION] Failed to connect at {datetime.now().isoformat()}, retrying...")
+            print_log(f"[INTERNET CONNECTION] Failed to connect at {datetime.now().isoformat()}, retrying...")
             await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
         
         except Exception as e:
@@ -113,9 +117,9 @@ def get_session_id(retry_attempts=3, backoff_factor=1):
         if response.status_code == 200:
             return response.json()["stream"]["sessionid"]
         else:
-            print(f"Error: Unable to get session ID: {response.text}, retrying...")
+            print_log(f"Error: Unable to get session ID: {response.text}, retrying...")
             time.sleep(backoff_factor * (2 ** attempt))  # Exponential backoff
-    print("Failed to get a new session ID after retries.")
+    print_log("Failed to get a new session ID after retries.")
     return None
 
 def save_to_csv(df, filename):
@@ -146,10 +150,10 @@ async def get_candle_data(api_key, symbol, interval, timescale, start_date, end_
     intervals_per_day = 26  # Assuming 6.5 trading hours per day
     candle_limit = intervals_per_day * business_days
     limit = 50000  # Temporary static limit
-    print(f"Candle Limit, Limit and Business Days:\n{candle_limit}, {limit}, {business_days}\n")
+    print_log(f"Candle Limit, Limit and Business Days:\n{candle_limit}, {limit}, {business_days}\n")
 
     asc_desc = "asc"
-    print(f"asc_desc = {asc_desc}")
+    print_log(f"asc_desc = {asc_desc}")
 
     df = pd.DataFrame()  # Initialize an empty DataFrame to handle cases where data might not be fetched
     try:
@@ -158,9 +162,9 @@ async def get_candle_data(api_key, symbol, interval, timescale, start_date, end_
         response.raise_for_status()  # This will raise an HTTPError if the HTTP request returned an unsuccessful status code
         
         data = response.json()
-        print(f"({interval}m) url: {url}")
+        print_log(f"({interval}m) url: {url}")
     
-        print(f"response: {response}\n") # i want to print conditions somehow
+        print_log(f"response: {response}\n") # i want to print conditions somehow
 
         # Check if 'results' key is in the data
         if 'results' in data:
@@ -176,15 +180,15 @@ async def get_candle_data(api_key, symbol, interval, timescale, start_date, end_
             save_to_csv(corrected_df, f"{symbol}_{interval}_{timescale}_candles.csv")
             return corrected_df
         else:
-            print("No 'results' key found in the API response.")
+            print_log("No 'results' key found in the API response.")
             return pd.DataFrame()  # Return an empty DataFrame if no results
 
     except requests.exceptions.HTTPError as http_err:
-        print("HTTP error occurred:", http_err)
+        print_log("HTTP error occurred:", http_err)
     except KeyError as key_err:
-        print("Key error in data conversion:", key_err)
+        print_log("Key error in data conversion:", key_err)
     except Exception as e:
-        print("An unexpected error occurred:", e)
+        print_log("An unexpected error occurred:", e)
 
     return pd.DataFrame()
 
@@ -200,7 +204,7 @@ async def filter_data(df, exclude_today=True, day_time_start = '14:30:00', day_t
     df (DataFrame): The DataFrame to filter.
     exclude_today (bool, optional): Whether to exclude today's data. Defaults to True.
     """
-    print(f'day_time_start: {day_time_start}; day_time_end: {day_time_end}')
+    print_log(f'day_time_start: {day_time_start}; day_time_end: {day_time_end}')
     # Keep data for Monday (0) to Friday (4)
     weekday_df = df[df['timestamp'].dt.dayofweek < 5]
 
@@ -344,10 +348,10 @@ def candle_zone_handler(candle, type_of_candle, boxes, first_candle = False):
             if action:
                 what_type_of_candle = f"{box_name} {candle_type}" if "START" in action else None
                 #havent_cleared = True if what_type_of_candle is not None else False
-                print(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}")
+                print_log(f"    [INFO] {action} what_type_of_candle = {what_type_of_candle}")
                 return what_type_of_candle 
     else:
-        print("    [CZH] No Boxes were found...")        
+        print_log("    [CZH] No Boxes were found...")        
     if type_of_candle is not None:
         return type_of_candle
 
@@ -361,7 +365,7 @@ def candle_ema_handler(candle, option_1_or_2 = 2):
     # Load EMA values
     EMAs = load_json_df('EMAs.json')
     if EMAs.empty:
-        print("    [CEH] ERROR: 'EMAs.json' data is unavailable.")
+        print_log("    [CEH] ERROR: 'EMAs.json' data is unavailable.")
 
     last_EMA = EMAs.iloc[-1]
     last_EMA_dict = last_EMA.to_dict()
@@ -373,7 +377,7 @@ def candle_ema_handler(candle, option_1_or_2 = 2):
     ema_200 = last_EMA_dict.get('200')
     
     if ema_13 is None or ema_48 is None or ema_200 is None:
-        print("        [candle_ema_handler] ERROR: Missing EMA data.")
+        print_log("        [candle_ema_handler] ERROR: Missing EMA data.")
         return type_candle
     
     # Get the current/closing price of the candle
@@ -421,7 +425,7 @@ async def get_current_price(symbol: str) -> float:
     try:
         session_id = get_session_id()  # Call the get_session_id function
         if session_id is None:
-            print("Failed to get a new session ID for get_current_price(), data_acquisition.py.")
+            print_log("Failed to get a new session ID for get_current_price(), data_acquisition.py.")
             return 0.0
 
         async with websockets.connect(url, ssl=True, compression=None) as websocket:
@@ -442,9 +446,9 @@ async def get_current_price(symbol: str) -> float:
                     return float(data.get("price", 0))
 
     except InvalidStatusCode as e:
-        print(f"WebSocket connection error: {e}")
+        print_log(f"WebSocket connection error: {e}")
     except Exception as e:
-        print(f"Error in get_current_price: {e}")
+        print_log(f"Error in get_current_price: {e}")
 
     return 0.0  # Return a default value or handle this case as required
 
@@ -457,7 +461,7 @@ async def add_markers(event_type, x=None, y=None, percentage=None):
     #else:
     x_coord = get_current_candle_index(log_file_path) if x is None else x
     y_coord = await get_current_price(SYMBOL) if y is None else y
-    print(f"    [MARKER] {x_coord}, {y_coord}, {event_type}")
+    print_log(f"    [MARKER] {x_coord}, {y_coord}, {event_type}")
 
     x_coord += 1
 
@@ -575,14 +579,14 @@ async def get_certain_candle_data(api_key, symbol, interval, timescale, start_da
             df.rename(columns={'v': 'volume', 'o': 'open', 'c': 'close', 'h': 'high', 'l': 'low', 't': 'timestamp'}, inplace=True)
             csv_filename = f"{symbol}_{interval}_{timescale}_{market_type}.csv"
             df.to_csv(csv_filename, index=False)
-            print(f"Data saved: {csv_filename}")
+            print_log(f"Data saved: {csv_filename}")
             return df
         else:
-            print("No 'results' key found in the API response.")
+            print_log("No 'results' key found in the API response.")
     except requests.exceptions.HTTPError as http_err:
-        print("HTTP error occurred:", http_err)
+        print_log("HTTP error occurred:", http_err)
     except Exception as e:
-        print("An unexpected error occurred:", e)
+        print_log("An unexpected error occurred:", e)
 
     return None
 
@@ -607,10 +611,10 @@ async def get_candle_data_and_merge(aftermarket_file, premarket_file, candle_int
             merged_df[ema_column_name] = merged_df['close'].ewm(span=window, adjust=False).mean()
         
         merged_df.to_csv(merged_file_name, index=False)
-        print(f"\nData saved with initial EMA calculation: {merged_file_name}")
+        print_log(f"\nData saved with initial EMA calculation: {merged_file_name}")
         
     else:
-        print("Aftermarket or premarket data not available. EMA calculation skipped.")
+        print_log("Aftermarket or premarket data not available. EMA calculation skipped.")
 
 def read_log_to_df(log_file_path):
     """Read log data into a DataFrame."""
@@ -666,7 +670,7 @@ async def get_ema_data(timespan, adjusted, window, series_type, order):
     today = datetime.now()
     start_timestamp = to_unix_timestamp(today.year, today.month, today.day, today.hour, today.minute, today.second) 
     end_timestamp = start_timestamp + 2 * 60 * 1000  # Add 2 minutes in milliseconds
-    print(f"start: {convert_unix_timestamp_to_time(start_timestamp)}, end: {convert_unix_timestamp_to_time(end_timestamp)}")
+    print_log(f"start: {convert_unix_timestamp_to_time(start_timestamp)}, end: {convert_unix_timestamp_to_time(end_timestamp)}")
     
     closest_value = None
     closest_timestamp = None
@@ -681,7 +685,7 @@ async def get_ema_data(timespan, adjusted, window, series_type, order):
                 #print(f"ema_data: {ema_data}\n")
                 if 'results' in ema_data and 'values' in ema_data['results']:
                     for data in ema_data['results']['values']:
-                        print(f"data time: {convert_unix_timestamp_to_time(data['timestamp'])}, data value: {data['value']}")
+                        print_log(f"data time: {convert_unix_timestamp_to_time(data['timestamp'])}, data value: {data['value']}")
                         timestamp_diff = abs(data['timestamp'] - start_timestamp)
 
                         if timestamp_diff < smallest_diff:
@@ -691,10 +695,10 @@ async def get_ema_data(timespan, adjusted, window, series_type, order):
 
                     return closest_timestamp, closest_value
                 else:
-                    print("EMA data not found in the response")
+                    print_log("EMA data not found in the response")
                     return None, None
             else:
-                print(f"Error fetching EMA data: {response.status}")
+                print_log(f"Error fetching EMA data: {response.status}")
                 return None, None
 
 def to_unix_timestamp(year, month, day, hour, minute, second=0):
@@ -730,7 +734,7 @@ async def above_below_ema(state, threshold=None, price=None):
     # Load EMA values
     EMAs = load_json_df('EMAs.json')
     if EMAs.empty:
-        print("        [EMA] ERROR: data is unavailable.")
+        print_log("        [EMA] ERROR: data is unavailable.")
         return False, None, None  # No EMA data available 
     
     last_EMA = EMAs.iloc[-1]
@@ -745,7 +749,7 @@ async def above_below_ema(state, threshold=None, price=None):
     
     # Calculate distance from the 13 EMA if the price is in the correct position relative to all EMAs
     distance = abs(price - last_EMA_dict.get('13', 0))  # Default to 0 if '13' not present
-    print(f"        [EMA] distance = {distance}")
+    print_log(f"        [EMA] distance = {distance}")
     
     # Check if the distance from the 13 EMA is within the allowed threshold if specified
     within_threshold = (distance <= threshold) if threshold is not None else True
@@ -755,7 +759,7 @@ async def above_below_ema(state, threshold=None, price=None):
 def clear_priority_candles(type_candle, dir_candle, json_file='priority_candles.json'):
     with open(json_file, 'w') as file:
         json.dump([], file, indent=4)
-    print(f"    [RESET] {json_file}; what_type_of_candle = {type_candle}; bull_or_bear_candle = {dir_candle}")
+    print_log(f"    [RESET] {json_file}; what_type_of_candle = {type_candle}; bull_or_bear_candle = {dir_candle}")
 
 async def record_priority_candle(candle, zone_type_candle, bull_or_bear_candle, json_file='priority_candles.json'):
     # Load existing data or initialize an empty list
@@ -790,7 +794,7 @@ async def start_new_flag_values(candle, candle_type, current_oc_high, current_oc
     current_hl = candle['high'] if candle_type == "bull" else candle['low']
     important_candle_value = current_oc_high if candle_type == "bull" else current_oc_low
     start_point = (candle['candle_index'], important_candle_value, current_hl)
-    print(f"    [IDF] {'Highest' if candle_type=='bull' else 'Lowest'} Point: {start_point}")
+    print_log(f"    [IDF] {'Highest' if candle_type=='bull' else 'Lowest'} Point: {start_point}")
     await reset_flag_internal_values(candle, what_type_of_candle, bull_or_bear_candle)
     return start_point, [], None, None, 0
 
@@ -812,7 +816,7 @@ def resolve_flags(json_file='line_data.json'):
         with open(line_data_path, 'r') as file:
             line_data = json.load(file)
     else:
-        print(f"    [FLAG ERROR] File {json_file} not found.")
+        print_log(f"    [FLAG ERROR] File {json_file} not found.")
         return
 
     # Iterate through the flags and resolve opposite flags
@@ -827,7 +831,7 @@ def resolve_flags(json_file='line_data.json'):
             if is_point_1_valid and is_point_2_valid:
                 flag['status'] = 'complete' #mark complete so its no longer edited
                 updated_line_data.append(flag)
-                print("    [FLAG] Active flags resolved.")
+                print_log("    [FLAG] Active flags resolved.")
             # Skip adding the flag to updated_line_data if it's active and has invalid points
         else:
             updated_line_data.append(flag)
@@ -873,7 +877,7 @@ def restart_state_json(reset_all, state_file_path="state.json"):
     
     with open(state_file_path, 'w') as file:
         json.dump(initial_state, file, indent=4)
-    print("    [RESET] State JSON file has been reset to initial state.")
+    print_log("    [RESET] State JSON file has been reset to initial state.")
     
 def initialize_ema_json(json_path):
     """Ensure the EMA JSON file exists and is valid; initialize if not."""
@@ -893,10 +897,10 @@ async def read_ema_json(position):
             latest_ema = emas[position]
             return latest_ema
     except FileNotFoundError:
-        print("EMAs.json file not found.")
+        print_log("EMAs.json file not found.")
         return None
     except KeyError:
-        print(f"EMA type [{position}] not found in the latest entry.")
+        print_log(f"EMA type [{position}] not found in the latest entry.")
         return None
     except Exception as e:
         await error_log_and_discord_message(e, "ema_strategy", "read_last_ema_json")
@@ -909,7 +913,7 @@ def get_latest_ema_values(ema_type):
 
     # Check if the file is empty before reading
     if os.stat(filepath).st_size == 0:
-        print(f"    [GLEV] EMAs.json is empty.")
+        print_log(f"    [GLEV] EMAs.json is empty.")
         return None, None
 
     try:
@@ -918,7 +922,7 @@ def get_latest_ema_values(ema_type):
             emas = json.load(file)
 
         if not emas:  # Check if the file is empty or contains no data
-            print("    [GLEV] EMAs.json is empty or contains no data.")
+            print_log("    [GLEV] EMAs.json is empty or contains no data.")
             return None, None
         latest_ema = emas[-1][ema_type]
         #print(f"Latest emas: {latest_ema}")
@@ -926,7 +930,7 @@ def get_latest_ema_values(ema_type):
 
         return latest_ema, index_ema
     except (FileNotFoundError, KeyError, json.JSONDecodeError) as e:
-        print(f"    [GLEV] EMA error: {e}")
+        print_log(f"    [GLEV] EMA error: {e}")
         return None, None
 
 def is_ema_broke(ema_type, symbol, timeframe, cp):
@@ -944,7 +948,7 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
             index_candle = len(lines) - 1
             latest_candle = json.loads(lines[-1])
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Log file error: {e}")
+        print_log(f"Log file error: {e}")
         return False
 
     if index_candle == index_ema:
@@ -954,16 +958,16 @@ def is_ema_broke(ema_type, symbol, timeframe, cp):
         # Check conditions based on option type
         if open_price and close_price:
             if cp == 'call' and latest_ema > close_price:
-                print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call. [CLOSE]: {close_price}; [Last EMA]: {latest_ema}; [OPEN]: {open_price}")
+                print_log(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call. [CLOSE]: {close_price}; [Last EMA]: {latest_ema}; [OPEN]: {open_price}")
                 return True
             elif cp == 'put' and latest_ema < close_price:
-                print(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put. [OPEN]: {open_price}; [EMA {ema_type}]: {latest_ema}; [CLOSE] {close_price}")
+                print_log(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put. [OPEN]: {open_price}; [EMA {ema_type}]: {latest_ema}; [CLOSE] {close_price}")
                 return True
         else:
-            print(f"    [IEB {ema_type} EMA] unable to get open and close price... Candle OC: {open_price}, {close_price}")
+            print_log(f"    [IEB {ema_type} EMA] unable to get open and close price... Candle OC: {open_price}, {close_price}")
     else:
         # Print the indices to show they don't match and wait before trying again
-        print(f"    [IEB {ema_type} EMA]\n        index_candle: {index_candle}; Length Lines: {len(lines)}\n        index_ema: {index_ema}; latest ema: {latest_ema}; Indices do not match...")
+        print_log(f"    [IEB {ema_type} EMA]\n        index_candle: {index_candle}; Length Lines: {len(lines)}\n        index_ema: {index_ema}; latest ema: {latest_ema}; Indices do not match...")
     
     return False
 
@@ -987,7 +991,7 @@ def check_order_type_json(candle_type, file_path = "order_candle_type.json"):
         with open(file_path, 'r') as file:
             candle_types = json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
-        print("Error reading the file or file not found. Assuming no orders have been placed.")
+        print_log("Error reading the file or file not found. Assuming no orders have been placed.")
         candle_types = []
 
     # Count how many times the given candle_type appears in the list
@@ -1019,8 +1023,8 @@ def log_order_details(filepath, what_type_of_candle, time_entered, ema_distance,
 # Update the CSV file with additional details
 def update_order_details(filepath, unique_order_id, **kwargs):
     # UOD means Update Order Details
-    print(f"\n    [UOD] unique_order_id: {unique_order_id}")
-    print(f"    [UOD] kwargs: {kwargs}")
+    print_log(f"\n    [UOD] unique_order_id: {unique_order_id}")
+    print_log(f"    [UOD] kwargs: {kwargs}")
     df = pd.read_csv(filepath)
     
     # `unique_order_id` is f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
@@ -1032,27 +1036,27 @@ def update_order_details(filepath, unique_order_id, **kwargs):
 
     # Format the datetime object to the desired string format (ignore seconds)
     formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M %p")
-    print(f"    [UOD] Formatted timestamp (ignoring seconds): {formatted_timestamp}")
+    print_log(f"    [UOD] Formatted timestamp (ignoring seconds): {formatted_timestamp}")
 
     row_found = False
     for index, row in df.iterrows():
         # Normalize the row's timestamp for comparison, ensuring AM/PM is preserved
         row_time_formatted = row['time_entered']
-        print(f"        [UOD 1] Checking row at index {index}: {row_time_formatted}")
+        print_log(f"        [UOD 1] Checking row at index {index}: {row_time_formatted}")
         
         if (row['ticker_symbol'] == symbol and 
             row['strike_price'] == float(strike_price) and 
             row['option_type'] == option_type and 
             row_time_formatted == formatted_timestamp):  # Compare normalized timestamps
-            print(f"            [UOD 2] Matching row found at index {index}")
+            print_log(f"            [UOD 2] Matching row found at index {index}")
             row_found = True
             for key, value in kwargs.items():
-                print(f"                [UOD 3] Updating {key} to {value}")
+                print_log(f"                [UOD 3] Updating {key} to {value}")
                 df.at[index, key] = value
             break  # If the correct row is found, no need to continue looping
     
     if not row_found:
-        print(f"    [UOD] No matching row found for timestamp: {formatted_timestamp}")
+        print_log(f"    [UOD] No matching row found for timestamp: {formatted_timestamp}")
 
     df.to_csv(filepath, index=False)
 
@@ -1062,7 +1066,7 @@ def add_candle_type_to_json(candle_type, file_path = "order_candle_type.json"):
         with open(file_path, 'r') as file:
             candle_types = json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
-        print("File not found or is empty. Starting a new list.")
+        print_log("File not found or is empty. Starting a new list.")
         candle_types = []
 
     # Append the new candle_type to the list
@@ -1166,7 +1170,7 @@ def count_flags_in_json(json_file='line_data.json'):
 def reset_json(file_path, contents):
     with open(file_path, 'w') as f:
         json.dump(contents, f, indent=4)
-        print(f"[RESET] Cleared file: {file_path}")
+        print_log(f"[RESET] Cleared file: {file_path}")
 
 def empty_log(filename):
     """
@@ -1186,7 +1190,7 @@ def empty_log(filename):
     with open(log_file_path, 'w') as file:
         pass  # Opening in write mode ('w') truncates the file automatically
 
-    print(f"[CLEARED]'{filename}.log' has been emptied.")
+    print_log(f"[CLEARED]'{filename}.log' has been emptied.")
 
 def get_test_data_and_allocate(folder_name):
     # Define paths to the test data directory and the target files

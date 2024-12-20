@@ -1,6 +1,8 @@
 import asyncio
 from datetime import datetime, timedelta
 import pytz
+from error_handler import print_log
+from main import clear_log
 
 # Simulate a mock clock for testing
 mock_current_time = datetime(2024, 12, 16, 9, 15)  # Start at a specific time for testing
@@ -48,4 +50,12 @@ async def main_loop():
     print("Mock main_loop executed.")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    #main works...
+    #asyncio.run(main())
+
+    #print/clear logs work...
+    #print_log("This is the first test log entry.")
+    #print_log("Logging another message to ensure everything works.")
+    #clear_log(None, None, "terminal_output.log")
+
+    print("Testing Starts...")

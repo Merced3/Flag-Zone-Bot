@@ -9,6 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
+from error_handler import error_log_and_discord_message, print_log
 #import subprocess
 
 #chrome_version = subprocess.run(
@@ -110,12 +111,12 @@ async def get_economic_calendar_data(i_timespan, star_ammount, world_type):
         try:
             # This is where we get the "Tuesday June 25 2024"
             date_text = header.find_element(By.XPATH, ".//th[@colspan='3']").text.strip()
-            print(f"Date: {date_text}")
+            print_log(f"Date: {date_text}")
             if date_text:
                 # Convert the date from "Tuesday June 25 2024" to "06-25-24"
                 date_obj = datetime.strptime(date_text, "%A %B %d %Y")
                 formatted_date = date_obj.strftime("%m-%d-%y")
-                print(f"Formatted Date: {formatted_date}")
+                print_log(f"Formatted Date: {formatted_date}")
                 current_date = formatted_date
                 if current_date not in data:
                     data[current_date] = {}
@@ -123,7 +124,7 @@ async def get_economic_calendar_data(i_timespan, star_ammount, world_type):
             # Find the tbody following the current header
             tbody = header.find_element(By.XPATH, "following-sibling::tbody")
             event_rows = tbody.find_elements(By.XPATH, ".//tr")
-            print(f"num of events: {len(event_rows)}")
+            print_log(f"num of events: {len(event_rows)}")
             
             for event_row in event_rows:
                 try:
@@ -136,11 +137,11 @@ async def get_economic_calendar_data(i_timespan, star_ammount, world_type):
                             data[current_date][_time] = []
                         data[current_date][_time].append(event)
                 except Exception as e:
-                    print(f"Error processing event_row: {e}")
+                    print_log(f"Error processing event_row: {e}")
                     continue
         
         except Exception as e:
-            print(f"Error processing row: {e}")
+            print_log(f"Error processing row: {e}")
             continue
 
     driver.quit()
@@ -162,7 +163,7 @@ async def get_economic_calendar_data(i_timespan, star_ammount, world_type):
     with open(JSON_FILE, 'w') as f:
         json.dump(final_data, f, indent=4)
 
-    print(f"Data saved to {JSON_FILE}")
+    print_log(f"Data saved to {JSON_FILE}")
 
 def check_order_time_to_event_time(time_threshold=20, json_file='week_ecom_calender.json'):
     
@@ -179,17 +180,17 @@ def check_order_time_to_event_time(time_threshold=20, json_file='week_ecom_calen
 
     # Check if there are events for today
     if today_date not in data['dates']:
-        print("No Events today")
+        print_log("No Events today")
         return True  # No events today
 
     # Get the list of events for today
     events_today = data['dates'][today_date]
-    print(f"Event(s): {events_today}")
+    print_log(f"Event(s): {events_today}")
 
     # Get and convert the current time to a datetime object for comparison
     current_time = datetime.now().strftime("%I:%M %p")
     current_time_obj = datetime.strptime(current_time, "%I:%M %p")
-    print(f"Current Time: {current_time_obj}")
+    print_log(f"Current Time: {current_time_obj}")
     # Check each event time
     for event_time_str in events_today:
         event_time_obj = datetime.strptime(event_time_str, "%I:%M %p")
