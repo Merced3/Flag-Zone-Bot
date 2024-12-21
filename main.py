@@ -359,6 +359,7 @@ async def initial_setup():
 async def main():
     new_york = pytz.timezone('America/New_York')
     last_run_date = None  # To track the last date the functions ran
+    last_weekend_message_date = None  # To track the last weekend message date
 
     while True:
         try:
@@ -393,7 +394,9 @@ async def main():
 
             else:
                 # It's a weekend
-                print_log(f"[INFO] Today is {current_time.strftime('%A')}. Market is closed. Waiting for Monday...")
+                if last_weekend_message_date != current_date:
+                    print_log(f"[INFO] Today is {current_time.strftime('%A')}. Market is closed. Waiting for Monday...")
+                    last_weekend_message_date = current_date  # Update the last weekend message date
 
             # Sleep for 10 seconds before checking again
             await asyncio.sleep(10)
