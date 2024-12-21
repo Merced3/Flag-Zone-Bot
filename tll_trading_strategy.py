@@ -72,7 +72,7 @@ async def execute_trading_strategy(zones):
     print_log("Starting execute_trading_strategy()...")
     global last_processed_candle
     message_ids_dict = load_message_ids()
-    print_log("message_ids_dict: ", message_ids_dict)
+    print_log(f"message_ids_dict: {message_ids_dict}")
 
     candle_list = []  # Stores candles for the first 15 minutes
     MARKET_OPEN_TIME = get_market_open_time()  # Get today's market open time
