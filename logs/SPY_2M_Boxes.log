@@ -1,0 +1,5 @@
+15m) Start and End days: 2024-11-15, 2024-12-24
+{'support_1': (617, 579.9, 581.33), 'resistance_1': (134, 596.15, 595.58), 'PDHL_1': (70, 591.57, 591.045), 'PDHL_2': (34, 589.49, 587.45), 'support_2': (21, 583.86, 584.5)}
+
+Take Profit Lines: {'TP_resistance_2': (594, 593.0), 'TP_resistance_1': (539, 605.17), 'TP_support_1': (539, 603.16), 'TP_PDHL_3': (539, 605.17), 'TP_support_2': (505, 602.81), 'TP_support_3': (288, 602.341), 'TP_support_4': (288, 602.341), 'TP_resistance_3': (253, 603.985), 'TP_support_5': (253, 602.33), 'TP_resistance_4': (253, 603.985), 'TP_support_6': (253, 602.33), 'TP_resistance_5': (357, 609.07), 'TP_support_7': (357, 603.35), 'TP_PDHL_1': (173, 603.35), 'TP_PDHL_2': (104, 594.8), 'TP_support_8': (53, 581.901)}
+

@@ -432,15 +432,15 @@
         "important_message_ids": []
     },
     {
-        "week_number": 0,
-        "week_start_end_date": "00/00/2024-00/00/2024",
-        "start_ammount": 0,
-        "end_ammount": 0,
+        "week_number": 35,
+        "week_start_end_date": "12/23/2024-12/27/2024",
+        "start_ammount": 80466.0,
+        "end_ammount": 80466.0,
         "total_made": 0,
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "",
+        "description": "This week i was gone to cabo, tried running the automated system while i was gone, expectidly there were tons of errors not allowing the program to run correctly, will fix those.",
         "important_message_ids": []
     },
     {
