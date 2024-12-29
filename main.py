@@ -65,10 +65,6 @@ for timeframe in TIMEFRAMES:
 # Define New York timezone
 new_york_tz = pytz.timezone('America/New_York')
 
-# Define market open and close times (assuming 9:30 AM to 4:00 PM New York Time)
-MARKET_OPEN_TIME = datetime.now(new_york_tz).replace(hour=9, minute=30, second=0, microsecond=0)
-MARKET_CLOSE_TIME = datetime.now(new_york_tz).replace(hour=16, minute=0, second=0, microsecond=0)
-
 LOGS_DIR = Path(__file__).resolve().parent / 'logs'
 
 def write_to_log(data, symbol, timeframe):
@@ -253,14 +249,36 @@ def load_from_csv(filename):
 async def process_data(queue):
     print_log("Starting process_data()...")
     global current_candles, candle_counts
-    timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(MARKET_OPEN_TIME, MARKET_CLOSE_TIME, timedelta(seconds=CANDLE_DURATION[tf]))] for tf in TIMEFRAMES}
+    
+    # Define initial timestamps for the first day
+    current_day = datetime.now(new_york_tz).date()
+    market_open_time = datetime.now(new_york_tz).replace(hour=9, minute=30, second=0, microsecond=0)
+    market_close_time = datetime.now(new_york_tz).replace(hour=16, minute=0, second=0, microsecond=0)
+    
+    timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(market_open_time, market_close_time, timedelta(seconds=CANDLE_DURATION[tf]))] for tf in TIMEFRAMES}
     buffer_timestamps = {tf: [add_seconds_to_time(t, CANDLE_BUFFER) for t in timestamps[tf]] for tf in timestamps}
     
     try:
         while True:
             now = datetime.now(new_york_tz)
             f_now = now.strftime('%H:%M:%S')
-            if now >= MARKET_CLOSE_TIME:
+
+            # Check if the day has changed
+            if now.date() != current_day:
+                print_log("[INFO] Detected day change. Recalculating timestamps...")
+                current_day = now.date()
+                market_open_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+                market_close_time = now.replace(hour=16, minute=0, second=0, microsecond=0)
+
+                # Recalculate timestamps for the new day
+                timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(market_open_time, market_close_time, timedelta(seconds=CANDLE_DURATION[tf]))] for tf in TIMEFRAMES}
+                buffer_timestamps = {tf: [add_seconds_to_time(t, CANDLE_BUFFER) for t in timestamps[tf]] for tf in timestamps}
+
+                # Reset the candles for the new day
+                current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in TIMEFRAMES}
+                candle_counts = {tf: 0 for tf in TIMEFRAMES}
+            
+            if now >= market_close_time:
                 print_log("Ending process_data()...")
                 break
 
@@ -284,6 +302,7 @@ async def process_data(queue):
                     if (f_now in timestamps[timeframe]) or (f_now in buffer_timestamps[timeframe]):
                         current_candle["timestamp"] = datetime.now().isoformat()
                         write_to_log(current_candle, SYMBOL, timeframe)
+                        
                         # Reset the current candle and start time
                         current_candles[timeframe] = {
                             "open": None,
@@ -296,11 +315,11 @@ async def process_data(queue):
                         candle_counts[timeframe] += 1
                         print_log(f"[{f_current_time}] Candle count for {timeframe}: {candle_counts[timeframe]}")
                         
-                        #remove the timestamp from the list so we don't write to the log again.
+                        # Remove the timestamp to avoid duplication
                         if f_now in timestamps[timeframe]:
                             timestamps[timeframe].remove(f_now)
                             buffer_timestamps[timeframe].remove(add_seconds_to_time(f_now, CANDLE_BUFFER)) #add CANDLE_BUFFER to f_now and remove it from the buffer_timestamps list.
-                        else: #f_now in buffer_timestamps[timeframe]
+                        elif f_now in buffer_timestamps[timeframe]:
                             buffer_timestamps[timeframe].remove(f_now)
                             timestamps[timeframe].remove(add_seconds_to_time(f_now, -CANDLE_BUFFER)) #subtract CANDLE_BUFFER from f_now and remove it from the timestamps list.
 
