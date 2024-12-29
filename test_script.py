@@ -1,61 +1,63 @@
 import asyncio
-from datetime import datetime, timedelta
-import pytz
-from error_handler import print_log
-from main import clear_log
+from data_acquisition import ws_connect_v2, active_provider
+from asyncio import Queue
 
-# Simulate a mock clock for testing
-mock_current_time = datetime(2024, 12, 16, 9, 15)  # Start at a specific time for testing
-new_york = pytz.timezone('America/New_York')
+SYMBOL = "SPY"
 
-async def main():
-    global mock_current_time  # Use a global mock time for testing
+async def test_websocket_fallback():
+    """
+    Test the WebSocket fallback mechanism between Tradier and Polygon.
+    """
+    global active_provider
+    test_queue = Queue()
 
-    while True:
-        # Simulated current time in New York
-        current_time = new_york.localize(mock_current_time)
-        print(f"Mock Current Time: {current_time.strftime('%Y-%m-%d %H:%M:%S')} (New York Time)")
+    print("[TEST] Starting WebSocket connection tests...")
 
-        # Check if today is Monday to Friday
-        if current_time.weekday() in range(0, 5):  # 0=Monday, 4=Friday
-            # Check if the time is 9:20 AM New York time
-            target_time = new_york.localize(
-                datetime.combine(current_time.date(), datetime.strptime("09:20:00", "%H:%M:%S").time())
-            )
-
-            if current_time >= target_time:
-                print(f"Running initial_setup and main_loop at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
-                await initial_setup()
-                await main_loop()
-
-                # Wait until tomorrow's 9:20 AM
-                print("Simulating wait until the next day's 9:20 AM...")
-                mock_current_time += timedelta(days=1)  # Fast-forward to the next day
-                mock_current_time = mock_current_time.replace(hour=9, minute=15, second=0)  # Reset to 9:15 AM
-                await asyncio.sleep(1)  # Short sleep to simulate a new loop iteration
-                continue
-            else:
-                print("Waiting for 9:20 AM...")
+    # Step 1: Test Tradier WebSocket
+    active_provider = "tradier"
+    print("[TEST] Testing Tradier WebSocket...")
+    try:
+        await asyncio.wait_for(ws_connect_v2(test_queue, active_provider, SYMBOL), timeout=10)
+    except asyncio.TimeoutError:
+        print("[TEST] Tradier WebSocket timed out (expected if market is closed).")
+    except Exception as e:
+        print(f"[TEST] Tradier WebSocket failed with error: {e}")
+    finally:
+        # Verify if fallback occurred or manual switch is needed
+        if active_provider != "tradier":
+            print("[TEST] Tradier WebSocket failed. Fallback to Polygon initiated.")
         else:
-            print(f"Today is {current_time.strftime('%A')}. Market is closed.")
+            print("[TEST] Tradier WebSocket connected or failed without fallback.")
 
-        # Fast-forward mock time by 1 minute for testing
-        mock_current_time += timedelta(minutes=1)
-        #await asyncio.sleep(0.1)  # Simulate time passing quickly (0.1s = 1 minute)
-        
-async def initial_setup():
-    print("Mock initial_setup executed.")
+    # Step 2: Test Polygon WebSocket
+    active_provider = "polygon"
+    print("[TEST] Testing Polygon WebSocket...")
+    try:
+        await asyncio.wait_for(ws_connect_v2(test_queue, active_provider, SYMBOL), timeout=10)
+    except asyncio.TimeoutError:
+        print("[TEST] Polygon WebSocket timed out (expected if market is closed).")
+    except Exception as e:
+        print(f"[TEST] Polygon WebSocket failed with error: {e}")
+    finally:
+        if active_provider != "polygon":
+            print("[TEST] Polygon WebSocket failed. Unexpected behavior.")
+        else:
+            print("[TEST] Polygon WebSocket connected successfully or expected failure due to market closure.")
 
-async def main_loop():
-    print("Mock main_loop executed.")
+    # Step 3: Verify Queue Data
+    print("[TEST] Verifying queue contents...")
+    try:
+        while not test_queue.empty():
+            message = await test_queue.get()
+            print(f"[TEST] Received data: {message}")
+            test_queue.task_done()
+    except Exception as e:
+        print(f"[TEST] Error reading from queue: {e}")
+
+    print("[TEST] WebSocket fallback tests completed.")
 
 if __name__ == "__main__":
-    #main works...
-    #asyncio.run(main())
-
-    #print/clear logs work...
-    #print_log("This is the first test log entry.")
-    #print_log("Logging another message to ensure everything works.")
-    #clear_log(None, None, "terminal_output.log")
-
-    print("Testing Starts...")
+    try:
+        asyncio.run(test_websocket_fallback())
+    except KeyboardInterrupt:
+        print("[TEST] Test script interrupted by user.")

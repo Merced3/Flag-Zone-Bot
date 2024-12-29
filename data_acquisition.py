@@ -24,6 +24,7 @@ import csv
 
 RETRY_INTERVAL = 1  # Seconds between reconnection attempts
 should_close = False  # Global variable to signal if the WebSocket should close
+active_provider = "tradier" # global variable to track active provider
 
 config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
 LOGS_DIR = Path(__file__).resolve().parent / 'logs'
@@ -51,7 +52,7 @@ def load_message_ids():
     else:
         return {}
 
-async def ws_connect(queue, symbol):
+async def ws_connect_v1(queue, symbol):
     global should_close
     print_log("Starting ws_connect()...")
     should_close = False
@@ -105,6 +106,97 @@ async def ws_connect(queue, symbol):
         except Exception as e:
             await error_log_and_discord_message(e, "data_acquisition", "ws_connect", "An error occurred. Re-establishing connection...")
             await asyncio.sleep(RETRY_INTERVAL)  # Wait before retrying
+
+async def ws_connect_v2(queue, provider, symbol):
+    """
+    Sequential WebSocket connection logic for both Tradier and Polygon providers.
+    """
+    global should_close
+    print_log(f"Starting ws_connect() for {provider}...")
+
+    # Define the WebSocket URL based on the provider
+    url = {
+        "tradier": "wss://ws.tradier.com/v1/markets/events",
+        "polygon": "wss://delayed.polygon.io/stocks"  # Updated to match your plan
+    }.get(provider)
+
+    # Define headers only for Tradier; Polygon does not need extra headers
+    headers = {
+        "tradier": {
+            "Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}",
+            "Accept": "application/json"
+        }
+    }.get(provider)
+
+    # Define payloads for authentication and subscription
+    payloads = {
+        "tradier": json.dumps({
+            "symbols": [symbol],
+            "sessionid": get_session_id(),
+            "linebreak": True
+        }),
+        "polygon_auth": json.dumps({
+            "action": "auth",
+            "params": cred.POLYGON_API_KEY
+        }),
+        "polygon_subscribe": json.dumps({
+            "action": "subscribe",
+            "params": f"T.{symbol}"
+        })
+    }
+
+    # Ensure the configuration is valid
+    if not url:
+        raise ValueError(f"[{provider.upper()}] Invalid provider configuration. Check URL.")
+
+    should_close = False
+
+    while True:
+        try:
+            async with websockets.connect(url, ssl=True, compression=None, extra_headers=headers) as websocket:
+                if provider == "polygon":
+                    # Send Polygon authentication payload
+                    await websocket.send(payloads["polygon_auth"])
+                    print_log(f"[{provider.upper()}] Sent auth payload: {payloads['polygon_auth']}, {datetime.now().isoformat()}")
+
+                    await asyncio.sleep(1)  # Wait for auth acknowledgment
+
+                    # Send Polygon subscription payload
+                    await websocket.send(payloads["polygon_subscribe"])
+                    print_log(f"[{provider.upper()}] Sent subscribe payload: {payloads['polygon_subscribe']}, {datetime.now().isoformat()}")
+
+                elif provider == "tradier":
+                    # Send Tradier subscription payload
+                    await websocket.send(payloads["tradier"])
+                    print_log(f"[{provider.upper()}] Sent payload: {payloads['tradier']}, {datetime.now().isoformat()}")
+
+                print_log(f"[{provider.upper()}] WebSocket connection established.")
+                print_log("[Hr:Mn:Sc]")
+                
+                # Start receiving messages
+                async for message in websocket:
+                    if should_close:
+                        print_log(f"[{provider.upper()}] Closing WebSocket connection.")
+                        await websocket.close()
+                        return
+                    await queue.put(message)
+
+        except (ConnectionError, NewConnectionError, MaxRetryError, Timeout) as e:
+            print_log(f"[{provider.upper()} INTERNET CONNECTION] Failed to connect at {datetime.now().isoformat()}. Retrying after {RETRY_INTERVAL} second(s)...")
+            await asyncio.sleep(RETRY_INTERVAL)  # Retry after a delay
+        except Exception as e:
+            print_log(f"[{provider.upper()}] WebSocket failed: {e}")
+            if provider == "tradier" and active_provider == "tradier":
+                print_log("[INFO] Switching to Polygon WebSocket...")
+                active_provider = "polygon"
+                return await ws_connect_v2(queue, "polygon", symbol)
+            elif provider == "polygon" and active_provider == "polygon":
+                print_log("[INFO] Switching to Tradier WebSocket...")
+                active_provider = "tradier"
+                return await ws_connect_v2(queue, "tradier", symbol)
+            else:
+                print_log(f"[{provider.upper()}] Retrying in {RETRY_INTERVAL} second(s)...")
+                await asyncio.sleep(RETRY_INTERVAL)
 
 def get_session_id(retry_attempts=3, backoff_factor=1):
     url = "https://api.tradier.com/v1/markets/events/session"

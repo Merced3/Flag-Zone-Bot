@@ -1,6 +1,6 @@
 #main.py
 from chart_visualization import plot_candles_and_boxes, initiate_shutdown, update_15_min, setup_global_boxes
-from data_acquisition import get_candle_data, get_dates, reset_json, initialize_order_log
+from data_acquisition import get_candle_data, get_dates, reset_json, active_provider, initialize_order_log
 from tll_trading_strategy import execute_trading_strategy
 from buy_option import message_ids_dict, used_buying_power
 from ema_strategy import execute_200ema_strategy
@@ -498,13 +498,15 @@ async def main_loop():
                     print_log("    [ERROR] No candle data was retrieved or 'timestamp' column is missing.")
             
             if market_open_time <= current_time <= market_close_time:
-                if websocket_connection is None:  # Only create a new connection if there isn't one
+                if websocket_connection is None:  # Start WebSocket connection
                     data_acquisition.should_close = False
                     chart_visualization.should_close = False
-                    asyncio.create_task(data_acquisition.ws_connect(queue, SYMBOL))  # Start in the background
+                    
+                    # Start the WebSocket connection for the active provider
+                    asyncio.create_task(data_acquisition.ws_connect_v2(queue, active_provider, SYMBOL), name="WebsocketConnection")  # Start in the background
                     websocket_connection = True
 
-                    # Print that market has opened and account balance
+                    # Initialize account balance and log
                     if IS_REAL_MONEY:
                         start_of_day_account_balance = await data_acquisition.get_account_balance(IS_REAL_MONEY)
                     else:
@@ -513,7 +515,7 @@ async def main_loop():
                     f_s_account_balance = "{:,.2f}".format(start_of_day_account_balance)
                     await print_discord(f"Market is Open! Account BP: ${f_s_account_balance}")
 
-                    #send 2-min chart picture to discord chat
+                    # Send 2-min chart picture to Discord
                     pic_15m_filepath = Path(__file__).resolve().parent / f"{SYMBOL}_15-min_chart.png"
                     await send_file_discord(pic_15m_filepath)
 
