@@ -461,7 +461,7 @@ async def main_loop():
                     prev_days_data = pd.DataFrame()  # Initialize prev_days_data to an empty DataFrame
                     
                     # Plot the data
-                    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, read_config("SYMBOL")))
+                    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, read_config("SYMBOL")), name="plot_15m_candles_and_boxes")
                     chart_thread.start()
                     await asyncio.sleep(1) # wait for the thread
 

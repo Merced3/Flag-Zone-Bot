@@ -57,9 +57,14 @@ def setup_global_boxes(_boxes, _tp_lines):
     print_log("    [setup_global_boxes] setting global boxes and tp_lines")
 
 def update_chart_periodically(root, canvas, boxes, tp_lines, symbol, log_file_path):
-    global df_2_min, should_close
+    global df_2_min, should_close#, root, canvas, boxes, tp_lines
     last_timestamp = None  # Initialize with None
     is_waiting_for_data = True # Flag to check if waiting for initial data
+
+    #root = _root # put the under-score on the variables being imported into the function, not teh global ones, thats why there commented out
+    #canvas = _canvas
+    #boxes = _boxes
+    #tp_lines = _tp_lines
 
     while True:
         if should_close:
@@ -343,16 +348,21 @@ def plot_candles_and_boxes(df_15, symbol, df_2=None):
     # Start the background task for updating the chart
     log_file_path = LOGS_DIR / f"{symbol}_2M.log"  # Replace with your actual log file path
     #how do we say wait until this file exists if it doesn't exists?
-    update_thread = threading.Thread(target=update_chart_periodically, args=(root, canvas, boxes, tp_lines, symbol, log_file_path), daemon=True)
+    update_thread = threading.Thread(target=update_chart_periodically, args=(root, canvas, boxes, tp_lines, symbol, log_file_path), daemon=True, name="update_chart_periodically")
     update_thread.start()
 
     # Start the Tkinter event loop
     tk.mainloop()
 
 def initiate_shutdown():
-    global should_close
+    global should_close, boxes, root, canvas, tp_lines, df_2_min, df_15_min
     should_close = True
-    # boxes = None
+    boxes = None
+    root = None
+    canvas = None
+    tp_lines = None
+    df_2_min = None
+    df_15_min = None
 
 
 def simulate_candles_one_by_one(log_source, log_destination, update_interval=1):
