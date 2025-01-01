@@ -19,7 +19,7 @@ config = read_config()
 #TIMEFRAMES = config["TIMEFRAMES"]
 
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
-LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{read_config("SYMBOL")}_{read_config("TIMEFRAMES")[0]}.log')
+LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}.log')
 
 last_processed_candle = None
 last_processed_ema = None
@@ -55,13 +55,13 @@ async def execute_200ema_strategy():
                         #candle closed over ema
                         print_log("Buy Call")
                         if await above_below_ema('above'): # i think this will help with alternating between orders.
-                            await buy_option_cp(read_config("REAL_MONEY_ACTIVATED"), read_config("SYMBOL"), 'call', session, headers, STRATEGY_NAME)
+                            await buy_option_cp(read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), 'call', session, headers, STRATEGY_NAME)
 
                     elif candle['close'] < desired_ema < candle['open']:
                         #candle closed below ema
                         print_log("Buy Put")
                         if await above_below_ema('below'): # i think this will help with alternating between orders.
-                            await buy_option_cp(read_config("REAL_MONEY_ACTIVATED"), read_config("SYMBOL"), 'put', session, headers, STRATEGY_NAME)
+                            await buy_option_cp(read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), 'put', session, headers, STRATEGY_NAME)
 
                 else:
                     await asyncio.sleep(0.5)  # Wait for new candle data

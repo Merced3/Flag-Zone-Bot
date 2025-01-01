@@ -122,7 +122,7 @@ async def submit_option_order_v2(strategy_name, symbol, strike, option_type,  ex
             
             if ask is not None:
                 while True:
-                    quantity = calculate_quantity(ask, read_config("ACCOUNT_ORDER_PERCENTAGE"))
+                    quantity = calculate_quantity(ask, read_config('ACCOUNT_ORDER_PERCENTAGE'))
                     order_cost = (ask * 100) * quantity #order_cost = (ask * 100 + commission_fee) * quantity
                     if order_cost <= buying_power:
                         break  # If the cost fits within the buying power, proceed with this quantity
@@ -343,7 +343,7 @@ def get_expiration(expiration_date):
         
 def calculate_quantity(cost_per_contract, order_size_for_account):
     # 'order_size_for_account' represents the percentage of the account you want to spend on each order.
-    order_threshold = read_config("ACCOUNT_BALANCES")[0] * order_size_for_account
+    order_threshold = read_config('ACCOUNT_BALANCES')[0] * order_size_for_account
     order_cost = cost_per_contract * 100
 
     order_quantity = order_threshold / order_cost

@@ -155,8 +155,8 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
     mpf.plot(df, ax=ax, type='candle', style='charles', datetime_format='%Y-%m-%d', volume=False, warn_too_much_data=num_data_points + 1)
 
     # After plotting the candlesticks, set y-axis limits to match the candlestick range 
-    y_min = df[['low']].min().min() - read_config("BOX_SIZE_THRESHOLDS")[0]  # Find the minimum low price in the DataFrame
-    y_max = df[['high']].max().max() + read_config("BOX_SIZE_THRESHOLDS")[0]  # Find the maximum high price in the DataFrame
+    y_min = df[['low']].min().min() - read_config('BOX_SIZE_THRESHOLDS')[0]  # Find the minimum low price in the DataFrame
+    y_max = df[['high']].max().max() + read_config('BOX_SIZE_THRESHOLDS')[0]  # Find the maximum high price in the DataFrame
     ax.set_ylim(y_min, y_max)  # Set the y-axis limits
 
     if boxes:
@@ -207,7 +207,7 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type):
                     emas = json.load(f)
                     # Your existing EMA plotting code...
                     x_values = [entry['x'] for entry in emas]
-                    for ema_config in read_config("EMAS"):
+                    for ema_config in read_config('EMAS'):
                         window, color = ema_config
                         ema_values = [entry[str(window)] for entry in emas if str(window) in entry]
                         if ema_values:
@@ -296,7 +296,7 @@ def update_15_min(print_statements=False):
     if root and df_15_min is not None:
         try:
             # Post the update task to the Tkinter main loop
-            root.after(0, lambda: update_plot(canvas, df_15_min, boxes, tp_lines, read_config("SYMBOL"), "15-min"))
+            root.after(0, lambda: update_plot(canvas, df_15_min, boxes, tp_lines, read_config('SYMBOL'), "15-min"))
         except Exception as e:
             print_log(f"    [update_15_min] Error updating 15-min chart: {e}")
     else:
@@ -309,7 +309,7 @@ def update_2_min(print_statements=False):
     if root and df_2_min is not None:
         try:
             # Post the update task to the Tkinter main loop
-            root.after(0, lambda: update_plot(canvas, df_2_min, boxes, tp_lines, read_config("SYMBOL"), "2-min"))
+            root.after(0, lambda: update_plot(canvas, df_2_min, boxes, tp_lines, read_config('SYMBOL'), "2-min"))
         except Exception as e:
             print_log(f"    [update_2_min] Error updating 2-min chart: {e}")
     else:
@@ -385,7 +385,7 @@ def simulate_candles_one_by_one(log_source, log_destination, update_interval=1):
             dest_file.flush()
 
         df_2_min = read_log_to_df(log_destination)
-        root.after(0, lambda: update_plot(canvas, df_2_min, boxes, read_config("SYMBOL"), "2-min"))
+        root.after(0, lambda: update_plot(canvas, df_2_min, boxes, read_config('SYMBOL'), "2-min"))
 
         candle_index += 1
         if not next_candle_event.is_set():  # Only sleep if not stepping through one candle
@@ -408,7 +408,7 @@ def setup_simulation_environment(boxes, interval):
     
     # Load the path configurations
     log_source = LOGS_DIR / 'all_candles.log'
-    log_destination = LOGS_DIR / f"{read_config("SYMBOL")}_2M.log"
+    log_destination = LOGS_DIR / f"{read_config('SYMBOL')}_2M.log"
 
     # Buttons
     button_pause = tk.Button(root, text="Pause", command=pause_simulation)

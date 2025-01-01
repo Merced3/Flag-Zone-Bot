@@ -103,16 +103,16 @@ def generate_sell_info(order_quantity, buy_entry_price, total_cost):
         return n_contracts * profit_per_contract * 100
 
     for i in range(1, order_quantity + 1):
-        cost_at_first_target = calculate_cost_at_target(i, read_config("TAKE_PROFIT_PERCENTAGES")[0])
+        cost_at_first_target = calculate_cost_at_target(i, read_config('TAKE_PROFIT_PERCENTAGES')[0])
         if cost_at_first_target >= total_cost:
-            sell_targets[order_quantity] = [read_config("TAKE_PROFIT_PERCENTAGES")[0]]
+            sell_targets[order_quantity] = [read_config('TAKE_PROFIT_PERCENTAGES')[0]]
             sell_quantities[order_quantity] = [i]
 
             #calculate remaining contracts
             remaining_contracts = order_quantity - i
             if remaining_contracts >= 1:
-                distribution = distribute_remaining_contracts(remaining_contracts, len(read_config("TAKE_PROFIT_PERCENTAGES")) - 1)
-                sell_targets[order_quantity] = read_config("TAKE_PROFIT_PERCENTAGES")[:1 + len(distribution)]
+                distribution = distribute_remaining_contracts(remaining_contracts, len(read_config('TAKE_PROFIT_PERCENTAGES')) - 1)
+                sell_targets[order_quantity] = read_config('TAKE_PROFIT_PERCENTAGES')[:1 + len(distribution)]
                 sell_quantities[order_quantity] = [i] + distribution
             
             # Cleanup zeros from sell_quantities and adjust sell_targets accordingly
@@ -120,7 +120,7 @@ def generate_sell_info(order_quantity, buy_entry_price, total_cost):
             for qty, quantities in sell_quantities.items():
                 valid_indexes = [i for i, q in enumerate(quantities) if q > 0]
                 sell_quantities[qty] = [quantities[i] for i in valid_indexes]
-                sell_targets[qty] = [read_config("TAKE_PROFIT_PERCENTAGES")[i] for i in valid_indexes]
+                sell_targets[qty] = [read_config('TAKE_PROFIT_PERCENTAGES')[i] for i in valid_indexes]
 
             return sell_targets, sell_quantities
 
@@ -201,7 +201,7 @@ async def manage_active_order(active_order_details, _message_ids_dict):
     async with aiohttp.ClientSession() as session:  # Creating a new session using a context manager
         order_id = active_order_details["order_retrieval"]
         
-        if read_config("REAL_MONEY_ACTIVATED"):
+        if read_config('REAL_MONEY_ACTIVATED'):
             order_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}accounts/{cred.TRADIER_BROKERAGE_ACCOUNT_NUMBER}/orders/{order_id}"
             headers = {"Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", "Accept": "application/json"}
         else:
@@ -285,25 +285,25 @@ async def manage_active_order(active_order_details, _message_ids_dict):
                                 log_file.flush()  # Ensure the data is written to the file
 
             # Check for stop loss condition
-            if isinstance(read_config("STOP_LOSS_PERCENTAGE"), str): # if STOP_LOSS_PERCENTAGE is string
+            if isinstance(read_config('STOP_LOSS_PERCENTAGE'), str): # if STOP_LOSS_PERCENTAGE is string
                 # Handling string type STOP_LOSS_PERCENTAGE, e.g., "EMA 13"
-                if "EMA" in read_config("STOP_LOSS_PERCENTAGE"):
-                    ema_value = read_config("STOP_LOSS_PERCENTAGE").split(' ')[-1]
-                    if is_ema_broke(ema_value, read_config("SYMBOL"), read_config("TIMEFRAMES")[0], option_type):
+                if "EMA" in read_config('STOP_LOSS_PERCENTAGE'):
+                    ema_value = read_config('STOP_LOSS_PERCENTAGE').split(' ')[-1]
+                    if is_ema_broke(ema_value, read_config('SYMBOL'), read_config('TIMEFRAMES')[0], option_type):
                         await sell_rest_of_active_order("13ema Trailing stop Hit")
                         break
-            elif isinstance(read_config("STOP_LOSS_PERCENTAGE"), (int, float)): # if STOP_LOSS_PERCENTAGE is number
+            elif isinstance(read_config('STOP_LOSS_PERCENTAGE'), (int, float)): # if STOP_LOSS_PERCENTAGE is number
                 if current_bid_price is not None and buy_entry_price is not None:
                     current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
-                    if current_loss_percentage <= read_config("STOP_LOSS_PERCENTAGE"):
+                    if current_loss_percentage <= read_config('STOP_LOSS_PERCENTAGE'):
                         print_log(f"\nStop loss triggered at {current_loss_percentage}% loss.")
                         await sell_rest_of_active_order("Stop Loss Triggered")
                         break
-            elif isinstance(read_config("STOP_LOSS_PERCENTAGE"), list) and len(read_config("STOP_LOSS_PERCENTAGE")) == 2:  # if STOP_LOSS_PERCENTAGE is a list containing an EMA and a percentage
-                    ema_string, loss_percentage = read_config("STOP_LOSS_PERCENTAGE")
+            elif isinstance(read_config('STOP_LOSS_PERCENTAGE'), list) and len(read_config('STOP_LOSS_PERCENTAGE')) == 2:  # if STOP_LOSS_PERCENTAGE is a list containing an EMA and a percentage
+                    ema_string, loss_percentage = read_config('STOP_LOSS_PERCENTAGE')
                     if isinstance(ema_string, str) and "EMA" in ema_string and isinstance(loss_percentage, (int, float)):
                         ema_value = ema_string.split(' ')[-1]
-                        if is_ema_broke(ema_value, read_config("SYMBOL"), read_config("TIMEFRAMES")[0], option_type):
+                        if is_ema_broke(ema_value, read_config('SYMBOL'), read_config('TIMEFRAMES')[0], option_type):
                             if current_bid_price is not None and buy_entry_price is not None:
                                 current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
                                 if current_loss_percentage <= loss_percentage:
@@ -464,23 +464,23 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                                 #log_file.flush()  # Ensure the data is written to the file
 
                 # Check for stop loss condition
-                if isinstance(read_config("STOP_LOSS_PERCENTAGE"), str): # if STOP_LOSS_PERCENTAGE is string
+                if isinstance(read_config('STOP_LOSS_PERCENTAGE'), str): # if STOP_LOSS_PERCENTAGE is string
                     # Handling string type STOP_LOSS_PERCENTAGE, e.g., "EMA 13"
-                    if "EMA" in read_config("STOP_LOSS_PERCENTAGE"):
-                        ema_value = read_config("STOP_LOSS_PERCENTAGE").split(' ')[-1]
-                        if is_ema_broke(ema_value, read_config("SYMBOL"), read_config("TIMEFRAMES")[0], option_type):
+                    if "EMA" in read_config('STOP_LOSS_PERCENTAGE'):
+                        ema_value = read_config('STOP_LOSS_PERCENTAGE').split(' ')[-1]
+                        if is_ema_broke(ema_value, read_config('SYMBOL'), read_config('TIMEFRAMES')[0], option_type):
                             await sell_rest_of_active_order("13ema Trailing stop Hit")
                             break
-                elif isinstance(read_config("STOP_LOSS_PERCENTAGE"), (int, float)): # if STOP_LOSS_PERCENTAGE is number
+                elif isinstance(read_config('STOP_LOSS_PERCENTAGE'), (int, float)): # if STOP_LOSS_PERCENTAGE is number
                     if current_bid_price is not None and buy_entry_price is not None:
                         current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
-                        if current_loss_percentage <= read_config("STOP_LOSS_PERCENTAGE"):
+                        if current_loss_percentage <= read_config('STOP_LOSS_PERCENTAGE'):
                             Sell_order_cost = remaining_quantity * (current_bid_price * 100)
                             print_log(f"    [STOP LOSS] {current_loss_percentage:.2f}% loss. Sold {remaining_quantity} at {current_bid_price}, costing ${Sell_order_cost:.2f}")
                             await sell_rest_of_active_order("Stop Loss Triggered")
                             break
-                elif isinstance(read_config("STOP_LOSS_PERCENTAGE"), list) and len(read_config("STOP_LOSS_PERCENTAGE")) == 2:  # if STOP_LOSS_PERCENTAGE is a list containing an EMA and a percentage
-                    ema_string, loss_percentage = read_config("STOP_LOSS_PERCENTAGE")
+                elif isinstance(read_config('STOP_LOSS_PERCENTAGE'), list) and len(read_config('STOP_LOSS_PERCENTAGE')) == 2:  # if STOP_LOSS_PERCENTAGE is a list containing an EMA and a percentage
+                    ema_string, loss_percentage = read_config('STOP_LOSS_PERCENTAGE')
                     if isinstance(ema_string, str) and "EMA" in ema_string and isinstance(loss_percentage, (int, float)):
                         # Get EMA value and current candle index
                         ema_value = ema_string.split(' ')[-1]
@@ -494,7 +494,7 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
 
                             last_check_candle_index = current_candle_index
                             last_checked_ema_index = current_index_ema
-                            broke_13_ema = is_ema_broke(ema_value, read_config("SYMBOL"), read_config("TIMEFRAMES")[0], option_type)
+                            broke_13_ema = is_ema_broke(ema_value, read_config('SYMBOL'), read_config('TIMEFRAMES')[0], option_type)
                             print_log(f"    [MAFO] Current EMA index: {last_checked_ema_index}")
                             print_log(f"    [MAFO] Current Candle Index: {last_check_candle_index}")
                             print_log(f"    [MAFO] Broke 13 ema: {broke_13_ema}")
@@ -585,7 +585,7 @@ async def manage_active_fake_order(active_order_details, _message_ids_dict):
                             break
                     elif is_runner:
                         #print(f"        [RUNNER DETECTED] Preparing to check runner conditions for sell point {sell_point}")
-                        if is_ema_broke("13", read_config("SYMBOL"), read_config("TIMEFRAMES")[0], option_type):
+                        if is_ema_broke("13", read_config('SYMBOL'), read_config('TIMEFRAMES')[0], option_type):
                             await sell_rest_of_active_order("13ema Hit")
                             break
                         
@@ -625,12 +625,12 @@ async def sell(quantity, unique_order_key, message_ids_dict, reason_for_selling)
     print_log(f"    REASON FOR SELLING: {reason_for_selling}")
     #execute sell
     order_result = await submit_option_order(
-        read_config("REAL_MONEY_ACTIVATED"), symbol, strike, cp, bid, expiration_date, quantity, side, order_type
+        read_config('REAL_MONEY_ACTIVATED'), symbol, strike, cp, bid, expiration_date, quantity, side, order_type
     )
     if order_result:
         unique_order_ID, order_bid_price, order_quantity = await get_order_status(
             strategy_name=None,
-            real_money_activated=read_config("REAL_MONEY_ACTIVATED"),
+            real_money_activated=read_config('REAL_MONEY_ACTIVATED'),
             order_id=order_result['order_id'],
             b_s="sell",
             ticker_symbol=symbol,
@@ -706,7 +706,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
 
     if current_order_active == False:
         return None
-    if read_config("REAL_MONEY_ACTIVATED"):
+    if read_config('REAL_MONEY_ACTIVATED'):
         while current_order_active and retry_count < retry_limit:
             #calculate how much to sell/remaining quantity
             sell_quantity = order_quantity - sum(sale['quantity'] for sale in partial_exits)

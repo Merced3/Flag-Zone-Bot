@@ -40,7 +40,7 @@ config = read_config()
 #START_POINT_MAX_NUM_FLAGS = config["FLAGPOLE_CRITERIA"]["START_POINT_MAX_NUM_FLAGS"]
 
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
-LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{read_config("SYMBOL")}_{read_config("TIMEFRAMES")[0]}.log')  # Adjust the path accordingly
+LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}.log')  # Adjust the path accordingly
 
 active_order = {
     'order_id': None,
@@ -94,10 +94,10 @@ async def execute_trading_strategy(zones):
     candle_timescale = "minute"
     AM = "AFTERMARKET"
     PM = "PREMARKET"
-    aftermarket_file = f"{read_config("SYMBOL")}_{candle_interval}_{candle_timescale}_{AM}.csv"
-    premarket_file = f"{read_config("SYMBOL")}_{candle_interval}_{candle_timescale}_{PM}.csv"
+    aftermarket_file = f"{read_config('SYMBOL')}_{candle_interval}_{candle_timescale}_{AM}.csv"
+    premarket_file = f"{read_config('SYMBOL')}_{candle_interval}_{candle_timescale}_{PM}.csv"
     json_EMA_path = 'EMAs.json'
-    merged_file_name = f"{read_config("SYMBOL")}_MERGED.csv"
+    merged_file_name = f"{read_config('SYMBOL')}_MERGED.csv"
 
     initialize_ema_json(json_EMA_path)
 
@@ -111,8 +111,8 @@ async def execute_trading_strategy(zones):
                     # If within one minute of market close, exit all positions
                     await sell_rest_of_active_order("Market closing soon. Exiting all positions.")
                     todays_profit_loss = sum(get_profit_loss_orders_list()) #returns todays_orders_profit_loss_list
-                    end_of_day_account_balance = read_config("ACCOUNT_BALANCES")[0] + todays_profit_loss
-                    print_log(f"ACCOUNT_BALANCES[0]: {read_config("ACCOUNT_BALANCES")[0]}, todays_profit_loss: {todays_profit_loss}\nend_of_day_account_balance: {end_of_day_account_balance}")
+                    end_of_day_account_balance = read_config('ACCOUNT_BALANCES')[0] + todays_profit_loss
+                    print_log(f"ACCOUNT_BALANCES[0]: {read_config('ACCOUNT_BALANCES')[0]}, todays_profit_loss: {todays_profit_loss}\nend_of_day_account_balance: {end_of_day_account_balance}")
                     
                     with open(config_path, 'r') as f: # Read existing config
                         config = json.load(f)
@@ -257,7 +257,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
 
         total_candles = 1 + len(candle_points) # the 1 represents 'start_point' since its the first canlde
         print_log(f"    [IDF] Total candles: {total_candles}")
-        if total_candles >= read_config("FLAGPOLE_CRITERIA")["MIN_NUM_CANDLES"] and (slope is None or intercept is None):
+        if total_candles >= read_config('FLAGPOLE_CRITERIA')['MIN_NUM_CANDLES'] and (slope is None or intercept is None):
             
             print_log(f"    [IDF SLOPE] Calculating Slope Line 1...")
             slope, intercept, first_point, second_point = calculate_slope_intercept(candle_points, start_point, candle_type)
@@ -286,7 +286,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                     print_log(f"    [IDF INVALID SLOPE] Angle/Degree outside of range: {angle}")
                     start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle, bull_or_bear_candle)
             elif breakout_detected: 
-                if flag_counter < read_config("FLAGPOLE_CRITERIA")["START_POINT_MAX_NUM_FLAGS"]:
+                if flag_counter < read_config('FLAGPOLE_CRITERIA')['START_POINT_MAX_NUM_FLAGS']:
                     flag_counter = flag_counter +1
                     print_log(f"    [IDF] Forming flag {flag_counter} for current start_point.")
                 else:
@@ -341,7 +341,7 @@ async def check_for_bearish_breakout(line_name, point, slope, intercept, candle,
             # Check if the candle associated with this higher low completely closes below the trendline
             if candle['close'] < trendline_y and candle['close'] <= candle['open']:
                 success = await handle_breakout_and_order(
-                    what_type_of_candle, trendline_y, line_name, point[0], session, headers, read_config("REAL_MONEY_ACTIVATED"), read_config("SYMBOL"), line_type="Bear", able_to_buy=able_to_buy
+                    what_type_of_candle, trendline_y, line_name, point[0], session, headers, read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), line_type="Bear", able_to_buy=able_to_buy
                 )
                 if success:
                     return slope, intercept, True
@@ -357,7 +357,7 @@ async def check_for_bearish_breakout(line_name, point, slope, intercept, candle,
         if candle['close'] < trendline_y and candle['close'] <= candle['open']:
             print_log(f"            [CFBB BREAKOUT 2] Closed under from {trendline_y} at {candle['close']}")
             success = await handle_breakout_and_order(
-                what_type_of_candle, trendline_y, line_name, candle['candle_index'], session, headers, read_config("REAL_MONEY_ACTIVATED"), read_config("SYMBOL"), line_type="Bear", calculate_new_trendline=True, slope=slope, intercept=intercept, able_to_buy=able_to_buy
+                what_type_of_candle, trendline_y, line_name, candle['candle_index'], session, headers, read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), line_type="Bear", calculate_new_trendline=True, slope=slope, intercept=intercept, able_to_buy=able_to_buy
             )
             if success:
                 return None, None, True
@@ -378,7 +378,7 @@ async def check_for_bullish_breakout(line_name, point, slope, intercept, candle,
             if candle['close'] > trendline_y and candle['open'] <= candle['close']:
                 print_log(f"            [CFBB BREAKOUT 1] Closed over from {trendline_y} at {candle['close']}; {candle['open']}")
                 success = await handle_breakout_and_order(
-                    what_type_of_candle, trendline_y, line_name, point[0], session, headers, read_config("REAL_MONEY_ACTIVATED"), read_config("SYMBOL"), line_type="Bull", able_to_buy=able_to_buy
+                    what_type_of_candle, trendline_y, line_name, point[0], session, headers, read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), line_type="Bull", able_to_buy=able_to_buy
                 )
                 if success:
                     return slope, intercept, True
@@ -395,7 +395,7 @@ async def check_for_bullish_breakout(line_name, point, slope, intercept, candle,
         if candle['close'] > trendline_y and candle['open'] <= candle['close']:
             print_log(f"            [CFBB BREAKOUT 2] Closed over from {trendline_y} at {candle['close']}")
             success = await handle_breakout_and_order(
-                what_type_of_candle, trendline_y, line_name, candle['candle_index'], session, headers, read_config("REAL_MONEY_ACTIVATED"), read_config("SYMBOL"), line_type="Bull", calculate_new_trendline=True, slope=slope, intercept=intercept, able_to_buy=able_to_buy
+                what_type_of_candle, trendline_y, line_name, candle['candle_index'], session, headers, read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), line_type="Bull", calculate_new_trendline=True, slope=slope, intercept=intercept, able_to_buy=able_to_buy
             )
             if success:
                 return slope, intercept, True
@@ -423,9 +423,9 @@ async def handle_breakout_and_order(what_type_of_candle, trendline_y, line_name,
     
     #Check emas
     if line_type == 'Bull':
-        ema_condition_met, ema_price_distance_met, ema_distance = await above_below_ema('above', read_config("EMA_MAX_DISTANCE"))
+        ema_condition_met, ema_price_distance_met, ema_distance = await above_below_ema('above', read_config('EMA_MAX_DISTANCE'))
     else:  # 'Bear'
-        ema_condition_met, ema_price_distance_met, ema_distance = await above_below_ema('below', read_config("EMA_MAX_DISTANCE"))
+        ema_condition_met, ema_price_distance_met, ema_distance = await above_below_ema('below', read_config('EMA_MAX_DISTANCE'))
 
     #check if points are valid
     vp_1, vp_2, line_degree_angle, correct_flag = check_valid_points(line_name, line_type) #vp means valid point
@@ -434,7 +434,7 @@ async def handle_breakout_and_order(what_type_of_candle, trendline_y, line_name,
     multi_order_condition_met, num_of_matches = check_order_type_json(what_type_of_candle)
 
     # Check if trade time is aligned with economic events
-    time_result = check_order_time_to_event_time(read_config("MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION"))
+    time_result = check_order_time_to_event_time(read_config('MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION'))
 
     print_log(f"                [HBAO CONDITIONS] {ema_condition_met}, {vp_1}, {vp_2}, {multi_order_condition_met}, {ema_price_distance_met}, {time_result}, {correct_flag}")
     if ema_condition_met and vp_1 and vp_2 and multi_order_condition_met and ema_price_distance_met and time_result and correct_flag: # if all conditions met, then authorize order, buy

@@ -91,11 +91,11 @@ def correct_too_big_small_boxes(candle_data, boxes, print_statements=False):
         day_after_data = candle_data[candle_data.index.date == box_date + pd.Timedelta(days=1)]
 
         height = abs(keep_value - change_value)
-        if read_config("BOX_SIZE_THRESHOLDS")[0] <= height <= read_config("BOX_SIZE_THRESHOLDS")[1]:
+        if read_config('BOX_SIZE_THRESHOLDS')[0] <= height <= read_config('BOX_SIZE_THRESHOLDS')[1]:
             corrected_boxes[box_name] = boxes[box_name]
             continue
 
-        min_value, max_value = sorted([keep_value - read_config("BOX_SIZE_THRESHOLDS")[1], keep_value - read_config("BOX_SIZE_THRESHOLDS")[0]]) if box_type == 'resistance' else sorted([keep_value + read_config("BOX_SIZE_THRESHOLDS")[0], keep_value + read_config("BOX_SIZE_THRESHOLDS")[1]])
+        min_value, max_value = sorted([keep_value - read_config('BOX_SIZE_THRESHOLDS')[1], keep_value - read_config('BOX_SIZE_THRESHOLDS')[0]]) if box_type == 'resistance' else sorted([keep_value + read_config('BOX_SIZE_THRESHOLDS')[0], keep_value + read_config('BOX_SIZE_THRESHOLDS')[1]])
         closest_distance = float('inf')
         corrected_value = change_value
         corrected_pos = box_candle_pos
@@ -477,7 +477,7 @@ def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False, r
             high_low_buffer_range = abs(hl1 - buf2)
             high_low_buffer_range_2 = abs(hl2 - buf1)
 
-            if (buffers_range <= read_config("BOX_SPACING")) or (high_low_range <= read_config("BOX_SPACING")) or (high_low_buffer_range <= read_config("BOX_SPACING")) or (high_low_buffer_range_2 <= read_config("BOX_SPACING")):
+            if (buffers_range <= read_config('BOX_SPACING')) or (high_low_range <= read_config('BOX_SPACING')) or (high_low_buffer_range <= read_config('BOX_SPACING')) or (high_low_buffer_range_2 <= read_config('BOX_SPACING')):
                 #these are made incase of zone were trying to remove has 2 important lines
                 if "b_" in TPL_name:
                     new_name_1 = f"{TPL_name}_1"
@@ -573,7 +573,7 @@ def correct_zones_that_are_too_close(boxes, _tp_lines, print_statements=False, r
         for box_name, box_details in boxes.items():
             tp_x, tp_y = tpl_detials 
             index, hl, buf = box_details
-            threshold_size = read_config("BOX_SPACING")
+            threshold_size = read_config('BOX_SPACING')
             range_hl = abs(hl - tp_y)
             range_buf = abs(buf - tp_y) # if in range and line x is less that box x, meaning line less important
             if (range_hl <= threshold_size) or (range_buf <= threshold_size):

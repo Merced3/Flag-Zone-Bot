@@ -51,7 +51,7 @@ timeframe_mapping = {
     "1H": 1 * ONE_HOUR
 }
 
-for timeframe in read_config("TIMEFRAMES"):
+for timeframe in read_config('TIMEFRAMES'):
     if timeframe in timeframe_mapping:
         CANDLE_DURATION[timeframe] = timeframe_mapping[timeframe]
     else:
@@ -101,9 +101,9 @@ current_candle = {
     "close": None
 }
 
-current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config("TIMEFRAMES")}
-start_times = {tf: datetime.now() for tf in read_config("TIMEFRAMES")}
-candle_counts = {tf: 0 for tf in read_config("TIMEFRAMES")}
+current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
+start_times = {tf: datetime.now() for tf in read_config('TIMEFRAMES')}
+candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')}
 
 def to_float(value):
     if isinstance(value, str):
@@ -250,8 +250,8 @@ async def process_data(queue):
     market_open_time = datetime.now(new_york_tz).replace(hour=9, minute=30, second=0, microsecond=0)
     market_close_time = datetime.now(new_york_tz).replace(hour=16, minute=0, second=0, microsecond=0)
     
-    timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(market_open_time, market_close_time, timedelta(seconds=CANDLE_DURATION[tf]))] for tf in read_config("TIMEFRAMES")}
-    buffer_timestamps = {tf: [add_seconds_to_time(t, read_config("CANDLE_BUFFER")) for t in timestamps[tf]] for tf in timestamps}
+    timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(market_open_time, market_close_time, timedelta(seconds=CANDLE_DURATION[tf]))] for tf in read_config('TIMEFRAMES')}
+    buffer_timestamps = {tf: [add_seconds_to_time(t, read_config('CANDLE_BUFFER')) for t in timestamps[tf]] for tf in timestamps}
     
     try:
         while True:
@@ -266,12 +266,12 @@ async def process_data(queue):
                 market_close_time = now.replace(hour=16, minute=0, second=0, microsecond=0)
 
                 # Recalculate timestamps for the new day
-                timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(market_open_time, market_close_time, timedelta(seconds=CANDLE_DURATION[tf]))] for tf in read_config("TIMEFRAMES")}
-                buffer_timestamps = {tf: [add_seconds_to_time(t, read_config("CANDLE_BUFFER")) for t in timestamps[tf]] for tf in timestamps}
+                timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(market_open_time, market_close_time, timedelta(seconds=CANDLE_DURATION[tf]))] for tf in read_config('TIMEFRAMES')}
+                buffer_timestamps = {tf: [add_seconds_to_time(t, read_config('CANDLE_BUFFER')) for t in timestamps[tf]] for tf in timestamps}
 
                 # Reset the candles for the new day
-                current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config("TIMEFRAMES")}
-                candle_counts = {tf: 0 for tf in read_config("TIMEFRAMES")}
+                current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
+                candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')}
             
             if now >= market_close_time:
                 print_log("Ending process_data()...")
@@ -283,7 +283,7 @@ async def process_data(queue):
             if 'type' in data and data['type'] == 'trade':
                 price = float(data.get("price", 0))
 
-                for timeframe in read_config("TIMEFRAMES"):
+                for timeframe in read_config('TIMEFRAMES'):
                     current_candle = current_candles[timeframe]
                     if current_candle["open"] is None:
                         current_candle["open"] = price
@@ -296,7 +296,7 @@ async def process_data(queue):
 
                     if (f_now in timestamps[timeframe]) or (f_now in buffer_timestamps[timeframe]):
                         current_candle["timestamp"] = datetime.now().isoformat()
-                        write_to_log(current_candle, read_config("SYMBOL"), timeframe)
+                        write_to_log(current_candle, read_config('SYMBOL'), timeframe)
                         
                         # Reset the current candle and start time
                         current_candles[timeframe] = {
@@ -313,10 +313,10 @@ async def process_data(queue):
                         # Remove the timestamp to avoid duplication
                         if f_now in timestamps[timeframe]:
                             timestamps[timeframe].remove(f_now)
-                            buffer_timestamps[timeframe].remove(add_seconds_to_time(f_now, read_config("CANDLE_BUFFER"))) #add CANDLE_BUFFER to f_now and remove it from the buffer_timestamps list.
+                            buffer_timestamps[timeframe].remove(add_seconds_to_time(f_now, read_config('CANDLE_BUFFER'))) #add CANDLE_BUFFER to f_now and remove it from the buffer_timestamps list.
                         elif f_now in buffer_timestamps[timeframe]:
                             buffer_timestamps[timeframe].remove(f_now)
-                            timestamps[timeframe].remove(add_seconds_to_time(f_now, -read_config("CANDLE_BUFFER"))) #subtract CANDLE_BUFFER from f_now and remove it from the timestamps list.
+                            timestamps[timeframe].remove(add_seconds_to_time(f_now, -read_config('CANDLE_BUFFER'))) #subtract CANDLE_BUFFER from f_now and remove it from the timestamps list.
 
         queue.task_done()
 
@@ -364,7 +364,7 @@ async def initial_setup():
 
     await bot.wait_until_ready()
     print_log(f"We have logged in as {bot.user}")
-    await print_discord(f"Starting Bot, Real Money Activated" if read_config("REAL_MONEY_ACTIVATED") else f"Starting Bot, Paper Trading Activated")
+    await print_discord(f"Starting Bot, Real Money Activated" if read_config('REAL_MONEY_ACTIVATED') else f"Starting Bot, Paper Trading Activated")
 
 #async def main(): Keeping this just incase
     #await initial_setup()
@@ -445,23 +445,23 @@ async def main_loop():
             if ((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
                 await ensure_economic_calendar_data()
 
-                start_date, end_date = get_dates(read_config("PAST_DAYS"))
+                start_date, end_date = get_dates(read_config('PAST_DAYS'))
                 print_log(f"15m) Start and End days: \n{start_date}, {end_date}\n")
 
-                candle_15m_data = load_from_csv(f"{read_config("SYMBOL")}_15_minute_candles.csv")
+                candle_15m_data = load_from_csv(f"{read_config('SYMBOL')}_15_minute_candles.csv")
                 if candle_15m_data is None:
-                    candle_15m_data = await get_candle_data(cred.POLYGON_API_KEY, read_config("SYMBOL"), 15, "minute", start_date, end_date)
+                    candle_15m_data = await get_candle_data(cred.POLYGON_API_KEY, read_config('SYMBOL'), 15, "minute", start_date, end_date)
 
                 candle_15m_data['date'] = candle_15m_data['timestamp'].dt.date
                 days = candle_15m_data['date'].unique()
                 days = days[::-1]  # Reverse the order of days to start with the most recent date
-                num_days = min(read_config("PAST_DAYS"), len(days))
+                num_days = min(read_config('PAST_DAYS'), len(days))
                 
                 if candle_15m_data is not None and 'timestamp' in candle_15m_data.columns:
                     prev_days_data = pd.DataFrame()  # Initialize prev_days_data to an empty DataFrame
                     
                     # Plot the data
-                    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, read_config("SYMBOL")), name="plot_15m_candles_and_boxes")
+                    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, read_config('SYMBOL')), name="plot_15m_candles_and_boxes")
                     chart_thread.start()
                     await asyncio.sleep(1) # wait for the thread
 
@@ -471,7 +471,7 @@ async def main_loop():
                         print_log(f"[Day {day_num + 1} of {num_days}] {current_date}")
                         #print(f"    [LENGTH DAY DATA] {len(day_data)}")
                         df_15m = pd.concat([day_data, prev_days_data])
-                        Boxes, tp_lines = boxes.get_v2(Boxes, tp_lines, df_15m, current_date, len(day_data), read_config("GET_PDHL"))
+                        Boxes, tp_lines = boxes.get_v2(Boxes, tp_lines, df_15m, current_date, len(day_data), read_config('GET_PDHL'))
                         Boxes = boxes.correct_zones_inside_other_zones(Boxes)
                         Boxes, tp_lines = boxes.correct_bleeding_zones(Boxes, tp_lines)
                         Boxes, tp_lines = boxes.correct_zones_that_are_too_close(Boxes, tp_lines)
@@ -486,10 +486,10 @@ async def main_loop():
                     # Save boxes into log file for later use
                     boxes_info = f"15m) Start and End days: {start_date}, {end_date}\n{Boxes}\n\nTake Profit Lines: {tp_lines}\n"
                     
-                    write_log_data_as_string(boxes_info, read_config("SYMBOL"), f"{read_config("TIMEFRAMES")[0]}_Boxes")
+                    write_log_data_as_string(boxes_info, read_config('SYMBOL'), f"{read_config('TIMEFRAMES')[0]}_Boxes")
 
                 elif candle_15m_data is None or candle_15m_data.empty or 'timestamp' not in candle_15m_data.columns:
-                    print_log(f"    [ERROR] Error loading or invalid data in {read_config("SYMBOL")}_15_minute_candles.csv")
+                    print_log(f"    [ERROR] Error loading or invalid data in {read_config('SYMBOL')}_15_minute_candles.csv")
                 else:
                     print_log("    [ERROR] No candle data was retrieved or 'timestamp' column is missing.")
             
@@ -499,20 +499,20 @@ async def main_loop():
                     chart_visualization.should_close = False
                     
                     # Start the WebSocket connection for the active provider
-                    asyncio.create_task(data_acquisition.ws_connect_v2(queue, active_provider, read_config("SYMBOL")), name="WebsocketConnection")  # Start in the background
+                    asyncio.create_task(data_acquisition.ws_connect_v2(queue, active_provider, read_config('SYMBOL')), name="WebsocketConnection")  # Start in the background
                     websocket_connection = True
 
                     # Initialize account balance and log
-                    if read_config("REAL_MONEY_ACTIVATED"):
-                        start_of_day_account_balance = await data_acquisition.get_account_balance(read_config("REAL_MONEY_ACTIVATED"))
+                    if read_config('REAL_MONEY_ACTIVATED'):
+                        start_of_day_account_balance = await data_acquisition.get_account_balance(read_config('REAL_MONEY_ACTIVATED'))
                     else:
-                        start_of_day_account_balance = read_config("ACCOUNT_BALANCES")[0] #0 IS START OF DAY BALANCE
+                        start_of_day_account_balance = read_config('ACCOUNT_BALANCES')[0] #0 IS START OF DAY BALANCE
                     end_of_day_account_balance = 0
                     f_s_account_balance = "{:,.2f}".format(start_of_day_account_balance)
                     await print_discord(f"Market is Open! Account BP: ${f_s_account_balance}")
 
                     # Send 2-min chart picture to Discord
-                    pic_15m_filepath = Path(__file__).resolve().parent / f"{read_config("SYMBOL")}_15-min_chart.png"
+                    pic_15m_filepath = Path(__file__).resolve().parent / f"{read_config('SYMBOL')}_15-min_chart.png"
                     await send_file_discord(pic_15m_filepath)
 
                     await print_discord(setup_economic_news_message())
@@ -562,8 +562,8 @@ async def reseting_values():
     global used_buying_power
 
     websocket_connection = None
-    if read_config("REAL_MONEY_ACTIVATED"):
-        end_of_day_account_balance = await data_acquisition.get_account_balance(read_config("REAL_MONEY_ACTIVATED"))
+    if read_config('REAL_MONEY_ACTIVATED'):
+        end_of_day_account_balance = await data_acquisition.get_account_balance(read_config('REAL_MONEY_ACTIVATED'))
     else:
         with open(config_path, 'r') as f:
             config = json.load(f)
@@ -571,7 +571,7 @@ async def reseting_values():
     f_e_account_balance = "{:,.2f}".format(end_of_day_account_balance)
     await print_discord(f"Market is closed. Today's closing balance: ${f_e_account_balance}")
     #send 2-min chart picture to discord chat
-    pic_2m_filepath = Path(__file__).resolve().parent / f"{read_config("SYMBOL")}_2-min_chart.png"
+    pic_2m_filepath = Path(__file__).resolve().parent / f"{read_config('SYMBOL')}_2-min_chart.png"
     await send_file_discord(pic_2m_filepath)
 
     message_ids_dict = get_correct_message_ids(message_ids_dict)
@@ -585,9 +585,9 @@ async def reseting_values():
     print_log("[RESET] Cleared 'used_buying_power' list.")
 
     #save new data in dicord, send log files
-    whole_log = read_log_file(LOGS_DIR / f"{read_config("SYMBOL")}_{read_config("TIMEFRAMES")[0]}.log")
-    write_log_data_as_string(whole_log, read_config("SYMBOL"), f"{read_config("TIMEFRAMES")[0]}_Boxes")
-    new_log_file_path = LOGS_DIR / f"{read_config("SYMBOL")}_{read_config("TIMEFRAMES")[0]}_Boxes.log"
+    whole_log = read_log_file(LOGS_DIR / f"{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}.log")
+    write_log_data_as_string(whole_log, read_config('SYMBOL'), f"{read_config('TIMEFRAMES')[0]}_Boxes")
+    new_log_file_path = LOGS_DIR / f"{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}_Boxes.log"
     await send_file_discord(new_log_file_path) #Send file
     await send_file_discord('EMAs.json')
     await send_file_discord('markers.json')
@@ -629,8 +629,8 @@ async def reseting_values():
             file.unlink()  # Delete the file
 
     #clear the Logs, logs/[ticker_symbol]_2M.log file. Don't delete it just clear it.
-    clear_log(read_config("SYMBOL"), "2M")
-    clear_log(read_config("SYMBOL"), "2M_Boxes")
+    clear_log(read_config('SYMBOL'), "2M")
+    clear_log(read_config('SYMBOL'), "2M_Boxes")
     clear_log(None, None, "terminal_output.log")
 
     # Find all the files that have 'order_log' in them and delete them

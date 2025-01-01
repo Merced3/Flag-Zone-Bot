@@ -48,11 +48,11 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, header
         bid = None
         side = "buy_to_open"
         order_type = "market"  # order_type = "limit" if bid else "market"
-        expiration_date = get_expiration(read_config("OPTION_EXPIRATION_DTE"))
-        strike_price, strike_ask_bid = await find_what_to_buy(ticker_symbol, cp, read_config("NUM_OUT_OF_MONEY"), expiration_date, session, headers)
+        expiration_date = get_expiration(read_config('OPTION_EXPIRATION_DTE'))
+        strike_price, strike_ask_bid = await find_what_to_buy(ticker_symbol, cp, read_config('NUM_OUT_OF_MONEY'), expiration_date, session, headers)
         #print(f"Strike, Price: {strike_price}, {strike_ask_bid}")
         
-        quantity = calculate_quantity(strike_ask_bid, read_config("ACCOUNT_ORDER_PERCENTAGE"))    
+        quantity = calculate_quantity(strike_ask_bid, read_config('ACCOUNT_ORDER_PERCENTAGE'))    
         #order math, making sure we have enough buying power to fulfill order
         if real_money_activated:
             buying_power = await get_account_balance(real_money_activated, bp=True)
