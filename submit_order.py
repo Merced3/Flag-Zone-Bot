@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import requests
 from print_discord_messages import print_discord, get_message_content, edit_discord_message
 import aiohttp
+from data_acquisition import read_config
 from error_handler import error_log_and_discord_message, print_log
 from pathlib import Path
 import json
@@ -12,16 +13,11 @@ import sys
 config_path = Path(__file__).resolve().parent / 'config.json'
 MESSAGE_IDS_FILE_PATH = Path(__file__).resolve().parent / 'message_ids.json'
 
-def read_config():
-    with config_path.open('r') as f:
-        config = json.load(f)
-    return config
-
 config = read_config()
-SYMBOL = config["SYMBOL"]
-IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
-ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"][0]
-ACCOUNT_ORDER_PERCENTAGE = config["ACCOUNT_ORDER_PERCENTAGE"]
+#SYMBOL = config["SYMBOL"]
+#IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
+#ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"][0]
+#ACCOUNT_ORDER_PERCENTAGE = config["ACCOUNT_ORDER_PERCENTAGE"]
 
 def save_message_ids(order_id, message_id):
     # Load existing data
@@ -126,7 +122,7 @@ async def submit_option_order_v2(strategy_name, symbol, strike, option_type,  ex
             
             if ask is not None:
                 while True:
-                    quantity = calculate_quantity(ask, ACCOUNT_ORDER_PERCENTAGE)
+                    quantity = calculate_quantity(ask, read_config("ACCOUNT_ORDER_PERCENTAGE"))
                     order_cost = (ask * 100) * quantity #order_cost = (ask * 100 + commission_fee) * quantity
                     if order_cost <= buying_power:
                         break  # If the cost fits within the buying power, proceed with this quantity
@@ -347,7 +343,7 @@ def get_expiration(expiration_date):
         
 def calculate_quantity(cost_per_contract, order_size_for_account):
     # 'order_size_for_account' represents the percentage of the account you want to spend on each order.
-    order_threshold = ACCOUNT_BALANCE * order_size_for_account
+    order_threshold = read_config("ACCOUNT_BALANCES")[0] * order_size_for_account
     order_cost = cost_per_contract * 100
 
     order_quantity = order_threshold / order_cost

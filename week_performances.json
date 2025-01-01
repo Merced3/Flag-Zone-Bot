@@ -447,13 +447,13 @@
         "week_number": 36,
         "week_start_end_date": "12/30/2024-01/03/2025",
         "start_ammount": 80466.0,
-        "end_ammount": 79539.0,
-        "total_made": -927.0,
-        "num_of_trades": 6,
-        "num_of_profitable_trades": 3,
-        "num_of_negitive_trades": 3,
-        "description": "Day 1, 6 trades 3 winner 3 loosers, lost -$927, automation I think works now but idk about the new sequential websockets.",
-        "important_message_ids": [1322795155497156656]
+        "end_ammount": 80465.0,
+        "total_made": -1.0,
+        "num_of_trades": 9,
+        "num_of_profitable_trades": 5,
+        "num_of_negitive_trades": 4,
+        "description": "Day 1, 6 trades 3 winner 3 loosers, lost -$927, automation I think works now but idk about the new sequential websockets. Day 2, made $926, had 2 errors at the beginning of market open 1st storing yestardays Start account balance and using that same number today 2nd didn't open the tkinter window, had to restart program, 3 trades 2 profitable 1 negitive.",
+        "important_message_ids": [1322795155497156656, 1323397268916670484, 1323659819755765780]
     },
     {
         "week_number": 0,

@@ -29,16 +29,19 @@ active_provider = "tradier" # global variable to track active provider
 config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
 LOGS_DIR = Path(__file__).resolve().parent / 'logs'
 
-def read_config():
-    with open(config_path, 'r') as f:
+def read_config(key=None):
+    """Reads the configuration file and optionally returns a specific key."""
+    with config_path.open("r") as f:
         config = json.load(f)
-    return config
+    if key is None:
+        return config  # Return the whole config if no key is provided
+    return config.get(key)  # Return the specific key's value or None if key doesn't exist
 
 config = read_config()
-IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
-SYMBOL = config["SYMBOL"]
-EMA = config["EMAS"]
-ORDERS_ZONE_THRESHOLD = config["ORDERS_ZONE_THRESHOLD"]
+#IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
+#SYMBOL = config["SYMBOL"]
+#EMA = config["EMAS"]
+#ORDERS_ZONE_THRESHOLD = config["ORDERS_ZONE_THRESHOLD"]
 
 MESSAGE_IDS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'message_ids.json')
 
@@ -172,7 +175,7 @@ async def ws_connect_v2(queue, provider, symbol):
 
                 print_log(f"[{provider.upper()}] WebSocket connection established.")
                 print_log("[Hr:Mn:Sc]")
-                
+
                 # Start receiving messages
                 async for message in websocket:
                     if should_close:
@@ -552,7 +555,7 @@ async def add_markers(event_type, x=None, y=None, percentage=None):
         #y_coord = y
     #else:
     x_coord = get_current_candle_index(log_file_path) if x is None else x
-    y_coord = await get_current_price(SYMBOL) if y is None else y
+    y_coord = await get_current_price(read_config("SYMBOL")) if y is None else y
     print_log(f"    [MARKER] {x_coord}, {y_coord}, {event_type}")
 
     x_coord += 1
@@ -687,17 +690,17 @@ async def get_candle_data_and_merge(aftermarket_file, premarket_file, candle_int
     
     # Load Aftermarket and Premarket Data
     start_date, end_date = get_dates(1, False)
-    PD_AM = await get_certain_candle_data(cred.POLYGON_API_KEY, SYMBOL, candle_interval, candle_timescale, start_date, end_date, am)
+    PD_AM = await get_certain_candle_data(cred.POLYGON_API_KEY, read_config("SYMBOL"), candle_interval, candle_timescale, start_date, end_date, am)
     
     start_date, end_date = get_dates(1, True)
-    CD_PM = await get_certain_candle_data(cred.POLYGON_API_KEY, SYMBOL, candle_interval, candle_timescale, start_date, end_date, pm)
+    CD_PM = await get_certain_candle_data(cred.POLYGON_API_KEY, read_config("SYMBOL"), candle_interval, candle_timescale, start_date, end_date, pm)
     
     # Combine data if both are present
     if PD_AM is not None and CD_PM is not None:
         merged_df = pd.concat([PD_AM, CD_PM], ignore_index=True)
         
         # Calculate EMAs and save to CSV
-        for ema_config in EMA:
+        for ema_config in read_config("EMAS"):
             window, color = ema_config
             ema_column_name = f"EMA_{window}"
             merged_df[ema_column_name] = merged_df['close'].ewm(span=window, adjust=False).mean()
@@ -715,7 +718,7 @@ def read_log_to_df(log_file_path):
 async def calculate_save_EMAs(candle, X_value):
     """Process a single candle: Adds it to CSV, Recalculate EMAs, Saves EMA's to JSON file"""
     
-    merged_file_name = f"{SYMBOL}_MERGED.csv"
+    merged_file_name = f"{read_config("SYMBOL")}_MERGED.csv"
    
     try:
         df = pd.read_csv(merged_file_name)
@@ -730,7 +733,7 @@ async def calculate_save_EMAs(candle, X_value):
 
     # Calculate EMAs 
     current_ema_values = {}
-    for window, _ in EMA: #window, color
+    for window, _ in read_config("EMAS"): #window, color
         ema_column_name = f"EMA_{window}"
         df[ema_column_name] = df['close'].ewm(span=window, adjust=False).mean()
         current_ema_values[str(window)] = df[ema_column_name].iloc[-1]
@@ -768,7 +771,7 @@ async def get_ema_data(timespan, adjusted, window, series_type, order):
     closest_timestamp = None
     smallest_diff = float('inf')
 
-    url = f"https://api.polygon.io/v1/indicators/ema/{SYMBOL}?from={start_timestamp}&to={end_timestamp}&timespan={timespan}&adjusted={adjusted}&window={window}&series_type={series_type}&order={order}&apiKey={cred.POLYGON_API_KEY}"
+    url = f"https://api.polygon.io/v1/indicators/ema/{read_config("SYMBOL")}?from={start_timestamp}&to={end_timestamp}&timespan={timespan}&adjusted={adjusted}&window={window}&series_type={series_type}&order={order}&apiKey={cred.POLYGON_API_KEY}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
@@ -821,7 +824,7 @@ async def above_below_ema(state, threshold=None, price=None):
 
     # Get current price
     if price is None:
-        price = await get_current_price(SYMBOL)
+        price = await get_current_price(read_config("SYMBOL"))
 
     # Load EMA values
     EMAs = load_json_df('EMAs.json')
@@ -1090,7 +1093,7 @@ def check_order_type_json(candle_type, file_path = "order_candle_type.json"):
     num_of_matches = candle_types.count(candle_type)
     #print(num_of_matches)
     # Compare the count with the threshold
-    if num_of_matches >= ORDERS_ZONE_THRESHOLD:
+    if num_of_matches >= read_config("ORDERS_ZONE_THRESHOLD"):
         return False, num_of_matches # More or equal matches than the threshold, do not allow more orders
 
     return True, num_of_matches  # Fewer matches than the threshold, allow more orders
@@ -1184,8 +1187,8 @@ def is_angle_valid(slope, config, bearish=False):
     angle = math.atan(slope) * (180 / math.pi)
     
     # Extract min and max angles from config
-    min_angle = config["FLAGPOLE_CRITERIA"]["MIN_ANGLE"]
-    max_angle = config["FLAGPOLE_CRITERIA"]["MAX_ANGLE"]
+    min_angle = read_config("FLAGPOLE_CRITERIA")["MIN_ANGLE"]
+    max_angle = read_config("FLAGPOLE_CRITERIA")["MAX_ANGLE"]
 
     # Adjust the angle check based on bullish or bearish criteria
     if bearish:

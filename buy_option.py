@@ -1,31 +1,25 @@
 from error_handler import error_log_and_discord_message, print_log
 from order_handler import get_unique_order_id_and_is_active, manage_active_order, sell_rest_of_active_order, manage_active_fake_order
 from submit_order import find_what_to_buy, submit_option_order, submit_option_order_v2, get_order_status, get_expiration, calculate_quantity
-from data_acquisition import get_account_balance, add_markers
+from data_acquisition import get_account_balance, add_markers, read_config
 from print_discord_messages import print_discord
 from datetime import datetime
 import os
 import json
 import asyncio
 
-
 config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
 
-def read_config():
-    with open(config_path, 'r') as f:
-        config = json.load(f)
-    return config
-
 config = read_config()
-IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
-NUM_OUT_MONEY = config["NUM_OUT_OF_MONEY"]
-SYMBOL = config["SYMBOL"]
-TIMEFRAMES = config["TIMEFRAMES"]
-ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
-MIN_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MIN_NUM_CANDLES"]
-MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
-OPTION_EXPIRATION_DTE = config["OPTION_EXPIRATION_DTE"]
-ACCOUNT_ORDER_PERCENTAGE = config["ACCOUNT_ORDER_PERCENTAGE"]
+#IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
+#NUM_OUT_MONEY = config["NUM_OUT_OF_MONEY"]
+#SYMBOL = config["SYMBOL"]
+#TIMEFRAMES = config["TIMEFRAMES"]
+#ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
+#MIN_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MIN_NUM_CANDLES"]
+#MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
+#OPTION_EXPIRATION_DTE = config["OPTION_EXPIRATION_DTE"]
+#ACCOUNT_ORDER_PERCENTAGE = config["ACCOUNT_ORDER_PERCENTAGE"]
 
 message_ids_dict = {}
 used_buying_power = {}
@@ -54,11 +48,11 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, session, header
         bid = None
         side = "buy_to_open"
         order_type = "market"  # order_type = "limit" if bid else "market"
-        expiration_date = get_expiration(OPTION_EXPIRATION_DTE)
-        strike_price, strike_ask_bid = await find_what_to_buy(ticker_symbol, cp, NUM_OUT_MONEY, expiration_date, session, headers)
+        expiration_date = get_expiration(read_config("OPTION_EXPIRATION_DTE"))
+        strike_price, strike_ask_bid = await find_what_to_buy(ticker_symbol, cp, read_config("NUM_OUT_OF_MONEY"), expiration_date, session, headers)
         #print(f"Strike, Price: {strike_price}, {strike_ask_bid}")
         
-        quantity = calculate_quantity(strike_ask_bid, ACCOUNT_ORDER_PERCENTAGE)    
+        quantity = calculate_quantity(strike_ask_bid, read_config("ACCOUNT_ORDER_PERCENTAGE"))    
         #order math, making sure we have enough buying power to fulfill order
         if real_money_activated:
             buying_power = await get_account_balance(real_money_activated, bp=True)
