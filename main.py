@@ -1,6 +1,6 @@
 #main.py
 from chart_visualization import plot_candles_and_boxes, initiate_shutdown, update_15_min, setup_global_boxes
-from data_acquisition import get_candle_data, get_dates, reset_json, active_provider, initialize_order_log, read_config
+from data_acquisition import get_candle_data, get_dates, reset_json, active_provider, initialize_order_log, read_config, is_market_open
 from tll_trading_strategy import execute_trading_strategy
 from buy_option import message_ids_dict, used_buying_power
 from ema_strategy import execute_200ema_strategy
@@ -381,10 +381,6 @@ async def main():
             current_time = datetime.now(new_york)
             current_date = current_time.date()  # Extract the date (e.g., 2024-06-12)
 
-            # Debug: Print current time and date
-            #print(f"[DEBUG] Current time: {current_time.strftime('%Y-%m-%d %H:%M:%S')} (New York Time)")
-            #print(f"[DEBUG] Last run date: {last_run_date}, Today's date: {current_date}")
-
             # Check if today is Monday to Friday
             if current_time.weekday() in range(0, 5):  # 0=Monday, 4=Friday
                 # Set target time to 9:20 AM New York time
@@ -395,16 +391,21 @@ async def main():
                 # Check if it's time to run and hasn't already run today
                 if current_time >= target_time and last_run_date != current_date:
                     print_log(f"[INFO] Running initial_setup and main_loop at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
-                    await initial_setup()  # Run the initial setup
-                    await main_loop()      # Run the main loop
+                    
+                    # Run the initial setup
+                    await initial_setup()
+                    
+                    # Run the main loop if markets are open
+                    if await is_market_open():
+                        await main_loop() 
+                    else:
+                        print_log(f"Markets are closed today: {current_time.strftime('%m/%d/%Y - %A')}") # "Markets are closed today: 1/1/2025 - Wednesday"
+                        await print_discord("**MARKETS ARE CLOSED TODAY**")
+                        
                     last_run_date = current_date  # Update the last run date
 
                     print_log("[INFO] initial_setup and main_loop completed successfully.")
                     print_log("Waiting until tomorrow's 8:20 AM...")
-
-                # Debug: If already ran today
-                #elif last_run_date == current_date:
-                    #print(f"[DEBUG] Already ran today at {current_date}. Waiting for tomorrow.")
 
             else:
                 # It's a weekend

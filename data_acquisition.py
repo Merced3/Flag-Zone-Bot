@@ -217,6 +217,26 @@ def get_session_id(retry_attempts=3, backoff_factor=1):
     print_log("Failed to get a new session ID after retries.")
     return None
 
+async def is_market_open():
+    """Check if the stock market is open today using Polygon.io API."""
+    url = "https://api.polygon.io/v1/marketstatus/now"
+    params = {"apiKey": cred.POLYGON_API_KEY}
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    print_log(f"\n[DATA_AQUISITION] 'is_market_open()' DATA: \n{data}\n")
+                    market_status = data.get("market", "closed")
+                    return market_status.lower() == "open"
+                else:
+                    print_log(f"[ERROR] Polygon API request failed with status {response.status}: {await response.text()}")
+                    return False
+    except Exception as e:
+        print_log(f"[ERROR] Exception in is_market_open: {e}")
+        return False
+
 def save_to_csv(df, filename):
     df.to_csv(filename, index=False)
 
