@@ -14,7 +14,7 @@ def read_config(key=None):
         return config  # Return the whole config if no key is provided
     return config.get(key)  # Return the specific key's value or None if key doesn't exist
 
-config = read_config()
+#config = read_config()
 #BOX_SIZE_THRESHOLDS = config["BOX_SIZE_THRESHOLDS"]
 #BOX_SPACING = config["BOX_SPACING"]
 

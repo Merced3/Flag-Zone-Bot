@@ -26,7 +26,7 @@ RETRY_INTERVAL = 1  # Seconds between reconnection attempts
 should_close = False  # Global variable to signal if the WebSocket should close
 active_provider = "tradier" # global variable to track active provider
 
-config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+config_path = Path(__file__).resolve().parent / 'config.json'
 LOGS_DIR = Path(__file__).resolve().parent / 'logs'
 
 def read_config(key=None):
@@ -37,7 +37,7 @@ def read_config(key=None):
         return config  # Return the whole config if no key is provided
     return config.get(key)  # Return the specific key's value or None if key doesn't exist
 
-config = read_config()
+#config = read_config()
 #IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 #SYMBOL = config["SYMBOL"]
 #EMA = config["EMAS"]

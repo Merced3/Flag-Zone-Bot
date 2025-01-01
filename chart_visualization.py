@@ -20,7 +20,7 @@ tp_lines = None
 LOGS_DIR = Path(__file__).resolve().parent / 'logs'
 should_close = False
 
-config_path = Path(__file__).resolve().parent / 'config.json'#
+config_path = Path(__file__).resolve().parent / 'config.json'
 
 def read_config(key=None):
     """Reads the configuration file and optionally returns a specific key."""
@@ -30,7 +30,7 @@ def read_config(key=None):
         return config  # Return the whole config if no key is provided
     return config.get(key)  # Return the specific key's value or None if key doesn't exist
 
-config = read_config()
+#config = read_config()
 #SYMBOL = config["SYMBOL"]
 #IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 #BOX_SIZE_THRESHOLDS = config["BOX_SIZE_THRESHOLDS"]

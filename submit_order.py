@@ -13,7 +13,7 @@ import sys
 config_path = Path(__file__).resolve().parent / 'config.json'
 MESSAGE_IDS_FILE_PATH = Path(__file__).resolve().parent / 'message_ids.json'
 
-config = read_config()
+#config = read_config()
 #SYMBOL = config["SYMBOL"]
 #IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 #ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"][0]

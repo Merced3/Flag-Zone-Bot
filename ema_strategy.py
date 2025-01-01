@@ -4,6 +4,7 @@ import asyncio
 from error_handler import error_log_and_discord_message, print_log
 from data_acquisition import read_ema_json, get_current_candle_index, above_below_ema, read_last_n_lines, load_message_ids, read_config
 from buy_option import buy_option_cp
+from pathlib import Path
 import cred
 import aiohttp
 
@@ -11,15 +12,15 @@ STRATEGY_NAME = "200 EMA CROSS STRAT"
 
 STRATEGY_DESCRIPTION = """When the candle crosses the 200 ema it buys a call or put and we use the 13 ema as our stoploss. If it crosses the ema by going down, it buys a put and if it goes up, it buys a call."""
 
-config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+config_path = Path(__file__).resolve().parent / 'config.json'
 
-config = read_config()
+#config = read_config()
 #IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 #SYMBOL = config["SYMBOL"]
 #TIMEFRAMES = config["TIMEFRAMES"]
 
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
-LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}.log')
+LOG_FILE_PATH = os.path.join(LOGS_DIR, f"{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}.log")
 
 last_processed_candle = None
 last_processed_ema = None

@@ -23,7 +23,7 @@ Desctiption:
     3) If evreything checks out, we buy and use the 13ema as trailing stoploss and we trim along the way up.
 """
 
-config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+config_path = Path(__file__).resolve().parent / 'config.json'
 
 config = read_config()
 #IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
@@ -40,7 +40,7 @@ config = read_config()
 #START_POINT_MAX_NUM_FLAGS = config["FLAGPOLE_CRITERIA"]["START_POINT_MAX_NUM_FLAGS"]
 
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
-LOG_FILE_PATH = os.path.join(LOGS_DIR, f'{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}.log')  # Adjust the path accordingly
+LOG_FILE_PATH = os.path.join(LOGS_DIR, f"{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}.log")  # Adjust the path accordingly
 
 active_order = {
     'order_id': None,
@@ -113,12 +113,12 @@ async def execute_trading_strategy(zones):
                     todays_profit_loss = sum(get_profit_loss_orders_list()) #returns todays_orders_profit_loss_list
                     end_of_day_account_balance = read_config('ACCOUNT_BALANCES')[0] + todays_profit_loss
                     print_log(f"ACCOUNT_BALANCES[0]: {read_config('ACCOUNT_BALANCES')[0]}, todays_profit_loss: {todays_profit_loss}\nend_of_day_account_balance: {end_of_day_account_balance}")
-                    
+                    _config = None
                     with open(config_path, 'r') as f: # Read existing config
-                        config = json.load(f)
-                    config["ACCOUNT_BALANCES"][1] = end_of_day_account_balance # Update the ACCOUNT_BALANCES
+                        _config = json.load(f)
+                    _config["ACCOUNT_BALANCES"][1] = end_of_day_account_balance # Update the ACCOUNT_BALANCES
                     with open(config_path, 'w') as f: # Write back the updated config
-                        json.dump(config, f, indent=4)  # Using indent for better readability
+                        json.dump(_config, f, indent=4)  # Using indent for better readability
                     restart_state_json(True)
                     break
 

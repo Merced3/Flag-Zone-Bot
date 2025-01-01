@@ -4,13 +4,14 @@ from submit_order import find_what_to_buy, submit_option_order, submit_option_or
 from data_acquisition import get_account_balance, add_markers, read_config
 from print_discord_messages import print_discord
 from datetime import datetime
+from pathlib import Path
 import os
 import json
 import asyncio
 
-config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+config_path = Path(__file__).resolve().parent / 'config.json'
 
-config = read_config()
+#config = read_config()
 #IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
 #NUM_OUT_MONEY = config["NUM_OUT_OF_MONEY"]
 #SYMBOL = config["SYMBOL"]
@@ -27,7 +28,7 @@ used_buying_power = {}
 def get_papertrade_BP():
     #get every orders cost that is in USED_BUYING_POWER, calculate how much all of it added togther costs
     all_order_costs = sum(used_buying_power.values())
-    current_balance = config["ACCOUNT_BALANCES"][0]
+    current_balance = read_config("ACCOUNT_BALANCES")[0]
     current_bp_left = current_balance - all_order_costs
     return current_bp_left
 

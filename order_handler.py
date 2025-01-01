@@ -13,10 +13,9 @@ from data_acquisition import add_markers, is_ema_broke, get_current_candle_index
 import time
 import re
 
-config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+config_path = Path(__file__).resolve().parent / 'config.json'
 
-config = read_config()
-
+#config = read_config()
 #SYMBOL = config["SYMBOL"]
 #TIMEFRAMES = config["TIMEFRAMES"]
 #IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
