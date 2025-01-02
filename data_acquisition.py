@@ -115,6 +115,7 @@ async def ws_connect_v2(queue, provider, symbol):
     Sequential WebSocket connection logic for both Tradier and Polygon providers.
     """
     global should_close
+    global active_provider
     print_log(f"Starting ws_connect() for {provider}...")
 
     # Define the WebSocket URL based on the provider
@@ -191,11 +192,11 @@ async def ws_connect_v2(queue, provider, symbol):
             print_log(f"[{provider.upper()}] WebSocket failed: {e}")
             if provider == "tradier" and active_provider == "tradier":
                 print_log("[INFO] Switching to Polygon WebSocket...")
-                active_provider = "polygon"
+                active_provider = "polygon" # Update global provider
                 return await ws_connect_v2(queue, "polygon", symbol)
             elif provider == "polygon" and active_provider == "polygon":
                 print_log("[INFO] Switching to Tradier WebSocket...")
-                active_provider = "tradier"
+                active_provider = "tradier" # Update global provider
                 return await ws_connect_v2(queue, "tradier", symbol)
             else:
                 print_log(f"[{provider.upper()}] Retrying in {RETRY_INTERVAL} second(s)...")
@@ -229,13 +230,51 @@ async def is_market_open():
                     data = await response.json()
                     print_log(f"\n[DATA_AQUISITION] 'is_market_open()' DATA: \n{data}\n")
                     market_status = data.get("market", "closed")
-                    return market_status.lower() == "open"
+                    return market_status in ["open", "extended-hours"]
                 else:
                     print_log(f"[ERROR] Polygon API request failed with status {response.status}: {await response.text()}")
                     return False
     except Exception as e:
         print_log(f"[ERROR] Exception in is_market_open: {e}")
         return False
+    
+async def get_market_hours(date):
+    """Get the market open and close times for the given date using Polygon.io API."""
+    url = f"https://api.polygon.io/vX/reference/markets/hours"
+    params = {
+        "apiKey": cred.POLYGON_API_KEY,
+        "market": "stocks",  # Specify the market type
+        "date": date  # Date in YYYY-MM-DD format
+    }
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as response:
+                # Log the response MIME type and content for debugging
+                print_log(f"[DEBUG] Response MIME type: {response.content_type}")
+                raw_data = await response.text()
+                print_log(f"[DEBUG] Raw response content: {raw_data}")
+
+                if response.content_type == "application/json":
+                    data = await response.json()
+                    print_log(f"[DATA_AQUISITION] 'get_market_hours()' DATA: \n{data}\n")
+
+                    if "results" in data:
+                        open_time = data["results"].get("open")
+                        close_time = data["results"].get("close")
+
+                        if open_time and close_time:
+                            return {
+                                "open_time_et": open_time,
+                                "close_time_et": close_time
+                            }
+                        else:
+                            raise KeyError(f"Missing keys in API response: 'open' or 'close'")
+                else:
+                    raise ValueError(f"Unexpected response type: {response.content_type}")
+    except Exception as e:
+        print_log(f"[ERROR] Exception in get_market_hours: {e}")
+        return None
 
 def save_to_csv(df, filename):
     df.to_csv(filename, index=False)

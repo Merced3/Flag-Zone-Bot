@@ -555,12 +555,17 @@ def get_correct_message_ids(_message_ids_dict):
     
     return _message_ids_dict
 
-async def reseting_values():
+async def reseting_values(start_balance=None, end_balance=None, message_ids=None):
     global websocket_connection
     global start_of_day_account_balance
     global end_of_day_account_balance
     global message_ids_dict
     global used_buying_power
+
+    if start_balance and end_balance and message_ids:
+        start_of_day_account_balance = start_balance
+        end_of_day_account_balance = end_balance
+        message_ids_dict = message_ids
 
     websocket_connection = None
     if read_config('REAL_MONEY_ACTIVATED'):

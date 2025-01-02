@@ -1,14 +1,14 @@
 #test_end_of_day_calculation.py
 from print_discord_messages import bot, print_discord
-from main import calculate_day_performance
+from main import calculate_day_performance, reseting_values
 from buy_option import message_ids_dict
 import asyncio
 import cred
 import json
 import os
 
-start_of_day_account_balance = 94194.0
-end_of_day_account_balance = 93094.0
+start_of_day_account_balance = 80465.0
+end_of_day_account_balance = 80777.0
 
 async def bot_start():
     await bot.start(cred.DISCORD_TOKEN)
@@ -39,8 +39,12 @@ async def main():
 
     message_ids_dict = get_correct_message_ids(message_ids_dict)
 
-    output_message = await calculate_day_performance(message_ids_dict, start_of_day_account_balance, end_of_day_account_balance)
-    await print_discord(output_message)
+    # TODO: USE THIS if you just want end of day message 
+    #output_message = await calculate_day_performance(message_ids_dict, start_of_day_account_balance, end_of_day_account_balance)
+    #await print_discord(output_message)
+    
+    # TODO: This isn't needed but incase files weren't ever sent to discord nor resetted.
+    await reseting_values(start_of_day_account_balance, end_of_day_account_balance, message_ids_dict)
 
 if __name__ == "__main__":
     print("Starting EODC...")
