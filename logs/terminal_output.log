@@ -1,3 +1,24 @@
+[RESET] Order log file .\order_log_SPY_call_600.0_20250106090202758146.txt deleted.
 The market is closed...
 [INFO] initial_setup and main_loop completed successfully.
 Waiting until tomorrow's 8:20 AM...
+Manually interrupted, cleaning up...
+
+
+
+there was a order i had at the beginning of today that hit 20% but never finished 
+completion of order because of sometype of error im still not aware of. It bought 
+at 0.41 and im guessing it would have stopped out at 0.35, thats worse case senario 
+because it chopped around it's 20% profit mark. so i editted the end of day 
+calculations because of the error not correctly showing todays results, the end of 
+day calcualtion was fruit of the poisonous tree. but the later 2 trades were correct 
+trades since it was off of another zone and we only needed 13 ema calculations and 
+more than 13 candles populated the screen by the time the 2 order were to come about.
+
+
+issue and fixes highlighted here (discord message ID: 1325946783444111360) 
+
+
+[UPDATING GITHUB]
+[UPDATED ALOT OF CODE, FIXED ALOT OF ISSUES]
+

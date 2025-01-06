@@ -1,9 +1,29 @@
 {
-    "week_timespan": "12-30-24 to 01-05-25",
+    "week_timespan": "01-06-25 to 01-12-25",
     "dates": {
-        "01-03-25": {
+        "01-07-25": {
+            "08:30 AM": [
+                "Balance of Trade"
+            ],
             "10:00 AM": [
-                "ISM Manufacturing PMI"
+                "Ivey PMI s.a",
+                "ISM Services PMI",
+                "JOLTs Job Openings"
+            ]
+        },
+        "01-08-25": {
+            "02:00 PM": [
+                "FOMC Minutes"
+            ]
+        },
+        "01-10-25": {
+            "08:30 AM": [
+                "Unemployment Rate",
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ],
+            "10:00 AM": [
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }

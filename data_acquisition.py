@@ -132,23 +132,6 @@ async def ws_connect_v2(queue, provider, symbol):
         }
     }.get(provider)
 
-    # Define payloads for authentication and subscription
-    payloads = {
-        "tradier": json.dumps({
-            "symbols": [symbol],
-            "sessionid": get_session_id(),
-            "linebreak": True
-        }),
-        "polygon_auth": json.dumps({
-            "action": "auth",
-            "params": cred.POLYGON_API_KEY
-        }),
-        "polygon_subscribe": json.dumps({
-            "action": "subscribe",
-            "params": f"T.{symbol}"
-        })
-    }
-
     # Ensure the configuration is valid
     if not url:
         raise ValueError(f"[{provider.upper()}] Invalid provider configuration. Check URL.")
@@ -157,27 +140,59 @@ async def ws_connect_v2(queue, provider, symbol):
 
     while True:
         try:
+            # Ensure session_id is valid
+            session_id = get_session_id() if provider == "tradier" else None
+            if provider == "tradier" and not session_id:
+                print_log("[TRADIER] Unable to get session ID. Retrying...")
+                await asyncio.sleep(RETRY_INTERVAL)
+                retry_count += 1
+                continue  # Retry the loop
+            
+            # Define payloads for authentication and subscription
+            payloads = {
+                "tradier": json.dumps({
+                    "symbols": [symbol],
+                    "sessionid": session_id, # if tradier else none
+                    "linebreak": True
+                }),
+                "polygon_auth": json.dumps({
+                    "action": "auth",
+                    "params": cred.POLYGON_API_KEY
+                }),
+                "polygon_subscribe": json.dumps({
+                    "action": "subscribe",
+                    "params": f"AM.{symbol}"
+                })
+            }
+
+            # Validate Tradier payload
+            if provider == "tradier" and not payloads.get("tradier"):
+                print_log("[TRADIER] Payload construction failed. Retrying...")
+                await asyncio.sleep(RETRY_INTERVAL)
+                continue  # Retry the loop
+
+            # Validate Polygon payloads
+            if provider == "polygon" and (not payloads.get("polygon_auth") or not payloads.get("polygon_subscribe")):
+                print_log("[POLYGON] Payload construction failed. Retrying...")
+                await asyncio.sleep(RETRY_INTERVAL)
+                continue  # Retry the loop
+
             async with websockets.connect(url, ssl=True, compression=None, extra_headers=headers) as websocket:
                 if provider == "polygon":
-                    # Send Polygon authentication payload
                     await websocket.send(payloads["polygon_auth"])
                     print_log(f"[{provider.upper()}] Sent auth payload: {payloads['polygon_auth']}, {datetime.now().isoformat()}")
 
                     await asyncio.sleep(1)  # Wait for auth acknowledgment
-
-                    # Send Polygon subscription payload
                     await websocket.send(payloads["polygon_subscribe"])
                     print_log(f"[{provider.upper()}] Sent subscribe payload: {payloads['polygon_subscribe']}, {datetime.now().isoformat()}")
 
                 elif provider == "tradier":
-                    # Send Tradier subscription payload
                     await websocket.send(payloads["tradier"])
                     print_log(f"[{provider.upper()}] Sent payload: {payloads['tradier']}, {datetime.now().isoformat()}")
 
                 print_log(f"[{provider.upper()}] WebSocket connection established.")
                 print_log("[Hr:Mn:Sc]")
 
-                # Start receiving messages
                 async for message in websocket:
                     if should_close:
                         print_log(f"[{provider.upper()}] Closing WebSocket connection.")
@@ -185,38 +200,38 @@ async def ws_connect_v2(queue, provider, symbol):
                         return
                     await queue.put(message)
 
-        except (ConnectionError, NewConnectionError, MaxRetryError, Timeout) as e:
-            print_log(f"[{provider.upper()} INTERNET CONNECTION] Failed to connect at {datetime.now().isoformat()}. Retrying after {RETRY_INTERVAL} second(s)...")
-            await asyncio.sleep(RETRY_INTERVAL)  # Retry after a delay
         except Exception as e:
             print_log(f"[{provider.upper()}] WebSocket failed: {e}")
-            if provider == "tradier" and active_provider == "tradier":
-                print_log("[INFO] Switching to Polygon WebSocket...")
-                active_provider = "polygon" # Update global provider
-                return await ws_connect_v2(queue, "polygon", symbol)
-            elif provider == "polygon" and active_provider == "polygon":
-                print_log("[INFO] Switching to Tradier WebSocket...")
-                active_provider = "tradier" # Update global provider
-                return await ws_connect_v2(queue, "tradier", symbol)
-            else:
-                print_log(f"[{provider.upper()}] Retrying in {RETRY_INTERVAL} second(s)...")
-                await asyncio.sleep(RETRY_INTERVAL)
+            # Switch providers locally
+            provider = "polygon" if provider == "tradier" else "tradier"
+            print_log(f"[INFO] Switching to {active_provider.capitalize()} WebSocket...")
+            await asyncio.sleep(RETRY_INTERVAL)
+
 
 def get_session_id(retry_attempts=3, backoff_factor=1):
+    """Retrieve a session ID from Tradier API."""
     url = "https://api.tradier.com/v1/markets/events/session"
     headers = {
         "Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}",
         "Accept": "application/json"
     }
     for attempt in range(retry_attempts):
-        response = requests.post(url, data={}, headers=headers)
-        if response.status_code == 200:
-            return response.json()["stream"]["sessionid"]
-        else:
-            print_log(f"Error: Unable to get session ID: {response.text}, retrying...")
+        try:
+            response = requests.post(url, data={}, headers=headers, timeout=10)
+            response.raise_for_status()  # Raise an HTTPError for bad responses (4xx, 5xx)
+            session_data = response.json()
+            session_id = session_data.get("stream", {}).get("sessionid")
+            if session_id:
+                return session_id
+            else:
+                print_log(f"[TRADIER] Invalid session response: {session_data}")
+        except requests.exceptions.RequestException as e:
+            print_log(f"[TRADIER] Error fetching session ID: {e}. Attempt {attempt + 1}/{retry_attempts}")
             time.sleep(backoff_factor * (2 ** attempt))  # Exponential backoff
-    print_log("Failed to get a new session ID after retries.")
+
+    print_log("[TRADIER] Failed to get session ID after retries.")
     return None
+
 
 async def is_market_open():
     """Check if the stock market is open today using Polygon.io API."""
@@ -575,36 +590,50 @@ def candle_close_in_zone(candle, boxes):
     return False
 
 async def get_current_price(symbol: str) -> float:
-    url = "wss://ws.tradier.com/v1/markets/events"  # Replace with your actual WebSocket URL
+    """
+    Fetch the current price of a symbol using a WebSocket connection.
+    """
+    url = "wss://ws.tradier.com/v1/markets/events"  # WebSocket URL
     try:
-        session_id = get_session_id()  # Call the get_session_id function
+        session_id = get_session_id()  # Retrieve a session ID
         if session_id is None:
-            print_log("Failed to get a new session ID for get_current_price(), data_acquisition.py.")
+            print_log("[ERROR] Failed to get a new session ID for get_current_price().")
             return 0.0
 
         async with websockets.connect(url, ssl=True, compression=None) as websocket:
-            # Send payload to subscribe to the symbol's trades
+            # Send the payload to subscribe to the symbol's trades
             payload = json.dumps({
                 "symbols": [symbol],
-                "sessionid": session_id,  # Include the session ID in the payload
-                # Add other fields as required by your API
+                "sessionid": session_id,
+                "linebreak": True  # Include this if required by the API
             })
             await websocket.send(payload)
+            #print_log(f"[INFO] Subscribed to trades for {symbol}.")
 
-            # Wait for the first trade message
+            # Wait for trade data
             while True:
                 message = await websocket.recv()
-                data = json.loads(message)
+                try:
+                    data = json.loads(message)
+                    #print_log(f"[DEBUG] Received WebSocket message: {data}")
 
-                if 'type' in data and data['type'] == 'trade':
-                    return float(data.get("price", 0))
+                    # Check if the message is a trade and contains a price
+                    if data.get('type') == 'trade' and 'price' in data:
+                        return float(data['price'])
+
+                except json.JSONDecodeError as e:
+                    print_log(f"[ERROR] Failed to decode WebSocket message: {e}")
+                except KeyError as e:
+                    print_log(f"[ERROR] Missing expected data in message: {e}")
 
     except InvalidStatusCode as e:
-        print_log(f"WebSocket connection error: {e}")
+        print_log(f"[ERROR] WebSocket connection error: {e}")
     except Exception as e:
-        print_log(f"Error in get_current_price: {e}")
+        print_log(f"[ERROR] Error in get_current_price: {e}")
 
-    return 0.0  # Return a default value or handle this case as required
+    # If no valid price is retrieved, return a default value
+    print_log("[WARNING] Returning default price 0.0 due to errors or no data.")
+    return 0.0
 
 async def add_markers(event_type, x=None, y=None, percentage=None):
     
