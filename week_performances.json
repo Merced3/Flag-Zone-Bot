@@ -459,13 +459,13 @@
         "week_number": 37,
         "week_start_end_date": "01/06/2024-01/10/2024",
         "start_ammount": 80683.0,
-        "end_ammount": 81403.0,
-        "total_made": 720,
-        "num_of_trades": 3,
-        "num_of_profitable_trades": 2,
+        "end_ammount": 82385.0,
+        "total_made": 1702.0,
+        "num_of_trades": 4,
+        "num_of_profitable_trades": 3,
         "num_of_negitive_trades": 1,
-        "description": "Day 1, alot of errors and fixes, 3 trades 2 profitable and 1 negitive, first order had a error so i figured it stopped out at 0.35, meaning today i made a profit of $720.",
-        "important_message_ids": [1325946783444111360]
+        "description": "Day 1, alot of errors and fixes, 3 trades 2 profitable and 1 negitive, first order had a error so i figured it stopped out at 0.35, meaning today i made a profit of $720. Day 2, took 2 trades but only 1 counted because it was in accordance to the rule, 1 profitable trade of $982 hit 50%, the last 2 day's were HUGE for development.",
+        "important_message_ids": [1325946783444111360, 1326266023271337985, 1326271023401926718, 1326291608081268879, 1326292696192778283]
     },
     {
         "week_number": 0,

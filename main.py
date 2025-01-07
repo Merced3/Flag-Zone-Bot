@@ -1,8 +1,10 @@
 #main.py
 from chart_visualization import plot_candles_and_boxes, initiate_shutdown, update_15_min, setup_global_boxes
 from data_acquisition import get_candle_data, get_dates, reset_json, active_provider, initialize_order_log, read_config, is_market_open
+from shared_state import price_lock
+import shared_state
 from tll_trading_strategy import execute_trading_strategy
-from buy_option import message_ids_dict, used_buying_power
+#from buy_option import message_ids_dict, used_buying_power
 from ema_strategy import execute_200ema_strategy
 from economic_calender_scraper import get_economic_calendar_data, setup_economic_news_message
 from print_discord_messages import bot, print_discord, get_message_content, send_file_discord
@@ -172,10 +174,10 @@ def extract_trade_results(message, message_id):
     else:
         return f"Invalid Results Details for message ID {message_id}"
 
-async def calculate_day_performance(message_ids_dict, start_balance_str, end_balance_str):
+async def calculate_day_performance(_message_ids_dict, start_balance_str, end_balance_str):
     trades_str_list = []
     BP_float_list = []
-    for message_id in message_ids_dict.values():
+    for message_id in _message_ids_dict.values():
         #print(f"\n\nmessage_id: {message_id}")
         message_content = await get_message_content(message_id)
         if message_content:
@@ -282,6 +284,11 @@ async def process_data(queue):
 
             if 'type' in data and data['type'] == 'trade':
                 price = float(data.get("price", 0))
+
+                # Update the shared `latest_price` variable
+                async with price_lock:
+                    shared_state.latest_price = price  # Update shared_state.latest_price
+                    #print_log(f"[SHARED STATE] Updated latest_price: {shared_state.latest_price}")
 
                 for timeframe in read_config('TIMEFRAMES'):
                     current_candle = current_candles[timeframe]
@@ -508,7 +515,7 @@ async def main_loop():
                         start_of_day_account_balance = await data_acquisition.get_account_balance(read_config('REAL_MONEY_ACTIVATED'))
                     else:
                         start_of_day_account_balance = read_config('ACCOUNT_BALANCES')[0] #0 IS START OF DAY BALANCE
-                    end_of_day_account_balance = 0
+                        
                     f_s_account_balance = "{:,.2f}".format(start_of_day_account_balance)
                     await print_discord(f"Market is Open! Account BP: ${f_s_account_balance}")
 
@@ -539,7 +546,7 @@ async def main_loop():
         except Exception as e:
             await error_log_and_discord_message(e, "main", "main")
 
-def get_correct_message_ids(_message_ids_dict):
+def get_correct_message_ids():
     # Load `message_ids.json` from the file
     json_file_path = 'message_ids.json'
     if os.path.exists(json_file_path):
@@ -548,24 +555,20 @@ def get_correct_message_ids(_message_ids_dict):
             #print (f"{json_message_ids_dict}")
     else:
         json_message_ids_dict = {}
-
-    # Check if `message_ids_dict` is empty or if `json_message_ids_dict` has more information
-    if not _message_ids_dict or len(json_message_ids_dict) >= len(_message_ids_dict):
-        _message_ids_dict = json_message_ids_dict
     
-    return _message_ids_dict
+    return json_message_ids_dict
 
-async def reseting_values(start_balance=None, end_balance=None, message_ids=None):
+async def reseting_values(start_balance=None, end_balance=None):#, message_ids=None):
     global websocket_connection
     global start_of_day_account_balance
     global end_of_day_account_balance
-    global message_ids_dict
-    global used_buying_power
+    #global message_ids_dict
+    #global used_buying_power
 
-    if start_balance and end_balance and message_ids:
+    if start_balance and end_balance:# and message_ids:
         start_of_day_account_balance = start_balance
         end_of_day_account_balance = end_balance
-        message_ids_dict = message_ids
+        #message_ids_dict = message_ids
 
     websocket_connection = None
     if read_config('REAL_MONEY_ACTIVATED'):
@@ -580,14 +583,14 @@ async def reseting_values(start_balance=None, end_balance=None, message_ids=None
     pic_2m_filepath = Path(__file__).resolve().parent / f"{read_config('SYMBOL')}_2-min_chart.png"
     await send_file_discord(pic_2m_filepath)
 
-    message_ids_dict = get_correct_message_ids(message_ids_dict)
+    message_ids_dict = get_correct_message_ids()
 
     #Calculate/Send todays results, use the 'message_ids_dict' from ema_strategy.py
     # TODO: the ouput_message was incorrect, fix it
     output_message = await calculate_day_performance(message_ids_dict, start_of_day_account_balance, end_of_day_account_balance)
     await print_discord(output_message)
     #reset all values
-    used_buying_power.clear()
+    #used_buying_power.clear()
     print_log("[RESET] Cleared 'used_buying_power' list.")
 
     #save new data in dicord, send log files

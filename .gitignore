@@ -1,5 +1,6 @@
-/logs/test_data
-/logs/example_data
-/venv
-/old_code_for_feature_use
-/reference_
+logs/test_data
+logs/example_data
+venv/
+old_code_for_feature_use/
+reference/
+__pycache__/

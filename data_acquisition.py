@@ -5,6 +5,8 @@ import pandas_market_calendars as mcal
 import numpy as np
 from chart_visualization import update_2_min
 from error_handler import error_log_and_discord_message, print_log
+from shared_state import price_lock
+import shared_state
 import websockets
 from websockets.exceptions import InvalidStatusCode
 from requests.exceptions import ConnectionError, Timeout
@@ -589,51 +591,17 @@ def candle_close_in_zone(candle, boxes):
     # Candle did not close inside any of the boxes
     return False
 
-async def get_current_price(symbol: str) -> float:
-    """
-    Fetch the current price of a symbol using a WebSocket connection.
-    """
-    url = "wss://ws.tradier.com/v1/markets/events"  # WebSocket URL
+async def get_current_price() -> float:
     try:
-        session_id = get_session_id()  # Retrieve a session ID
-        if session_id is None:
-            print_log("[ERROR] Failed to get a new session ID for get_current_price().")
-            return 0.0
-
-        async with websockets.connect(url, ssl=True, compression=None) as websocket:
-            # Send the payload to subscribe to the symbol's trades
-            payload = json.dumps({
-                "symbols": [symbol],
-                "sessionid": session_id,
-                "linebreak": True  # Include this if required by the API
-            })
-            await websocket.send(payload)
-            #print_log(f"[INFO] Subscribed to trades for {symbol}.")
-
-            # Wait for trade data
-            while True:
-                message = await websocket.recv()
-                try:
-                    data = json.loads(message)
-                    #print_log(f"[DEBUG] Received WebSocket message: {data}")
-
-                    # Check if the message is a trade and contains a price
-                    if data.get('type') == 'trade' and 'price' in data:
-                        return float(data['price'])
-
-                except json.JSONDecodeError as e:
-                    print_log(f"[ERROR] Failed to decode WebSocket message: {e}")
-                except KeyError as e:
-                    print_log(f"[ERROR] Missing expected data in message: {e}")
-
-    except InvalidStatusCode as e:
-        print_log(f"[ERROR] WebSocket connection error: {e}")
+        async with price_lock:
+            if shared_state.latest_price is not None:
+                return shared_state.latest_price
+            else:
+                print_log("[WARNING] No price data available yet.")
+                return 0.0
     except Exception as e:
-        print_log(f"[ERROR] Error in get_current_price: {e}")
-
-    # If no valid price is retrieved, return a default value
-    print_log("[WARNING] Returning default price 0.0 due to errors or no data.")
-    return 0.0
+        print_log(f"[ERROR] Error fetching current price: {e}")
+        return 0.0
 
 async def add_markers(event_type, x=None, y=None, percentage=None):
     
@@ -643,7 +611,7 @@ async def add_markers(event_type, x=None, y=None, percentage=None):
         #y_coord = y
     #else:
     x_coord = get_current_candle_index(log_file_path) if x is None else x
-    y_coord = await get_current_price(read_config('SYMBOL')) if y is None else y
+    y_coord = await get_current_price() if y is None else y
     print_log(f"    [MARKER] {x_coord}, {y_coord}, {event_type}")
 
     x_coord += 1
@@ -912,7 +880,7 @@ async def above_below_ema(state, threshold=None, price=None):
 
     # Get current price
     if price is None:
-        price = await get_current_price(read_config('SYMBOL'))
+        price = await get_current_price()
 
     # Load EMA values
     EMAs = load_json_df('EMAs.json')
@@ -932,7 +900,7 @@ async def above_below_ema(state, threshold=None, price=None):
     
     # Calculate distance from the 13 EMA if the price is in the correct position relative to all EMAs
     distance = abs(price - last_EMA_dict.get('13', 0))  # Default to 0 if '13' not present
-    print_log(f"        [EMA] distance = {distance}")
+    print_log(f"        [EMA] distance = {distance}; {price} - {last_EMA_dict.get('13', 0)};")
     
     # Check if the distance from the 13 EMA is within the allowed threshold if specified
     within_threshold = (distance <= threshold) if threshold is not None else True

@@ -238,7 +238,7 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
                 slope, intercept, breakout_detected = await process_breakout_detection(
                     line_name, slope, intercept, candle, session, headers, what_type_of_candle, able_to_buy, breakout_type=candle_type
                 )
-                
+            print_log("    [IDF] start_new_flag_values(1)")
             start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle, bull_or_bear_candle)
                 
         else:
@@ -275,23 +275,17 @@ async def identify_flag(candle, num_flags, session, headers, what_type_of_candle
             slope, intercept, breakout_detected = await process_breakout_detection(
                 line_name, slope, intercept, candle, session, headers, what_type_of_candle, able_to_buy, breakout_type=candle_type
             )
+            # TODO: Im not sure on how to handle this yet, i think this is where more of the muli state will take place.
+            # Where if flag is completed, still keep same start_point but erase candle_points and add current candle into candle_points, i think...
             if not breakout_detected:
                 slope, intercept, first_point, second_point = calculate_slope_intercept(candle_points, start_point, candle_type)
                 angle_valid, angle = is_angle_valid(slope, config, bearish=(bull_or_bear_candle == "bearish"))
-                if angle_valid:
-                    print_log(f"    [IDF VALID SLOPE] Angle/Degree: {angle}")
-                    line_type = "Bull" if bull_or_bear_candle == "bullish" else "Bear"
-                    update_line_data(line_name, line_type, "active", first_point, second_point)
-                else:
-                    print_log(f"    [IDF INVALID SLOPE] Angle/Degree outside of range: {angle}")
-                    start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle, bull_or_bear_candle)
+                print_log(f"    [IDF VALID SLOPE] Angle/Degree: {angle}") if angle_valid else print_log(f"    [IDF INVALID SLOPE] Angle/Degree outside of range: {angle}")  
+                line_type = "Bull" if bull_or_bear_candle == "bullish" else "Bear"
+                update_line_data(line_name, line_type, "active", first_point, second_point)    
             elif breakout_detected: 
-                if flag_counter < read_config('FLAGPOLE_CRITERIA')['START_POINT_MAX_NUM_FLAGS']:
-                    flag_counter = flag_counter +1
-                    print_log(f"    [IDF] Forming flag {flag_counter} for current start_point.")
-                else:
-                    print_log(f"    [IDF] Maximum flags reached for start_point, resetting start_point and candle_points.")
-                    start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle, bull_or_bear_candle)
+                flag_counter = flag_counter +1
+                print_log(f"    [IDF] Forming flag {flag_counter} for current start_point.")
     else:
         print_log(f"    [IDF No Support Candle] type = {what_type_of_candle}")    
     
