@@ -32,6 +32,12 @@
 - **Status**: 🛠️ Not Started
 - **Description**: Refactor all instances where Discord Message IDs are stored as global variables. Update the logic to dynamically retrieve these IDs from the existing JSON file when needed, reducing memory usage and improving modularity.
 
+### Change End Of Day Calculaions
+
+- **Goal**: Have it to where it calculates EVERYTHING based off the `message_ids.json`.
+- **Status**: 🛠️ Not Started
+- **Description**: instead of variables that store stort-term values we need everything based off of `message_ids.json` not only does it help with short-term testing but works with long term solutions as well. The end of day calculation will start at the `tll_trading_strategy.py` in the `todays_profit_loss` then you trace it back to the `get_profit_loss_orders_list()` function which returns this variable`todays_orders_profit_loss_list`, this is what is responsible for the end of day calculation. Figure out a work around or get rid of the variable entirely.
+
 ### Shared State Integration
 
 - **Goal**: Implement a shared state module (`shared_state.py`) for centralized global variable management.
