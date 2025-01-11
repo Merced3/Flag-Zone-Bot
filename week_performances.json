@@ -468,9 +468,9 @@
         "important_message_ids": [1325946783444111360, 1326266023271337985, 1326271023401926718, 1326291608081268879, 1326292696192778283]
     },
     {
-        "week_number": 0,
-        "week_start_end_date": "00/00/2024-00/00/2024",
-        "start_ammount": 0,
+        "week_number": 38,
+        "week_start_end_date": "01/13/2024-01/17/2024",
+        "start_ammount": 77500.0,
         "end_ammount": 0,
         "total_made": 0,
         "num_of_trades": 0,
