@@ -471,12 +471,12 @@
         "week_number": 38,
         "week_start_end_date": "01/13/2024-01/17/2024",
         "start_ammount": 77500.0,
-        "end_ammount": 0,
-        "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "",
+        "end_ammount": 79086.0,
+        "total_made": 1586.0,
+        "num_of_trades": 4,
+        "num_of_profitable_trades": 3,
+        "num_of_negitive_trades": 1,
+        "description": "Day 1, took 4 trades, first 3 are positive and last one was negitive, makeing $1,586.00 today.",
         "important_message_ids": []
     },
     {
