@@ -471,12 +471,12 @@
         "week_number": 38,
         "week_start_end_date": "01/13/2024-01/17/2024",
         "start_ammount": 77500.0,
-        "end_ammount": 77821.0,
-        "total_made": 321.0,
-        "num_of_trades": 9,
-        "num_of_profitable_trades": 5,
-        "num_of_negitive_trades": 4,
-        "description": "Day 1, took 4 trades, first 3 are positive and last one was negitive, makeing $1,586.00 today. Day 2, 3 trades, 2 negitive, 1 positive, lost -$1,126.00, with current version of code it ran smoothly. Day 3, 2 trades, 1 profitable and 1 negitive lost -$139. Day 4, not trades, inbetween PDHL.",
+        "end_ammount": 76575.0,
+        "total_made": -925.0,
+        "num_of_trades": 13,
+        "num_of_profitable_trades": 6,
+        "num_of_negitive_trades": 7,
+        "description": "Day 1, took 4 trades, first 3 are positive and last one was negitive, makeing $1,586.00 today. Day 2, 3 trades, 2 negitive, 1 positive, lost -$1,126.00, with current version of code it ran smoothly. Day 3, 2 trades, 1 profitable and 1 negitive lost -$139. Day 4, not trades, inbetween PDHL. Day 5, took 4 trades, first 2 trades negitive, because they were under resistance, then 1 profitable trade then one minor negitive one, lost -$1246 today, (trade 1: -23.33%; 2: -18.75%; 3: 22.66%; 4: -12.50%).",
         "important_message_ids": []
     },
     {

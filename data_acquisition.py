@@ -1193,7 +1193,7 @@ def update_order_details(filepath, unique_order_id, **kwargs):
     for index, row in df.iterrows():
         # Normalize the row's timestamp for comparison, ensuring AM/PM is preserved
         row_time_formatted = row['time_entered']
-        print_log(f"        [UOD 1] Checking row at index {index}: {row_time_formatted}")
+        #print_log(f"        [UOD 1] Checking row at index {index}: {row_time_formatted}")
         
         if (row['ticker_symbol'] == symbol and 
             row['strike_price'] == float(strike_price) and 
