@@ -470,6 +470,7 @@ async def main_loop():
                     
                     # Plot the data
                     chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, read_config('SYMBOL')), name="plot_15m_candles_and_boxes")
+                    # Other code... setting up boxes/zones/tpls...
                     chart_thread.start()
                     await asyncio.sleep(1) # wait for the thread
 

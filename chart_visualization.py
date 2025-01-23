@@ -315,9 +315,9 @@ def update_2_min(print_statements=False):
     else:
         print_log("    [update_2_min] GUI or data not initialized.")
 
-def plot_candles_and_boxes(df_15, symbol, df_2=None):
+def plot_candles_and_boxes(df_15, symbol):
     global df_15_min, df_2_min, should_close
-    df_15_min, df_2_min = df_15, df_2
+    df_15_min = df_15
 
     #print(f"[plot_candles_and_boxes] Starting Chart Generation")
     # Create the main Tkinter window

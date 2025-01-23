@@ -488,7 +488,7 @@
         "num_of_trades": 5,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 5,
-        "description": "Day 1, market closed. Day 2, took 5 trades all negitive, just a bad dayh for the current code setup. ",
+        "description": "Day 1, market closed. Day 2, took 5 trades all negitive, just a bad dayh for the current code setup. Day 3, No trades, inbetween PDHL. ",
         "important_message_ids": []
     },
     {
