@@ -483,12 +483,12 @@
         "week_number": 39,
         "week_start_end_date": "01/20/2024-01/24/2024",
         "start_ammount": 76575.0,
-        "end_ammount": 73324.0,
-        "total_made": -3251.0,
-        "num_of_trades": 5,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 5,
-        "description": "Day 1, market closed. Day 2, took 5 trades all negitive, just a bad dayh for the current code setup. Day 3, No trades, inbetween PDHL. Day 4, 2 trades both negitive, -$2,467.00 for the day, both trades were valid but some flags weren't. ",
+        "end_ammount": 70489.0,
+        "total_made": -6086.0,
+        "num_of_trades": 9,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 8,
+        "description": "Day 1, market closed. Day 2, took 5 trades all negitive, just a bad dayh for the current code setup. Day 3, No trades, inbetween PDHL. Day 4, 2 trades both negitive, -$2,467.00 for the day, both trades were valid but some flags weren't. day 5, 2 trades one positive other negitive, lost -$368.",
         "important_message_ids": []
     },
     {
