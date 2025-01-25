@@ -492,9 +492,9 @@
         "important_message_ids": []
     },
     {
-        "week_number": 0,
-        "week_start_end_date": "00/00/2024-00/00/2024",
-        "start_ammount": 0,
+        "week_number": 40,
+        "week_start_end_date": "01/27/2024-01/31/2024",
+        "start_ammount": 70489.0,
         "end_ammount": 0,
         "total_made": 0,
         "num_of_trades": 0,
