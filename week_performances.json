@@ -495,12 +495,12 @@
         "week_number": 40,
         "week_start_end_date": "01/27/2024-01/31/2024",
         "start_ammount": 70489.0,
-        "end_ammount": 0,
-        "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "",
+        "end_ammount": 70285.0,
+        "total_made": -204.0,
+        "num_of_trades": 2,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 1,
+        "description": "Day 1, 2 trades, one negitive and one positive, lost -204$.",
         "important_message_ids": []
     },
     {
