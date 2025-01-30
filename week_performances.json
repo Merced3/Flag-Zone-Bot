@@ -500,7 +500,7 @@
         "num_of_trades": 4,
         "num_of_profitable_trades": 2,
         "num_of_negitive_trades": 2,
-        "description": "Day 1, 2 trades, one negitive and one positive, lost -204$. Day 2, 2 trades one negitive and one positive, made $468.",
+        "description": "Day 1, 2 trades, one negitive and one positive, lost -204$. Day 2, 2 trades one negitive and one positive, made $468. Day 3, no trades inbetween PDHL.",
         "important_message_ids": []
     },
     {
