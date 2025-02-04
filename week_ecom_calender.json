@@ -1,38 +1,37 @@
 {
-    "week_timespan": "01-27-25 to 02-02-25",
+    "week_timespan": "02-03-25 to 02-09-25",
     "dates": {
-        "01-28-25": {
-            "08:30 AM": [
-                "Durable Goods Orders MoM"
-            ]
-        },
-        "01-29-25": {
-            "09:45 AM": [
-                "BoC Interest Rate Decision",
-                "BoC Monetary Policy Report"
-            ],
-            "02:00 PM": [
-                "Fed Interest Rate Decision"
-            ],
-            "02:30 PM": [
-                "Fed Press Conference"
-            ]
-        },
-        "01-30-25": {
-            "08:30 AM": [
-                "GDP Growth Rate QoQ Adv"
-            ]
-        },
-        "01-31-25": {
-            "08:30 AM": [
-                "Core PCE Price Index MoM",
-                "Personal Income MoM",
-                "Personal Spending MoM"
-            ]
-        },
         "02-03-25": {
             "10:00 AM": [
                 "ISM Manufacturing PMI"
+            ]
+        },
+        "02-04-25": {
+            "10:00 AM": [
+                "JOLTs Job Openings"
+            ]
+        },
+        "02-05-25": {
+            "08:30 AM": [
+                "Balance of Trade"
+            ],
+            "10:00 AM": [
+                "ISM Services PMI"
+            ]
+        },
+        "02-06-25": {
+            "10:00 AM": [
+                "Ivey PMI s.a"
+            ]
+        },
+        "02-07-25": {
+            "08:30 AM": [
+                "Unemployment Rate",
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ],
+            "10:00 AM": [
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }
