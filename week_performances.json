@@ -512,7 +512,7 @@
         "num_of_trades": 1,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 1,
-        "description": "Day 1, took 1 trade, lost -$1224, tried to break high of day and failed.",
+        "description": "Day 1, took 1 trade, lost -$1224, tried to break high of day and failed. Day 2, 4 trades, 2 positive and 2 negitive, lost -667$ in total.",
         "important_message_ids": []
     },
     {
