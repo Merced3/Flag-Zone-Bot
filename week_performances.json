@@ -507,12 +507,12 @@
         "week_number": 41,
         "week_start_end_date": "02/03/2024-00/07/2024",
         "start_ammount": 74335.0,
-        "end_ammount": 73111.0,
-        "total_made": -1224.0,
-        "num_of_trades": 1,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 1,
-        "description": "Day 1, took 1 trade, lost -$1224, tried to break high of day and failed. Day 2, 4 trades, 2 positive and 2 negitive, lost -667$ in total. Day 3, 2 trades, both negitve, lost -1101.0$, failed to break PDH first 2 times but later broke.",
+        "end_ammount": 70768.0,
+        "total_made": -2992.0,
+        "num_of_trades": 10,
+        "num_of_profitable_trades": 3,
+        "num_of_negitive_trades": 7,
+        "description": "Day 1, took 1 trade, lost -$1224, tried to break high of day and failed. Day 2, 4 trades, 2 positive and 2 negitive, lost -667$ in total. Day 3, 2 trades, both negitve, lost -1101.0$, failed to break PDH first 2 times but later broke. Day 4, 3 trades 2 negitive, chopped around, 1 positive, after it broke through the chop, lost -575$.",
         "important_message_ids": []
     },
     {
