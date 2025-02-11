@@ -1,37 +1,30 @@
 {
-    "week_timespan": "02-03-25 to 02-09-25",
+    "week_timespan": "02-10-25 to 02-16-25",
     "dates": {
-        "02-03-25": {
+        "02-11-25": {
             "10:00 AM": [
-                "ISM Manufacturing PMI"
+                "Fed Chair Powell Testimony"
             ]
         },
-        "02-04-25": {
-            "10:00 AM": [
-                "JOLTs Job Openings"
-            ]
-        },
-        "02-05-25": {
+        "02-12-25": {
             "08:30 AM": [
-                "Balance of Trade"
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
             ],
             "10:00 AM": [
-                "ISM Services PMI"
+                "Fed Chair Powell Testimony"
             ]
         },
-        "02-06-25": {
-            "10:00 AM": [
-                "Ivey PMI s.a"
-            ]
-        },
-        "02-07-25": {
+        "02-13-25": {
             "08:30 AM": [
-                "Unemployment Rate",
-                "Non Farm Payrolls",
-                "Unemployment Rate"
-            ],
-            "10:00 AM": [
-                "Michigan Consumer Sentiment Prel"
+                "PPI MoM"
+            ]
+        },
+        "02-14-25": {
+            "08:30 AM": [
+                "Retail Sales MoM"
             ]
         }
     }
