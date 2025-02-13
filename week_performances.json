@@ -524,7 +524,7 @@
         "num_of_trades": 4,
         "num_of_profitable_trades": 2,
         "num_of_negitive_trades": 2,
-        "description": "day 1, no trades, inbetween PDHL. Day 2, 4 trades, 2 profitable that both hit 100%, 2 negitive (-30% and -38%), lost -$578 in total.",
+        "description": "day 1, no trades, inbetween PDHL. Day 2, 4 trades, 2 profitable that both hit 100%, 2 negitive (-30% and -38%), lost -$578 in total. Day 3, no trades, inbetween 2 zones.",
         "important_message_ids": []
     },
     {
