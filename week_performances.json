@@ -531,12 +531,12 @@
         "week_number": 43,
         "week_start_end_date": "02/17/2024-02/21/2024",
         "start_ammount": 68340.0,
-        "end_ammount": 68639.0,
-        "total_made": 299.0,
+        "end_ammount": 68868.0,
+        "total_made": 528.0,
         "num_of_trades": 5,
-        "num_of_profitable_trades": 3,
-        "num_of_negitive_trades": 2,
-        "description": "Day 1, Market closed, presidents day. Day 2, No trades, Mainly stayed between PDHL. Day 3, Broke above PDHL, struggled to go up hence the first trade being a loss -644$ then a winning trade hitting 20% then straight to SL $512. Day 4, 3 trades 2 positive both hitting 50% and one negitive trade hitting -27%, made $431. ",
+        "num_of_profitable_trades": 5,
+        "num_of_negitive_trades": 4,
+        "description": "Day 1, Market closed, presidents day. Day 2, No trades, Mainly stayed between PDHL. Day 3, Broke above PDHL, struggled to go up hence the first trade being a loss -644$ then a winning trade hitting 20% then straight to SL $512. Day 4, 3 trades 2 positive both hitting 50% and one negitive trade hitting -27%, made $431. Day 5, 4 trades, 2 negitive (-16%, -26%) and 2 positive (200%, 20%), made 229$ today, 2 trades shouldn't have happened but should be fixed in the next version.",
         "important_message_ids": []
     },
     {
