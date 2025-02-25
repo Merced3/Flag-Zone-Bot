@@ -543,12 +543,12 @@
         "week_number": 44,
         "week_start_end_date": "02/24/2024-02/28/2024",
         "start_ammount": 68868.0,
-        "end_ammount": 0,
-        "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "",
+        "end_ammount": 68634.0,
+        "total_made": -234.0,
+        "num_of_trades": 2,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 1,
+        "description": "Day 1, had a Economic news grabbing error at the beginning og today, took 2 trades one negitive and one positive, tried to break lower than PDHL but ended up going back up into it.",
         "important_message_ids": []
     },
     {
