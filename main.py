@@ -4,8 +4,6 @@ from data_acquisition import get_candle_data, get_dates, reset_json, active_prov
 from shared_state import price_lock
 import shared_state
 from tll_trading_strategy import execute_trading_strategy
-#from buy_option import message_ids_dict, used_buying_power
-from ema_strategy import execute_200ema_strategy
 from economic_calender_scraper import get_economic_calendar_data, setup_economic_news_message
 from print_discord_messages import bot, print_discord, get_message_content, send_file_discord
 from error_handler import error_log_and_discord_message, print_log

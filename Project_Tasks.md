@@ -2,29 +2,23 @@
 
 ## 🚧 Pending Tasks
 
-### Version 3 Flag System
+### Adaptive Stop Loss
 
-- **Goal**: Make the flag system ONLY dependent on other candlestick OCHL.
+- **Goal**: Make a adaptive stoploss that uses all the emas, zones and Tp_lines.
 - **Status**: 🕒 Pending
-- **Description**: Instead of it monitoring one state at a time and constantly resetting state when it crosses the 200ema. It needs to operate multiple flag types (bear and bull) at the same time completely indepented from the emas, emas no longer dictate what flag we look at, we look at all of them.
+- **Description**: We need a stop loss that can determine what the best stoploss is, whether it be 13, 48 or 200 ema OR the zones or TPL_lines. This would be a great thing to expirement with.
 
-### Market Open/Close API Integration
+### IMPLEMENT Version 3 Flag System
 
-- **Goal**: Improve logic for handling market holidays and irregular schedules dynamically.
+- **Goal**: Implement new flag system.
 - **Status**: 🕒 Pending
-- **Description**: Research a free or low-cost API (e.g., EODHD) to retrieve detailed market hours. Update logic for half-days and holidays. Add tests for edge cases.
+- **Description**: The code that you already have done in the simulator, but before you do it you need to finish the adaptive stoploss functionality.
 
 ### Candlestick Data Accuracy
 
-- **Goal**: Generate OCHL candlestick data from a reliable real-time price stream.
-- **Status**: 🛑 Blocked
-- **Description**: Polygon’s data is unsuitable. Explore providers offering real-time trade data for candlestick generation. Test Tradier’s data stream for this purpose.
-
-### Documentation & Process Improvement
-
-- **Goal**: Maintain clear, updated documentation for workflows, errors, and fixes.
-- **Status**: 🕒 Pending
-- **Description**: Write a troubleshooting guide for WebSocket issues. Add comments in code explaining complex functions like `ws_connect_v2`.
+- **Goal**: Generate OCHL candlestick data from a 2nd reliable real-time price stream via a sequential setup.
+- **Status**: 🛑 Blocked 🕒 Pending
+- **Description**: Polygon’s data is unsuitable. We tried to setup a sequential websocket function where if one websocket fails (incase server side error or platform error, anything that can't be handled by us, provider issues) then we move onto the next. we have not found the next provider but will do.
 
 ### Refactor Discord Message IDs
 
@@ -38,15 +32,27 @@
 - **Status**: 🛠️ Not Started
 - **Description**: instead of variables that store stort-term values we need everything based off of `message_ids.json` not only does it help with short-term testing but works with long term solutions as well. The end of day calculation will start at the `tll_trading_strategy.py` in the `todays_profit_loss` then you trace it back to the `get_profit_loss_orders_list()` function which returns this variable`todays_orders_profit_loss_list`, this is what is responsible for the end of day calculation. Figure out a work around or get rid of the variable entirely.
 
-### Shared State Integration
-
-- **Goal**: Implement a shared state module (`shared_state.py`) for centralized global variable management.
-- **Status**: 🕒 Pending
-- **Description**: Create `shared_state.py` to store `latest_price` and `price_lock` globally. Refactor `data_acquisition.py` and `main.py` to use `shared_state.py` for accessing and updating the latest price. Ensure modularity and avoid circular imports. This need's to be tested throughly And look for other things that need to be inside of shared state.
-
 ---
 
 ## ✅ Completed Tasks
+
+### Version 3 Flag System
+
+- **Goal**: Make the flag system ONLY dependent on other candlestick OCHL.
+- **Status**: ✅ Completed
+- **Description**: It uses multiple state files and even has a setting to store the state's in memory (as dictionary) for faster processing speed's.
+
+### Market Open/Close API Integration
+
+- **Goal**: Improve logic for handling market holidays and irregular schedules dynamically.
+- **Status**: ✅ Completed
+- **Description**: We use a API that's part of our polygon subcription and we put the code into `data_aquisition.py` and the function is called `is_market_open()`.
+
+### Shared State Integration
+
+- **Goal**: Implement a shared state module (`shared_state.py`) for centralized global variable management.
+- **Status**: ✅ Completed
+- **Description**: Created a `shared_state.py` to store `latest_price` and `price_lock` globally. Might add more stuff to it later on.
 
 ### Enhance Config Management
 
