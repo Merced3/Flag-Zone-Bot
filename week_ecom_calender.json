@@ -1,27 +1,32 @@
 {
-    "week_timespan": "02-24-25 to 03-02-25",
+    "week_timespan": "03-03-25 to 03-09-25",
     "dates": {
-        "02-27-25": {
-            "08:30 AM": [
-                "Durable Goods Orders MoM",
-                "GDP Growth Rate QoQ 2nd Est"
-            ]
-        },
-        "02-28-25": {
-            "07:00 AM": [
-                "GDP Growth Rate YoY"
-            ],
-            "08:30 AM": [
-                "GDP Growth Rate Annualized",
-                "GDP Growth Rate QoQ",
-                "Core PCE Price Index MoM",
-                "Personal Income MoM",
-                "Personal Spending MoM"
-            ]
-        },
         "03-03-25": {
             "10:00 AM": [
                 "ISM Manufacturing PMI"
+            ]
+        },
+        "03-05-25": {
+            "10:00 AM": [
+                "ISM Services PMI"
+            ]
+        },
+        "03-06-25": {
+            "08:30 AM": [
+                "Balance of Trade"
+            ],
+            "10:00 AM": [
+                "Ivey PMI s.a"
+            ]
+        },
+        "03-07-25": {
+            "08:30 AM": [
+                "Unemployment Rate",
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ],
+            "12:30 PM": [
+                "Fed Chair Powell Speech"
             ]
         }
     }

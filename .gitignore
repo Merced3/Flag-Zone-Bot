@@ -4,3 +4,4 @@ venv/
 old_code_for_feature_use/
 reference/
 __pycache__/
+cred.py

@@ -7,8 +7,8 @@ import cred
 import json
 import os
 
-start_of_day_account_balance = 81403.0
-end_of_day_account_balance = 82385.0
+start_of_day_account_balance = 65249.0
+end_of_day_account_balance = 63803.0
 
 async def bot_start():
     await bot.start(cred.DISCORD_TOKEN)
@@ -27,7 +27,7 @@ async def main():
     await print_discord(output_message)
     
     # TODO: This isn't needed but incase files weren't ever sent to discord nor resetted.
-    #await reseting_values(start_of_day_account_balance, end_of_day_account_balance)
+    await reseting_values(start_of_day_account_balance, end_of_day_account_balance)
 
 if __name__ == "__main__":
     print("Starting End of Day Calculation...")
