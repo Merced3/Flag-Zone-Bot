@@ -555,12 +555,12 @@
         "week_number": 45,
         "week_start_end_date": "03/03/2024-03/07/2024",
         "start_ammount": 65249.0,
-        "end_ammount": 63803.0,
-        "total_made": -1446,
-        "num_of_trades": 2,
+        "end_ammount": 63293.0,
+        "total_made": -1956,
+        "num_of_trades": 3,
         "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 2,
-        "description": "Day 1, so I had a error cause I tried to make the project public on github and forgot that the 'cred.py' file was still public and discord did not like that and session ended for some reason as you can see in the logs, 2 trades were taken -1446$ was lost but alot of opportunites were missed.",
+        "num_of_negitive_trades": 3,
+        "description": "Day 1, so I had a error cause I tried to make the project public on github and forgot that the 'cred.py' file was still public and discord did not like that and session ended for some reason as you can see in the logs, 2 trades were taken -1446$ was lost but alot of opportunites were missed. Day 2, one trade -510$, chopped around the 13 ema.",
         "important_message_ids": [1346150959130087514, 1346186481848422492]
     }
 ]
