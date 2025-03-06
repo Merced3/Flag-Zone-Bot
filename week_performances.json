@@ -560,7 +560,7 @@
         "num_of_trades": 3,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 3,
-        "description": "Day 1, so I had a error cause I tried to make the project public on github and forgot that the 'cred.py' file was still public and discord did not like that and session ended for some reason as you can see in the logs, 2 trades were taken -1446$ was lost but alot of opportunites were missed. Day 2, one trade -510$, chopped around the 13 ema.",
+        "description": "Day 1, so I had a error cause I tried to make the project public on github and forgot that the 'cred.py' file was still public and discord did not like that and session ended for some reason as you can see in the logs, 2 trades were taken -1446$ was lost but alot of opportunites were missed. Day 2, one trade -510$, chopped around the 13 ema. Day 3, No trades, stayed between PDHL.",
         "important_message_ids": [1346150959130087514, 1346186481848422492]
     }
 ]
