@@ -562,5 +562,17 @@
         "num_of_negitive_trades": 4,
         "description": "Day 1, so I had a error cause I tried to make the project public on github and forgot that the 'cred.py' file was still public and discord did not like that and session ended for some reason as you can see in the logs, 2 trades were taken -1446$ was lost but alot of opportunites were missed. Day 2, one trade -510$, chopped around the 13 ema. Day 3, No trades, stayed between PDHL. Day 4, took 2 trades 1 profitable 1 negitive, total lost is -11$. Day 5, no trades did break down below PDHL but didn't detect any flags, there were flags but none with the current algorithm.",
         "important_message_ids": [1346150959130087514, 1346186481848422492]
+    },
+    {
+        "week_number": 46,
+        "week_start_end_date": "03/10/2024-03/14/2024",
+        "start_ammount": 63282.0,
+        "end_ammount": 63282.0,
+        "total_made": 0,
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "",
+        "important_message_ids": []
     }
 ]
