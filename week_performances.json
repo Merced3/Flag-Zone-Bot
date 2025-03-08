@@ -457,7 +457,7 @@
     },
     {
         "week_number": 37,
-        "week_start_end_date": "01/06/2024-01/10/2024",
+        "week_start_end_date": "01/06/2025-01/10/2025",
         "start_ammount": 80683.0,
         "end_ammount": 77500.0,
         "total_made": -3183.0,
@@ -469,7 +469,7 @@
     },
     {
         "week_number": 38,
-        "week_start_end_date": "01/13/2024-01/17/2024",
+        "week_start_end_date": "01/13/2025-01/17/2025",
         "start_ammount": 77500.0,
         "end_ammount": 76575.0,
         "total_made": -925.0,
@@ -481,7 +481,7 @@
     },
     {
         "week_number": 39,
-        "week_start_end_date": "01/20/2024-01/24/2024",
+        "week_start_end_date": "01/20/2025-01/24/2025",
         "start_ammount": 76575.0,
         "end_ammount": 70489.0,
         "total_made": -6086.0,
@@ -493,7 +493,7 @@
     },
     {
         "week_number": 40,
-        "week_start_end_date": "01/27/2024-01/31/2024",
+        "week_start_end_date": "01/27/2025-01/31/2025",
         "start_ammount": 70489.0,
         "end_ammount": 74335.0,
         "total_made": 3846.0,
@@ -505,7 +505,7 @@
     },
     {
         "week_number": 41,
-        "week_start_end_date": "02/03/2024-00/07/2024",
+        "week_start_end_date": "02/03/2025-00/07/2025",
         "start_ammount": 74335.0,
         "end_ammount": 68855.0,
         "total_made": -5480.0,
@@ -517,7 +517,7 @@
     },
     {
         "week_number": 42,
-        "week_start_end_date": "02/10/2024-02/14/2024",
+        "week_start_end_date": "02/10/2025-02/14/2025",
         "start_ammount": 68855.0,
         "end_ammount": 68340.0,
         "total_made": -515.0,
@@ -529,7 +529,7 @@
     },
     {
         "week_number": 43,
-        "week_start_end_date": "02/17/2024-02/21/2024",
+        "week_start_end_date": "02/17/2025-02/21/2025",
         "start_ammount": 68340.0,
         "end_ammount": 68868.0,
         "total_made": 528.0,
@@ -541,7 +541,7 @@
     },
     {
         "week_number": 44,
-        "week_start_end_date": "02/24/2024-02/28/2024",
+        "week_start_end_date": "02/24/2025-02/28/2025",
         "start_ammount": 68868.0,
         "end_ammount": 65249.0,
         "total_made": -3613.0,
@@ -553,7 +553,7 @@
     },
     {
         "week_number": 45,
-        "week_start_end_date": "03/03/2024-03/07/2024",
+        "week_start_end_date": "03/03/2025-03/07/2025",
         "start_ammount": 65249.0,
         "end_ammount": 63282.0,
         "total_made": -1967,
@@ -565,7 +565,7 @@
     },
     {
         "week_number": 46,
-        "week_start_end_date": "03/10/2024-03/14/2024",
+        "week_start_end_date": "03/10/2025-03/14/2025",
         "start_ammount": 63282.0,
         "end_ammount": 63282.0,
         "total_made": 0,
