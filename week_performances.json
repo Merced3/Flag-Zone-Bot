@@ -567,12 +567,12 @@
         "week_number": 46,
         "week_start_end_date": "03/10/2025-03/14/2025",
         "start_ammount": 63282.0,
-        "end_ammount": 63282.0,
-        "total_made": 0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "",
+        "end_ammount": 63184.0,
+        "total_made": -98.0,
+        "num_of_trades": 1,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 1,
+        "description": "day 1, 2 trades (puts) 1 negitive and 1 positive, lost -$98. ",
         "important_message_ids": []
     }
 ]
