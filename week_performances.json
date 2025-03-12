@@ -572,7 +572,7 @@
         "num_of_trades": 1,
         "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 1,
-        "description": "day 1, 2 trades (puts) 1 negitive and 1 positive, lost -$98. ",
+        "description": "day 1, 2 trades (puts) 1 negitive and 1 positive, lost -$98. day 2, no trades broke out below PDHL but did not detect any flags.",
         "important_message_ids": []
     }
 ]
