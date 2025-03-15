@@ -567,12 +567,12 @@
         "week_number": 46,
         "week_start_end_date": "03/10/2025-03/14/2025",
         "start_ammount": 63282.0,
-        "end_ammount": 62948.0,
-        "total_made": -334.0,
-        "num_of_trades": 4,
+        "end_ammount": 62124.0,
+        "total_made": -1158.0,
+        "num_of_trades": 6,
         "num_of_profitable_trades": 2,
-        "num_of_negitive_trades": 2,
-        "description": "day 1, 2 trades (puts) 1 negitive and 1 positive, lost -$98. day 2, no trades broke out below PDHL but did not detect any flags. Day 3, no trades inbetween PDHL. day 4, 2 trades one positive other negitive, the negitive trade and positive trade were both between pre market high and low so that needs to be a rule later on, lost -$236 for today. .",
+        "num_of_negitive_trades": 4,
+        "description": "day 1, 2 trades (puts) 1 negitive and 1 positive, lost -$98. day 2, no trades broke out below PDHL but did not detect any flags. Day 3, no trades inbetween PDHL. day 4, 2 trades one positive other negitive, the negitive trade and positive trade were both between pre market high and low so that needs to be a rule later on, lost -$236 for today. Day 5, made 2 trades lost both, bought too late, lost -824$ in total today.",
         "important_message_ids": []
     }
 ]
