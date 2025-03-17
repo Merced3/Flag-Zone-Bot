@@ -333,7 +333,7 @@ async def ensure_economic_calendar_data():
     
     # Check if the JSON file exists
     if not os.path.exists(json_file):
-        await get_economic_calendar_data("week", 3, "america")
+        await get_economic_calendar_data()
         return
 
     # Read the JSON data

@@ -1,35 +1,30 @@
 {
-    "week_timespan": "03-10-25 to 03-16-25",
+    "week_timespan": "03-17-25 to 03-23-25",
     "dates": {
-        "03-11-25": {
-            "09:00 AM": [
-                "JOLTs Job Openings"
-            ]
-        },
-        "03-12-25": {
-            "07:30 AM": [
-                "Core Inflation Rate MoM",
-                "Core Inflation Rate YoY",
-                "Inflation Rate MoM",
-                "Inflation Rate YoY"
-            ],
-            "08:45 AM": [
-                "BoC Interest Rate Decision"
-            ]
-        },
-        "03-13-25": {
-            "07:30 AM": [
-                "PPI MoM"
-            ]
-        },
-        "03-14-25": {
-            "09:00 AM": [
-                "Michigan Consumer Sentiment Prel"
-            ]
-        },
         "03-17-25": {
             "07:30 AM": [
                 "Retail Sales MoM"
+            ]
+        },
+        "03-18-25": {
+            "07:30 AM": [
+                "Inflation Rate YoY",
+                "Building Permits Prel",
+                "Housing Starts"
+            ]
+        },
+        "03-19-25": {
+            "01:00 PM": [
+                "Fed Interest Rate Decision",
+                "FOMC Economic Projections"
+            ],
+            "01:30 PM": [
+                "Fed Press Conference"
+            ]
+        },
+        "03-20-25": {
+            "09:00 AM": [
+                "Existing Home Sales"
             ]
         }
     }
