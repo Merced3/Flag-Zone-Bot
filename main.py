@@ -343,7 +343,7 @@ async def ensure_economic_calendar_data():
     # Extract week_timespan
     week_timespan = data.get('week_timespan', "")
     if not week_timespan:
-        await get_economic_calendar_data("week", 3, "america")
+        await get_economic_calendar_data()
         return
 
     # Parse the week_timespan
@@ -352,7 +352,7 @@ async def ensure_economic_calendar_data():
         start_date = datetime.strptime(start_date_str, '%m-%d-%y')
         end_date = datetime.strptime(end_date_str, '%m-%d-%y')
     except ValueError:
-        await get_economic_calendar_data("week", 3, "america")
+        await get_economic_calendar_data()
         return
 
     # Get today's date
@@ -360,7 +360,7 @@ async def ensure_economic_calendar_data():
 
     # Check if today's date is within the week_timespan
     if not (start_date <= today_date <= end_date):
-        await get_economic_calendar_data("week", 3, "america")
+        await get_economic_calendar_data()
 
 async def initial_setup():
     global websocket_connection
