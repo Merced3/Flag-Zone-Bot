@@ -135,42 +135,46 @@ async def get_option_bid_price(symbol, strike, expiration_date, option_type, ses
     quote_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}markets/options/chains?symbol={symbol}&expiration={expiration_date}"
     headers = {"Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", "Accept": "application/json"}
     
+    retry_delay = 1  # Start with a 1-second delay
+    max_delay = 60  # Don't wait longer than 60 seconds between retries
+    consecutive_502_errors = 0  # Track 502 errors to apply cooldown logic
+
     while True:
         try:
             async with session.get(quote_url, headers=headers) as response:
-                if response.status != 200:
-                    print_log(f"    [get_option_bid_price] Received unexpected status code {response.status}: {await response.text()}")
-                    await asyncio.sleep(1)  # Wait a second before retrying
-                    continue
-                
-                try:
+                if response.status == 200:
                     response_json = await response.json()
                     options_data = response_json.get('options', {}).get('option', [])
                     target_strike = float(strike)
-                    filtered_options = [
-                        option for option in options_data 
-                        if option['strike'] == target_strike and option['option_type'] == option_type
-                    ]
+                    
+                    # Filter option contracts based on strike price and type
+                    filtered_options = [option for option in options_data if option['strike'] == target_strike and option['option_type'] == option_type]
                     
                     if filtered_options:
                         return filtered_options[0]['bid']
                     else:
-                        print_log("    [get_option_bid_price] Option not found, retrying...")
-                        await asyncio.sleep(1)  # Wait a second before retrying
+                        print_log(f"[get_option_bid_price] Option not found at strike {strike}, retrying in {retry_delay}s...")
+                        await asyncio.sleep(retry_delay)
+                        continue
 
-                except asyncio.TimeoutError:
-                    print_log(f"[INTERNET CONNECTION]  get_option_bid_price() Timeout Error, retrying...")
-                    await asyncio.sleep(1)  # Wait a second before retrying
-                except Exception as e:
-                    await error_log_and_discord_message(e, "order_handler", "get_option_bid_price", "Error parsing JSON")
-                    await asyncio.sleep(1)  # Wait a second before retrying
+                elif response.status == 502:
+                    consecutive_502_errors += 1
+                    retry_delay = min(2 ** consecutive_502_errors, max_delay)  # Exponential backoff but max 60s
+                    print_log(f"[get_option_bid_price] 502 Bad Gateway (attempt {consecutive_502_errors}). Retrying in {retry_delay}s...")
+                    await asyncio.sleep(retry_delay)
+                
+                else:
+                    print_log(f"[get_option_bid_price] Unexpected status {response.status}: {await response.text()} | Retrying in {retry_delay}s...")
+                    await asyncio.sleep(retry_delay)
 
         except aiohttp.ClientOSError as e:
-            print_log(f"[INTERNET CONNECTION] Client OS Error: {e}. Retrying...")
-            await asyncio.sleep(1)  # Wait a second before retrying
+            print_log(f"[INTERNET ERROR] Client OS Error: {e}. Retrying in {retry_delay}s...")
+            await asyncio.sleep(retry_delay)
+
         except Exception as e:
-            print_log(f"Unexpected error occurred: {e}. Retrying...")
-            await asyncio.sleep(1)  # Wait a second before retrying 
+            await error_log_and_discord_message(e, "order_handler", "get_option_bid_price", "Unexpected Error in get_option_bid_price()")
+            print_log(f"[get_option_bid_price] Unexpected error: {e}. Retrying in {retry_delay}s...")
+            await asyncio.sleep(retry_delay)
 
 def calculate_max_drawdown_and_gain(start_price, lowest_price, highest_price, write_to_file=None, order_log_name=None, unique_order_id=None):
     # Calculate maximum drawdown
