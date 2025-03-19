@@ -170,7 +170,7 @@ async def get_option_bid_price(symbol, strike, expiration_date, option_type, ses
             await asyncio.sleep(1)  # Wait a second before retrying
         except Exception as e:
             print_log(f"Unexpected error occurred: {e}. Retrying...")
-            await asyncio.sleep(1)  # Wait a second before retrying        
+            await asyncio.sleep(1)  # Wait a second before retrying 
 
 def calculate_max_drawdown_and_gain(start_price, lowest_price, highest_price, write_to_file=None, order_log_name=None, unique_order_id=None):
     # Calculate maximum drawdown
