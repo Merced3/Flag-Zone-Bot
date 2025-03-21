@@ -584,7 +584,7 @@
         "num_of_trades": 5,
         "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 4,
-        "description": "Day 1, no trades had a error in economic calender data website scrapping, fixed it and made script wayyy more robust. Day 2, had 3 trades instead of 2 but the last 3rd trade had a tradier server side error, the other 2 trades lost 910$ together. Day 3, took 3 trades first 2 were negitive, failed to break from zone, then the 3rd trade broke out of zone, hit another zone, went down broke flag and hit 50% profit, today made 210$.",
+        "description": "Day 1, no trades had a error in economic calender data website scrapping, fixed it and made script wayyy more robust. Day 2, had 3 trades instead of 2 but the last 3rd trade had a tradier server side error, the other 2 trades lost 910$ together. Day 3, took 3 trades first 2 were negitive, failed to break from zone, then the 3rd trade broke out of zone, hit another zone, went down broke flag and hit 50% profit, today made 210$. Day 4, no trades, inbetween PDHL.",
         "important_message_ids": []
     }
 ]
