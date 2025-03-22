@@ -579,12 +579,12 @@
         "week_number": 47,
         "week_start_end_date": "03/17/2025-03/21/2025",
         "start_ammount": 62124.0,
-        "end_ammount": 61414.0,
-        "total_made": -710.0,
-        "num_of_trades": 5,
-        "num_of_profitable_trades": 1,
-        "num_of_negitive_trades": 4,
-        "description": "Day 1, no trades had a error in economic calender data website scrapping, fixed it and made script wayyy more robust. Day 2, had 3 trades instead of 2 but the last 3rd trade had a tradier server side error, the other 2 trades lost 910$ together. Day 3, took 3 trades first 2 were negitive, failed to break from zone, then the 3rd trade broke out of zone, hit another zone, went down broke flag and hit 50% profit, today made 210$. Day 4, no trades, inbetween PDHL.",
+        "end_ammount": 60863.0,
+        "total_made": -1261.0,
+        "num_of_trades": 9,
+        "num_of_profitable_trades": 3,
+        "num_of_negitive_trades": 6,
+        "description": "Day 1, no trades had a error in economic calender data website scrapping, fixed it and made script wayyy more robust. Day 2, had 3 trades instead of 2 but the last 3rd trade had a tradier server side error, the other 2 trades lost 910$ together. Day 3, took 3 trades first 2 were negitive, failed to break from zone, then the 3rd trade broke out of zone, hit another zone, went down broke flag and hit 50% profit, today made 210$. Day 4, no trades, inbetween PDHL. Day 5, had 4 trades 2 negitive and 2 positive, lost a total of -551$. This week shows 9 trades but really there was 10, there was an error in one of the orders on day 2 thats why it wasn't counted.",
         "important_message_ids": []
     }
 ]
