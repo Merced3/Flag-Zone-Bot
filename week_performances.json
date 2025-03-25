@@ -591,12 +591,12 @@
         "week_number": 48,
         "week_start_end_date": "03/24/2025-03/28/2025",
         "start_ammount": 60863.0,
-        "end_ammount": 0.0,
-        "total_made": 0.0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
+        "end_ammount": 62008.0,
+        "total_made": 1145.0,
+        "num_of_trades": 2,
+        "num_of_profitable_trades": 2,
         "num_of_negitive_trades": 0,
-        "description": "",
+        "description": "Day 1, it was a nice trend day, took 2 trades both hit 20% then stoploss, made $1,145. ",
         "important_message_ids": []
     }
 ]
