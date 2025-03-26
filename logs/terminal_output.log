@@ -2,3 +2,143 @@ The market is closed...
 [INFO] initial_setup and main_loop completed successfully.
 Waiting until tomorrow's 8:20 AM...
 Manually interrupted, cleaning up...
+[GECD] Get Economic Calender Data:
+    [GECD] Waiting for page to fully load...
+    [GECD] Page has fully loaded!
+    [GECD] Handling Date Range Section...
+    [GECD] Dropdown found, class attribute: dropdown-menu show
+    [GECD] Dropdown is now open!
+    [GECD] Selecting 'This Week' from dropdown...
+    [GECD] Successfully selected 'This Week'.
+
+
+    [GECD] Handling Impact Level Section...
+    [GECD] Dropdown found, class attribute: dropdown-menu show
+    [GECD] Impact dropdown is now open!
+    [GECD] Successfully selected 3-Star impact level.
+
+
+    [GECD] Handling Country Selection...
+    [GECD] Country Panel Found - ID: 'te-c-main-countries', Class: small
+    [GECD] Country selection panel is now open!
+    [GECD] Selecting 'America' from the country list...
+    [GECD] Successfully selected 'America'.
+    [GECD] Country selection saved successfully.
+    [GECD] Waiting for Country Panel to go away...
+    [GECD] Panel Gone!
+
+    [GECD] Handling Category Section...
+Error: Could not find a channel with ID 1166097945054171187.
+
+An error occurred in economic_calender_scraper.py:
+Time: 2025-03-26T00:46:18.094251
+Location: get_economic_calendar_data()
+Type: TimeoutException
+Message: Message: 
+Stacktrace:
+	GetHandleVerifier [0x00E5C7F3+24435]
+	(No symbol) [0x00DE2074]
+	(No symbol) [0x00CB06E3]
+	(No symbol) [0x00CF8B39]
+	(No symbol) [0x00CF8E8B]
+	(No symbol) [0x00D41AC2]
+	(No symbol) [0x00D1D804]
+	(No symbol) [0x00D3F20A]
+	(No symbol) [0x00D1D5B6]
+	(No symbol) [0x00CEC54F]
+	(No symbol) [0x00CED894]
+	GetHandleVerifier [0x011670A3+3213347]
+	GetHandleVerifier [0x0117B0C9+3295305]
+	GetHandleVerifier [0x0117558C+3271948]
+	GetHandleVerifier [0x00EF7360+658144]
+	(No symbol) [0x00DEB27D]
+	(No symbol) [0x00DE8208]
+	(No symbol) [0x00DE83A9]
+	(No symbol) [0x00DDAAC0]
+	BaseThreadInitThunk [0x755B5D49+25]
+	RtlInitializeExceptionChain [0x773CCE3B+107]
+	RtlGetAppContainerNamedObjectPath [0x773CCDC1+561]
+
+Traceback:
+Traceback (most recent call last):
+  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\economic_calender_scraper.py", line 166, in get_economic_calendar_data
+    category_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='aspnetForm']/div[3]/div/div/table/tbody/tr/td[1]/div/div[3]/button")))
+  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\venv\lib\site-packages\selenium\webdriver\support\wait.py", line 105, in until
+    raise TimeoutException(message, screen, stacktrace)
+selenium.common.exceptions.TimeoutException: Message: 
+Stacktrace:
+	GetHandleVerifier [0x00E5C7F3+24435]
+	(No symbol) [0x00DE2074]
+	(No symbol) [0x00CB06E3]
+	(No symbol) [0x00CF8B39]
+	(No symbol) [0x00CF8E8B]
+	(No symbol) [0x00D41AC2]
+	(No symbol) [0x00D1D804]
+	(No symbol) [0x00D3F20A]
+	(No symbol) [0x00D1D5B6]
+	(No symbol) [0x00CEC54F]
+	(No symbol) [0x00CED894]
+	GetHandleVerifier [0x011670A3+3213347]
+	GetHandleVerifier [0x0117B0C9+3295305]
+	GetHandleVerifier [0x0117558C+3271948]
+	GetHandleVerifier [0x00EF7360+658144]
+	(No symbol) [0x00DEB27D]
+	(No symbol) [0x00DE8208]
+	(No symbol) [0x00DE83A9]
+	(No symbol) [0x00DDAAC0]
+	BaseThreadInitThunk [0x755B5D49+25]
+	RtlInitializeExceptionChain [0x773CCE3B+107]
+	RtlGetAppContainerNamedObjectPath [0x773CCDC1+561]
+
+
+[GECD] Get Economic Calender Data:
+    [GECD] Waiting for page to fully load...
+    [GECD] Page has fully loaded!
+    [GECD] Handling Date Range Section...
+    [GECD] Dropdown found, class attribute: dropdown-menu show
+    [GECD] Dropdown is now open!
+    [GECD] Selecting 'This Week' from dropdown...
+    [GECD] Successfully selected 'This Week'.
+
+
+    [GECD] Handling Impact Level Section...
+    [GECD] Dropdown found, class attribute: dropdown-menu show
+    [GECD] Impact dropdown is now open!
+    [GECD] Successfully selected 3-Star impact level.
+
+
+    [GECD] Handling Country Selection...
+    [GECD] Country Panel Found - ID: 'te-c-main-countries', Class: small
+    [GECD] Country selection panel is now open!
+    [GECD] Selecting 'America' from the country list...
+    [GECD] Successfully selected 'America'.
+    [GECD] Country selection saved successfully.
+    [GECD] Waiting for Country Panel to go away...
+    [GECD] Panel Gone!
+
+    [GECD] Handling Category Section...
+    [GECD] Dropdown found, class attribute: dropdown-menu show
+    [GECD] Category dropdown is now open!
+    [GECD] Successfully selected 'All Events'.
+
+
+    [GECD] TimeZone Handling...
+    [GECD] Detected UTC offset for San Antonio: -300 minutes
+    [GECD] Attempting to open the TimeZone dropdown...
+    [GECD] Currently selected TimeZone: -300
+    [GECD] TimeZone is already correct. No changes needed.
+
+
+    [GECD] Extracting Data From Calender...
+    [GECD] Processing Date: 03-26-25
+    [GECD] Extracting 2 events for 03-26-25...
+    [GECD] Skipping event row due to missing elements.
+    [GECD] Processing Date: 03-27-25
+    [GECD] Extracting 2 events for 03-27-25...
+    [GECD] Skipping event row due to missing elements.
+    [GECD] Processing Date: 03-28-25
+    [GECD] Extracting 6 events for 03-28-25...
+    [GECD] Skipping event row due to missing elements.
+    [GECD] Skipping event row due to missing elements.
+    [GECD] Skipping event row due to missing elements.
+    [GECD] ✅ Data extraction completed! Total Dates: 3, File Saved: week_ecom_calender.json

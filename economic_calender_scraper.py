@@ -163,18 +163,24 @@ async def get_economic_calendar_data():
         # 4️⃣ **Get Category (Select "All Events")**
         print_log(f"    [GECD] Handling Category Section...")
         while True:
-            category_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='aspnetForm']/div[3]/div/div/table/tbody/tr/td[1]/div/div[3]/button")))
+            category_button = wait.until(EC.element_to_be_clickable((
+                By.XPATH, "//button[contains(@class, 'btn-calendar') and .//span[contains(text(), 'Category')]]"
+            )))
             category_button.click()
             await asyncio.sleep(1)
 
             try:
-                category_dropdown = wait.until(EC.presence_of_element_located((By.XPATH, "//*[@id='aspnetForm']/div[3]/div/div/table/tbody/tr/td[1]/div/div[3]/ul")))
+                category_dropdown = wait.until(EC.presence_of_element_located((
+                    By.XPATH, "//button[contains(@class, 'btn-calendar') and .//span[contains(text(), 'Category')]]/following-sibling::ul[contains(@class, 'dropdown-menu')]"
+                )))
                 dropdown_class = category_dropdown.get_attribute("class")
                 print_log(f"    [GECD] Dropdown found, class attribute: {dropdown_class}")
 
                 if "show" in dropdown_class:
                     print_log(f"    [GECD] Category dropdown is now open!")
-                    AE_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='aspnetForm']/div[3]/div/div/table/tbody/tr/td[1]/div/div[3]/ul/li[1]")))
+                    AE_option = wait.until(EC.element_to_be_clickable((
+                        By.XPATH, "//ul[contains(@class, 'dropdown-menu') and contains(@class, 'show')]//a[contains(text(), 'All Events')]"
+                    )))
                     AE_option.click()
                     print_log(f"    [GECD] Successfully selected 'All Events'.")
                     break
@@ -296,11 +302,6 @@ async def get_economic_calendar_data():
         print_log(f"    [GECD] ✅ Data extraction completed! Total Dates: {len(data.keys())}, File Saved: {JSON_FILE}")
 
     except Exception as e:
-        # Save the current webpage state for debugging
-        #with open("debug_page.html", "w", encoding="utf-8") as f:
-            #f.write(driver.page_source)
-        #print_log("    [GECD] ⚠️ ERROR: Saved debug HTML snapshot!")
-        
         await error_log_and_discord_message(e, "economic_calender_scraper", "get_economic_calendar_data")
         driver.quit()
 

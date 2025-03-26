@@ -1,30 +1,21 @@
 {
-    "week_timespan": "03-17-25 to 03-23-25",
+    "week_timespan": "03-24-25 to 03-30-25",
     "dates": {
-        "03-17-25": {
+        "03-26-25": {
             "07:30 AM": [
-                "Retail Sales MoM"
+                "Durable Goods Orders MoM"
             ]
         },
-        "03-18-25": {
+        "03-27-25": {
             "07:30 AM": [
-                "Inflation Rate YoY",
-                "Building Permits Prel",
-                "Housing Starts"
+                "GDP Growth Rate QoQ Final"
             ]
         },
-        "03-19-25": {
-            "01:00 PM": [
-                "Fed Interest Rate Decision",
-                "FOMC Economic Projections"
-            ],
-            "01:30 PM": [
-                "Fed Press Conference"
-            ]
-        },
-        "03-20-25": {
-            "09:00 AM": [
-                "Existing Home Sales"
+        "03-28-25": {
+            "07:30 AM": [
+                "Core PCE Price Index MoM",
+                "Personal Income MoM",
+                "Personal Spending MoM"
             ]
         }
     }
