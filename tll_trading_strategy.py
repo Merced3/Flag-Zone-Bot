@@ -89,7 +89,7 @@ async def execute_trading_strategy(zones):
     print_log(f"    [ETS INFO] what_type_of_candle = {what_type_of_candle}\n\n")
 
     last_processed_candle = None
-    has_calculated_emas = True #TODO False
+    has_calculated_emas = False #TODO False
     candle_interval = 2
     candle_timescale = "minute"
     AM = "AFTERMARKET"
