@@ -1,21 +1,28 @@
 {
-    "week_timespan": "03-24-25 to 03-30-25",
+    "week_timespan": "03-31-25 to 04-06-25",
     "dates": {
-        "03-26-25": {
-            "07:30 AM": [
-                "Durable Goods Orders MoM"
+        "04-01-25": {
+            "09:00 AM": [
+                "ISM Manufacturing PMI",
+                "JOLTs Job Openings"
             ]
         },
-        "03-27-25": {
+        "04-03-25": {
             "07:30 AM": [
-                "GDP Growth Rate QoQ Final"
+                "Balance of Trade"
+            ],
+            "09:00 AM": [
+                "ISM Services PMI"
             ]
         },
-        "03-28-25": {
+        "04-04-25": {
             "07:30 AM": [
-                "Core PCE Price Index MoM",
-                "Personal Income MoM",
-                "Personal Spending MoM"
+                "Unemployment Rate",
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ],
+            "10:25 AM": [
+                "Fed Chair Powell Speech"
             ]
         }
     }
