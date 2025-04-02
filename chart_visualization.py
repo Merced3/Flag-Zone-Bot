@@ -191,7 +191,7 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type, indent_lvl=
         ema_plotted = False
         ema_file_path = Path(__file__).resolve().parent / 'EMAs.json'
         
-        emas = safe_read_json(ema_file_path, default=[], indent_lvl=indent_lvl+1)  # Safely read the JSON file
+        emas = safe_read_json(ema_file_path, default=[], indent_lvl=indent_lvl+1, location="update_plot()")  # Safely read the JSON file
         
         if emas:
             x_values = [entry['x'] for entry in emas]
@@ -217,7 +217,7 @@ def update_plot(canvas, df, boxes, tp_lines, symbol, timescale_type, indent_lvl=
 
         # <<<<<<<<<Check and plot Bull/Bear Flags HERE>>>>>>>>>>
         lines_file_path = Path(__file__).resolve().parent / 'line_data.json'
-        lines_data = safe_read_json(lines_file_path, default={"active_flags": [], "completed_flags": []}, indent_lvl=indent_lvl+1)
+        lines_data = safe_read_json(lines_file_path, default={"active_flags": [], "completed_flags": []}, indent_lvl=indent_lvl+1, location="update_plot()")
 
         if lines_data:
             for group, linestyle in [('active_flags', ':'), ('completed_flags', '-')]:

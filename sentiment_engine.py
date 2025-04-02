@@ -1,6 +1,6 @@
 # sentiment_engine.py; use specific indicators in a ranking/weighted system to...
 from data_acquisition import load_json_df
-from shared_state import price_lock, indent, print_log, safe_read_json, safe_write_json
+from shared_state import indent, print_log
 
 # ----------------------
 # 🎯 Sentiment Ranking System (OFFLINE REFERENCE)

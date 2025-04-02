@@ -50,7 +50,7 @@ def indent(level=1):
         return ""
     return " " * (4 * level)
 
-def safe_read_json(file_path, retries=5, delay=0.1, default=None, indent_lvl=None):
+def safe_read_json(file_path, retries=5, delay=0.1, default=None, indent_lvl=None, location=None):
     """
     Safely reads a JSON file, with retry logic for handling concurrent access and errors. Ensures the returned value matches the type of `default`.
 
@@ -76,7 +76,7 @@ def safe_read_json(file_path, retries=5, delay=0.1, default=None, indent_lvl=Non
 
                 # Check if the returned data matches the expected type
                 if not isinstance(data, expected_type):
-                    print_log(f"{indent(indent_lvl)}[SAFE READ] Mismatched type. Converting {type(data)} to {expected_type}.")
+                    print_log(f"{indent(indent_lvl)}[SAFE READ] Mismatched type. Converting {type(data)} to {expected_type}. From '{location}'")
                     if expected_type == list:
                         return list(data) if isinstance(data, (dict, set)) else [data]
                     elif expected_type == dict:
@@ -101,21 +101,21 @@ def safe_read_json(file_path, retries=5, delay=0.1, default=None, indent_lvl=Non
             print_log(f"{indent(indent_lvl)}[SAFE READ] File not found: {file_path}")
             return default
         except json.JSONDecodeError:
-            print_log(f"{indent(indent_lvl)}[SAFE READ] Invalid JSON in {file_path}, retrying... (Attempt {attempt + 1}/{retries})")
+            print_log(f"{indent(indent_lvl)}[SAFE READ] Invalid JSON in {file_path}, retrying... (Attempt {attempt + 1}/{retries}). From '{location}'")
             if attempt < retries - 1:
                 time.sleep(delay)
             else:
-                print_log(f"{indent(indent_lvl)}[SAFE READ] Failed to parse JSON after {retries} attempts.")
+                print_log(f"{indent(indent_lvl)}[SAFE READ] Failed to parse JSON after {retries} attempts. From '{location}'")
                 return default
         except PermissionError:
-            print_log(f"{indent(indent_lvl)}[SAFE READ] Permission denied: {file_path}, retrying... (Attempt {attempt + 1}/{retries})")
+            print_log(f"{indent(indent_lvl)}[SAFE READ] Permission denied: {file_path}, retrying... (Attempt {attempt + 1}/{retries}) From '{location}'")
             if attempt < retries - 1:
                 time.sleep(delay)
             else:
-                print_log(f"{indent(indent_lvl)}[SAFE READ] Permission denied after {retries} attempts.")
+                print_log(f"{indent(indent_lvl)}[SAFE READ] Permission denied after {retries} attempts. From '{location}'")
                 return default
         except Exception as e:
-            print_log(f"{indent(indent_lvl)}[SAFE READ] Unexpected error: {e}")
+            print_log(f"{indent(indent_lvl)}[SAFE READ] Unexpected error: {e} From '{location}'")
             return default
 
     return default  # Fallback return in case of unexpected issues

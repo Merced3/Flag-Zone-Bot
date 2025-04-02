@@ -5,7 +5,7 @@ import pandas_market_calendars as mcal
 import numpy as np
 from chart_visualization import update_2_min
 from error_handler import error_log_and_discord_message
-from shared_state import price_lock, indent, print_log, safe_read_json, safe_write_json
+from shared_state import price_lock, indent, print_log, safe_read_json
 import shared_state
 import websockets
 from websockets.exceptions import InvalidStatusCode
@@ -682,7 +682,7 @@ def get_dates(num_of_days, use_todays_date=False):
     return start_date_str, end_date_str
 
 #another test function
-async def get_certain_candle_data(api_key, symbol, interval, timescale, start_date, end_date, market_type='ALL'):
+async def get_certain_candle_data(api_key, symbol, interval, timescale, start_date, end_date, market_type='ALL', indent_lvl=1):
     """
     Fetches interval-timescale candle data for a given symbol on a specific date, filtered by market type.
 
@@ -723,26 +723,26 @@ async def get_certain_candle_data(api_key, symbol, interval, timescale, start_da
             df.rename(columns={'v': 'volume', 'o': 'open', 'c': 'close', 'h': 'high', 'l': 'low', 't': 'timestamp'}, inplace=True)
             csv_filename = f"{symbol}_{interval}_{timescale}_{market_type}.csv"
             df.to_csv(csv_filename, index=False)
-            print_log(f"Data saved: {csv_filename}")
+            print_log(f"{indent(indent_lvl)}[GCCD] Data saved: {csv_filename}")
             return df
         else:
-            print_log("No 'results' key found in the API response.")
+            print_log(f"{indent(indent_lvl)}[GCCD] No 'results' key found in the API response.")
     except requests.exceptions.HTTPError as http_err:
-        print_log("HTTP error occurred:", http_err)
+        print_log(f"{indent(indent_lvl)}[GCCD] HTTP error occurred: {http_err}")
     except Exception as e:
-        print_log("An unexpected error occurred:", e)
+        print_log(f"{indent(indent_lvl)}[GCCD] An unexpected error occurred: {e}")
 
     return None
 
-async def get_candle_data_and_merge(aftermarket_file, premarket_file, candle_interval, candle_timescale, am, pm, merged_file_name):
+async def get_candle_data_and_merge(candle_interval, candle_timescale, am, pm, merged_file_name, indent_lvl):
     PD_AM, CD_PM = None, None
     
     # Load Aftermarket and Premarket Data
     start_date, end_date = get_dates(1, False)
-    PD_AM = await get_certain_candle_data(cred.POLYGON_API_KEY, read_config('SYMBOL'), candle_interval, candle_timescale, start_date, end_date, am)
+    PD_AM = await get_certain_candle_data(cred.POLYGON_API_KEY, read_config('SYMBOL'), candle_interval, candle_timescale, start_date, end_date, am, indent_lvl+1)
     
     start_date, end_date = get_dates(1, True)
-    CD_PM = await get_certain_candle_data(cred.POLYGON_API_KEY, read_config('SYMBOL'), candle_interval, candle_timescale, start_date, end_date, pm)
+    CD_PM = await get_certain_candle_data(cred.POLYGON_API_KEY, read_config('SYMBOL'), candle_interval, candle_timescale, start_date, end_date, pm, indent_lvl+1)
     
     # Combine data if both are present
     if PD_AM is not None and CD_PM is not None:
@@ -755,10 +755,10 @@ async def get_candle_data_and_merge(aftermarket_file, premarket_file, candle_int
             merged_df[ema_column_name] = merged_df['close'].ewm(span=window, adjust=False).mean()
         
         merged_df.to_csv(merged_file_name, index=False)
-        print_log(f"\nData saved with initial EMA calculation: {merged_file_name}")
+        print_log(f"{indent(indent_lvl)}[GCDAM] Data saved with initial EMA calculation: {merged_file_name}")
         
     else:
-        print_log("Aftermarket or premarket data not available. EMA calculation skipped.")
+        print_log(f"{indent(indent_lvl)}[GCDAM] Aftermarket or premarket data not available. EMA calculation skipped.")
 
 def read_log_to_df(log_file_path):
     """Read log data into a DataFrame."""

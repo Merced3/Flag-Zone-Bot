@@ -67,7 +67,7 @@ async def execute_trading_strategy(zones, tpls):
     market_open_plus_15 = MARKET_OPEN_TIME + timedelta(minutes=15)
     market_open_plus_15 = market_open_plus_15.time()
 
-    restart_state_json(True) # might not need this sense we switch it from JSON to DICT internal store for faster processing, specifically for the flag processing
+    #restart_state_json(True) # might not need this sense we switch it from JSON to DICT internal store for faster processing, specifically for the flag processing
 
     # Wait for the simulation to start and populate data
     while True:
@@ -82,7 +82,7 @@ async def execute_trading_strategy(zones, tpls):
     candle_timescale = "minute"
 
     # Ema Specific variables
-    has_calculated_emas = False #TODO False
+    has_calculated_emas = True #TODO False
     candle_list = []  # Stores candles for the first 15 minutes
     AM = "AFTERMARKET"
     PM = "PREMARKET"
@@ -95,7 +95,7 @@ async def execute_trading_strategy(zones, tpls):
     try:
         while True:
             # Check if current time is within one minute of market close
-            current_time = datetime.now(new_york_tz).time()
+            current_time = datetime.now(new_york_tz).time() # this has never caused a deadlock issue before, but this new error is no quawinsedence since it did happen on the day of code transfer
             if current_time >= (datetime.combine(datetime.today(), MARKET_CLOSE) - timedelta(minutes=1)).time():
                 # If within one minute of market close, exit all positions
                 await sell_rest_of_active_order("Market closing soon. Exiting all positions.")
@@ -108,7 +108,7 @@ async def execute_trading_strategy(zones, tpls):
                 _config["ACCOUNT_BALANCES"][1] = end_of_day_account_balance # Update the ACCOUNT_BALANCES
                 with open(config_path, 'w') as f: # Write back the updated config
                     json.dump(_config, f, indent=4)  # Using indent for better readability
-                restart_state_json(True)
+                #restart_state_json(True)
                 break
 
             current_last_candle = read_last_n_lines(LOG_FILE_PATH, 1)  # Read the latest candle
@@ -116,12 +116,12 @@ async def execute_trading_strategy(zones, tpls):
                 last_processed_candle = current_last_candle
                 # Get candle, its OHLC values
                 candle = last_processed_candle[0]
-                
+                #print_log_candle(candle)
                 # Handle Making EMA's
                 has_calculated_emas = await EMAs_calc_save(
                     candle, current_time, market_open_plus_15, has_calculated_emas, candle_list,
                     aftermarket_file, premarket_file, merged_file_name, candle_interval, candle_timescale,
-                    AM, PM, indent_lvl
+                    AM, PM, indent_lvl+1
                 )
 
                 # Figure out where the candle is relative to zones, this tells us if were outside or inside a zone.
@@ -139,29 +139,25 @@ async def execute_trading_strategy(zones, tpls):
                 # Len simpler in logs, if need be for more trackable situations just delete the 'len()'
                 update_2_min(indent_lvl=indent_lvl)
 
-                # Other code...
-
                 current_candle_score = get_current_sentiment(candle, zones, tpls, indent_lvl+1, False)
                 print_log(f"{indent(indent_lvl)}[ETS-GCS] Sentiment Score: {current_candle_score}")
                     
                 # TODO: Give's `manage_active_order()` 'current_candle_score' access.
                 latest_sentiment_score["score"] = current_candle_score
 
-                # Other code...
                 if able_to_buy and flags_completed:
                     handling_detials=await handle_rules_and_order(1, candle, candle_zone_type, zones, flags_completed, True, print_statements=False)
                     print_log(f"{indent(indent_lvl)}[ETS-HRAO] Buy Signal '{handling_detials[1]}' Successful!" if handling_detials[0] else f"{indent(indent_lvl)}[HRAO] Order Blocked, {handling_detials[1]}")
-                else:
-                    await asyncio.sleep(1)  # Wait for new candle data
-                    update_2_min() # i hate how this has to update every second just for the boxes to be garanteed to chow up...
+                update_2_min()
+            else:
+                await asyncio.sleep(1)  # Wait for new candle data
 
     except Exception as e:
         await error_log_and_discord_message(e, "tll_trading_strategy", "execute_trading_strategy")
 
 async def EMAs_calc_save(candle, current_time, market_open_plus_15, has_calculated_emas, candle_list,
     aftermarket_file, premarket_file, merged_file_name, candle_interval, candle_timescale,
-    AM, PM, indent_lvl
-):
+    AM, PM, indent_lvl):
     """
     Calculates and saves EMAs based on current time and whether we're past the first 15 minutes.
     """
@@ -170,7 +166,7 @@ async def EMAs_calc_save(candle, current_time, market_open_plus_15, has_calculat
             print_log(f"{indent(indent_lvl)}[EMA CS] Finalizing EMAs after first 15 minutes...")
             
             await get_candle_data_and_merge(
-                aftermarket_file, premarket_file, candle_interval, candle_timescale, AM, PM, merged_file_name
+                candle_interval, candle_timescale, AM, PM, merged_file_name, indent_lvl+1
             )
 
             reset_json('EMAs.json', [])
@@ -190,12 +186,12 @@ async def EMAs_calc_save(candle, current_time, market_open_plus_15, has_calculat
         candle_list.append(candle)
 
         # Wipe and recreate merged files
-        for file_path in [premarket_file, merged_file_name]:
+        for file_path in [aftermarket_file, premarket_file, merged_file_name]:
             if os.path.exists(file_path):
                 os.remove(file_path)
 
         await get_candle_data_and_merge(
-            aftermarket_file, premarket_file, candle_interval, candle_timescale, AM, PM, merged_file_name
+            candle_interval, candle_timescale, AM, PM, merged_file_name, indent_lvl
         )
 
         # Clear EMAs.json file for a clean slate
@@ -207,3 +203,11 @@ async def EMAs_calc_save(candle, current_time, market_open_plus_15, has_calculat
 
         print_log(f"{indent(indent_lvl)}[EMA CS] Calculated temporary EMA for first 15 min candle list with {len(candle_list)} candles.")
         return False  # Still accumulating
+    
+def print_log_candle(candle):
+    #{candle['candle_index']}
+    timestamp_str = candle["timestamp"]
+    timestamp_dt = datetime.fromisoformat(timestamp_str)
+    formatted_time = timestamp_dt.strftime("%H:%M:%S")
+    num = get_current_candle_index(LOG_FILE_PATH)
+    print_log(f"[{formatted_time}] {num} OHLC: {candle['open']}, {candle['high']}, {candle['low']}, {candle['close']}")

@@ -204,7 +204,7 @@ def load_from_csv(filename):
         return None
 
 async def process_data(queue):
-    print_log("Starting process_data()...")
+    print_log("Starting `process_data()`...")
     global current_candles, candle_counts
     
     # Define initial timestamps for the first day
@@ -479,10 +479,9 @@ async def main_loop():
                     await send_file_discord(pic_15m_filepath)
 
                     await print_discord(setup_economic_news_message())
-                await asyncio.gather(
-                    process_data(queue),
-                    execute_trading_strategy(Boxes, tp_lines) # Strategy starts
-                )
+                task1 = asyncio.create_task(process_data(queue), name="ProcessDataTask")
+                task2 = asyncio.create_task(execute_trading_strategy(Boxes, tp_lines), name="TradingStrategyTask")
+                await asyncio.gather(task1, task2)
             else: # Market is closed
                 if websocket_connection is not None:
                     data_acquisition.should_close = True  # Signal to close WebSocket
@@ -558,7 +557,7 @@ async def reseting_values(start_balance=None, end_balance=None):#, message_ids=N
     #Clear the markers.json file
     reset_json('markers.json', [])
     #clear line_data_TEST.json
-    reset_json('line_data.json', [])
+    reset_json('line_data.json', {})
     #clear order_candle_type.json
     reset_json('order_candle_type.json', [])
     #clear priority_candles.json
