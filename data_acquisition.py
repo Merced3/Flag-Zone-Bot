@@ -4,8 +4,8 @@ import pandas as pd
 import pandas_market_calendars as mcal
 import numpy as np
 from chart_visualization import update_2_min
-from error_handler import error_log_and_discord_message, print_log
-from shared_state import price_lock
+from error_handler import error_log_and_discord_message
+from shared_state import price_lock, indent, print_log, safe_read_json, safe_write_json
 import shared_state
 import websockets
 from websockets.exceptions import InvalidStatusCode
@@ -17,6 +17,7 @@ import aiohttp
 import json
 import pytz
 import time
+import glob
 from datetime import datetime, timedelta
 import os
 import math
@@ -38,12 +39,6 @@ def read_config(key=None):
     if key is None:
         return config  # Return the whole config if no key is provided
     return config.get(key)  # Return the specific key's value or None if key doesn't exist
-
-#config = read_config()
-#IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
-#SYMBOL = config["SYMBOL"]
-#EMA = config["EMAS"]
-#ORDERS_ZONE_THRESHOLD = config["ORDERS_ZONE_THRESHOLD"]
 
 MESSAGE_IDS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'message_ids.json')
 
@@ -578,6 +573,7 @@ def candle_ema_handler(candle, option_1_or_2 = 2):
     return type_candle
 
 def candle_close_in_zone(candle, boxes):
+    # If candle close is indetween a zone the return true, else false.
     for box_name, (x_pos, high_low_of_day, buffer) in boxes.items(): 
         # Determine the top and bottom of the box
         box_top = max(high_low_of_day, buffer)
@@ -606,12 +602,9 @@ async def get_current_price() -> float:
 async def add_markers(event_type, x=None, y=None, percentage=None):
     
     log_file_path = Path(__file__).resolve().parent / 'logs/SPY_2M.log'
-    #if x is not None and y is not None:
-        #x_coord = x
-        #y_coord = y
-    #else:
+    
     x_coord = get_current_candle_index(log_file_path) if x is None else x
-    y_coord = await get_current_price() if y is None else y
+    y_coord = y if y else await get_current_price()
     print_log(f"    [MARKER] {x_coord}, {y_coord}, {event_type}")
 
     x_coord += 1
@@ -865,65 +858,65 @@ def load_json_df(file_path):
         data = json.load(file)
     return pd.DataFrame(data)
 
-async def above_below_ema(state, threshold=None, price=None):
-    """
-    Determines if the current price is above or below the 13 EMA and by what margin.
-
-    Parameters:
-    state (str): 'above' or 'below' indicating desired state relative to EMA.
-    threshold (float, optional): The maximum allowable distance from the 13 EMA for additional condition checks.
-
-    Returns:
-    (bool, bool): Tuple where the first item indicates if the price is correctly positioned relative to all EMAs,
-                  and the second indicates if the price is within the specified threshold from the 13 EMA.
-    """
+async def above_below_ema(indent_lvl, threshold, price=None):
+    # defualt return values 
+    ab_condition_met = False
+    direction = None
+    within_threshold = None
+    distance = None
 
     # Get current price
     if price is None:
         price = await get_current_price()
+        # Get price for the live version, we import price into the function for the simulator.
 
     # Load EMA values
     EMAs = load_json_df('EMAs.json')
     if EMAs.empty:
         print_log("        [EMA] ERROR: data is unavailable.")
-        return False, None, None  # No EMA data available 
+        return ab_condition_met, direction, within_threshold, distance  # No EMA data available 
     
     last_EMA = EMAs.iloc[-1]
     last_EMA_dict = last_EMA.to_dict()
-    #print(f"        [EMA] Last EMA Values: {last_EMA_dict}, Price: {price}")
     
+    # Values for finding direction
+    highest_ema = None
+    lowest_ema = None
+
     # Ensure price is correctly positioned relative to all EMAs
     for ema, ema_value in last_EMA_dict.items():
         if ema != 'x':  # 'x' is not an EMA value but an index or timestamp
-            if (state == 'above' and price <= ema_value) or (state == 'below' and price >= ema_value):
-                return False, None, None  # Price does not meet EMA position requirements
-    
+            if (highest_ema is None) or (ema_value >= highest_ema):
+                highest_ema = ema_value
+            if (lowest_ema is None) or (ema_value <= lowest_ema):
+                lowest_ema = ema_value
+            
+    if (lowest_ema < price < highest_ema): # If were inbetweem the 3 emas, return empty values
+        return ab_condition_met, direction, within_threshold, distance  # Price does not meet EMA position requirements
+    else: # price is either above or below emas
+        ab_condition_met = True
+        direction = 'bull' if price >= highest_ema else 'bear' if price <= lowest_ema else None
+
     # Calculate distance from the 13 EMA if the price is in the correct position relative to all EMAs
     distance = abs(price - last_EMA_dict.get('13', 0))  # Default to 0 if '13' not present
-    print_log(f"        [EMA] distance = {distance}; {price} - {last_EMA_dict.get('13', 0)};")
+    print_log(f"{indent(indent_lvl)}[AB-EMA] dir: {direction}; distance = {distance}; {price} - {last_EMA_dict.get('13', 0)};")
     
     # Check if the distance from the 13 EMA is within the allowed threshold if specified
     within_threshold = (distance <= threshold) if threshold is not None else True
 
-    return True, within_threshold, distance  # Return True for correct EMA positioning and the threshold check result
+    # Return True for correct EMA positioning and the threshold check result
+    return ab_condition_met, direction, within_threshold, distance  
 
-def clear_priority_candles(type_candle, dir_candle, json_file='priority_candles.json'):
+def clear_priority_candles(indent_level, json_file='priority_candles.json'):
     with open(json_file, 'w') as file:
         json.dump([], file, indent=4)
-    print_log(f"    [RESET] {json_file}; what_type_of_candle = {type_candle}; bull_or_bear_candle = {dir_candle}")
+    print_log(f"{indent(indent_level)}[RESET] {json_file}; `priority_candles.json` = [];")
 
-async def record_priority_candle(candle, zone_type_candle, bull_or_bear_candle, json_file='priority_candles.json'):
+async def record_priority_candle(candle, zone_type_candle, json_file='priority_candles.json'):
     # Load existing data or initialize an empty list
     try:
         with open(json_file, 'r') as file:
             candles_data = json.load(file)
-        # Check if 'type' of the last candle exists and does not equal 'type_candles'
-        if candles_data and candles_data[-1]['zone_type'] != zone_type_candle:
-            # If the types don't match, clear the priority candles
-            clear_priority_candles(zone_type_candle, bull_or_bear_candle, json_file)
-            restart_state_json(True)
-            resolve_flags()
-            candles_data = []  # Reset candles_data to be an empty list after clearing
     except (FileNotFoundError, json.JSONDecodeError):
         candles_data = []
 
@@ -932,7 +925,7 @@ async def record_priority_candle(candle, zone_type_candle, bull_or_bear_candle, 
     # Append the new candle data along with its type
     candle_with_type = candle.copy()
     candle_with_type['zone_type'] = zone_type_candle
-    candle_with_type['dir_type'] = bull_or_bear_candle
+    #candle_with_type['dir_type'] = bull_or_bear_candle
     candle_with_type['candle_index'] = current_candle_index
     candles_data.append(candle_with_type)
 
@@ -940,26 +933,17 @@ async def record_priority_candle(candle, zone_type_candle, bull_or_bear_candle, 
     with open(json_file, 'w') as file:
         json.dump(candles_data, file, indent=4)
 
-async def start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle, bull_or_bear_candle):
-    # Set new starting point
-    current_hl = candle['high'] if candle_type == "bull" else candle['low']
-    important_candle_value = current_oc_high if candle_type == "bull" else current_oc_low
-    start_point = (candle['candle_index'], important_candle_value, current_hl)
-    print_log(f"    [IDF] {'Highest' if candle_type=='bull' else 'Lowest'} Point: {start_point}")
-    await reset_flag_internal_values(candle, what_type_of_candle, bull_or_bear_candle)
-    return start_point, [], None, None, 0
-
-async def reset_flag_internal_values(candle, what_type_of_candle, bull_or_bear_candle):
-    clear_priority_candles(what_type_of_candle, bull_or_bear_candle) #resetting priority candle values because previous candles before the highest one serves no purpose
-    await record_priority_candle(candle, what_type_of_candle, bull_or_bear_candle)
+async def reset_flag_internal_values(indent_level, candle, candle_zone_type):
+    clear_priority_candles(indent_level)
+    await record_priority_candle(candle, candle_zone_type)
     return [], None, None
 
-def restart_flag_data(what_type_of_candle, bull_or_bear_candle):
-    clear_priority_candles(what_type_of_candle, bull_or_bear_candle)
-    restart_state_json(True)
-    resolve_flags()  
+def restart_flag_data(indent_level):
+    clear_priority_candles(indent_level)
+    restart_state_json(indent_level)
+    resolve_flags(indent_level)  
 
-def resolve_flags(json_file='line_data.json'):
+def resolve_flags(indent_level, json_file='line_data.json'):
     
     # Load the flags from JSON file
     line_data_path = Path(json_file)
@@ -967,7 +951,7 @@ def resolve_flags(json_file='line_data.json'):
         with open(line_data_path, 'r') as file:
             line_data = json.load(file)
     else:
-        print_log(f"    [FLAG ERROR] File {json_file} not found.")
+        print_log(f"{indent(indent_level)}[FLAG ERROR] File {json_file} not found.")
         return
 
     # Iterate through the flags and resolve opposite flags
@@ -982,7 +966,7 @@ def resolve_flags(json_file='line_data.json'):
             if is_point_1_valid and is_point_2_valid:
                 flag['status'] = 'complete' #mark complete so its no longer edited
                 updated_line_data.append(flag)
-                print_log("    [FLAG] Active flags resolved.")
+                print_log(f"{indent(indent_level)}[FLAG] Active flags resolved.")
             # Skip adding the flag to updated_line_data if it's active and has invalid points
         else:
             updated_line_data.append(flag)
@@ -1008,17 +992,10 @@ def determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_
         reasons.append("Trade time conflicts with economic events")
     return "; ".join(reasons) if reasons else "No specific reason"
 
-def restart_state_json(reset_all, state_file_path="state.json"):
-    """
-    Initializes or resets the state.json file to default values or specific sections.
-
-    Parameters:
-    reset_all (bool): if True, reset entire state.
-    state_file_path (str): The file path for the state.json file.
-    reset_side (str): which side to reset, "bear" or "bull".
-    """
+def restart_state_json(indent_level, state_file_path):
     initial_state = {
-        'flag_counter': 0,
+        'flag_names': [],
+        'flag_type': None,
         'start_point': None,
         'slope': None,
         'intercept': None,
@@ -1028,8 +1005,8 @@ def restart_state_json(reset_all, state_file_path="state.json"):
     
     with open(state_file_path, 'w') as file:
         json.dump(initial_state, file, indent=4)
-    print_log("    [RESET] State JSON file has been reset to initial state.")
-    
+    print_log(f"{indent(indent_level)}[RESET] State JSON file has been reset to initial state.")
+
 def initialize_ema_json(json_path):
     """Ensure the EMA JSON file exists and is valid; initialize if not."""
     if not os.path.exists(json_path) or os.stat(json_path).st_size == 0:
@@ -1172,10 +1149,10 @@ def log_order_details(filepath, what_type_of_candle, time_entered, ema_distance,
                          ticker_symbol, strike_price, option_type, order_quantity, order_bid_price, total_investment])
 
 # Update the CSV file with additional details
-def update_order_details(filepath, unique_order_id, **kwargs):
+def update_order_details(indent_lvl, filepath, unique_order_id, **kwargs):
     # UOD means Update Order Details
-    print_log(f"\n    [UOD] unique_order_id: {unique_order_id}")
-    print_log(f"    [UOD] kwargs: {kwargs}")
+    print_log(f"\n{indent(indent_lvl)}[UOD] unique_order_id: {unique_order_id}")
+    print_log(f"{indent(indent_lvl)}[UOD] kwargs: {kwargs}")
     df = pd.read_csv(filepath)
     
     # `unique_order_id` is f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
@@ -1187,22 +1164,22 @@ def update_order_details(filepath, unique_order_id, **kwargs):
 
     # Format the datetime object to the desired string format (ignore seconds)
     formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M %p")
-    print_log(f"    [UOD] Formatted timestamp (ignoring seconds): {formatted_timestamp}")
+    print_log(f"{indent(indent_lvl)}[UOD] Formatted timestamp (ignoring seconds): {formatted_timestamp}")
 
     row_found = False
     for index, row in df.iterrows():
         # Normalize the row's timestamp for comparison, ensuring AM/PM is preserved
         row_time_formatted = row['time_entered']
-        #print_log(f"        [UOD 1] Checking row at index {index}: {row_time_formatted}")
+        #print_log(f"{indent(indent_lvl+1)}[UOD 1] Checking row at index {index}: {row_time_formatted}")
         
         if (row['ticker_symbol'] == symbol and 
             row['strike_price'] == float(strike_price) and 
             row['option_type'] == option_type and 
             row_time_formatted == formatted_timestamp):  # Compare normalized timestamps
-            print_log(f"            [UOD 2] Matching row found at index {index}")
+            print_log(f"{indent(indent_lvl+1)}[UOD 2] Matching row found at index {index}")
             row_found = True
             for key, value in kwargs.items():
-                print_log(f"                [UOD 3] Updating {key} to {value}")
+                print_log(f"{indent(indent_lvl+2)}[UOD 3] Updating {key} to {value}")
                 df.at[index, key] = value
             break  # If the correct row is found, no need to continue looping
     
@@ -1227,96 +1204,47 @@ def add_candle_type_to_json(candle_type, file_path = "order_candle_type.json"):
     with open(file_path, 'w') as file:
         json.dump(candle_types, file, indent=4)  # Using indent for better readability of the JSON file
 
-def is_angle_valid(slope, config, bearish=False):
-    """
-    Calculates the angle of the slope and checks if it is within the valid range specified in the config.
-    
-    Parameters:
-    slope (float): The slope of the line.
-    config (dict): Configuration dictionary containing angle criteria.
-    bearish (bool): Specifies if the angle check is for a bearish flag. Default is False (bullish).
-
-    Returns:
-    tuple: (bool, float) - A boolean indicating if the angle is valid, and the calculated angle in degrees.
-    """
-    # Calculate the angle in degrees from the slope
-    angle = math.atan(slope) * (180 / math.pi)
-    
-    # Extract min and max angles from config
-    min_angle = read_config('FLAGPOLE_CRITERIA')['MIN_ANGLE']
-    max_angle = read_config('FLAGPOLE_CRITERIA')['MAX_ANGLE']
-
-    # Adjust the angle check based on bullish or bearish criteria
-    if bearish:
-        is_valid = max_angle <= angle <= min_angle  # Bearish has positive angles (upward)
-    else:
-        is_valid = -min_angle <= angle <= -max_angle  # Bullish has negative angles (downward)
-
-    return is_valid, angle
-
-def check_valid_points(line_name, line_type):
+def check_valid_points(indent_lvl, line_name, line_type, print_statements=True):
     line_data_path = Path('line_data.json')
-    if line_data_path.exists():
-        with open(line_data_path, 'r') as file:
-            line_data = json.load(file)
-            for flag in line_data:
-                if flag['name'] == line_name:
-                    # Check and print point_1's x, y if available
-                    point_1 = flag.get('point_1')
-                    point_2 = flag.get('point_2')
+    default_structure = {
+        "active_flags": [],
+        "completed_flags": []
+    }
 
-                    # Ensure both point_1 and point_2 exist and have non-null x and y
-                    point_1_valid = point_1 and point_1.get('x') is not None and point_1.get('y') is not None
-                    point_2_valid = point_2 and point_2.get('x') is not None and point_2.get('y') is not None
-                    
-                    if point_1_valid and point_2_valid:
-                        # Calculate angle between point_1 and point_2
-                        x_diff = point_2['x'] - point_1['x']
-                        y_diff = point_2['y'] - point_1['y']
-                        angle = math.degrees(math.atan2(y_diff, x_diff))
+    line_data = safe_read_json(line_data_path, default=default_structure, indent_lvl=indent_lvl+1)
+    all_flags = line_data.get("active_flags", []) + line_data.get("completed_flags", [])
 
-                        correct_flag = None # Flag
-                        if line_type == 'Bull': 
-                            # Check if point 1 is higher than point 2, if so then it's a correct bull flag, else not corret flag and not correct buy.
-                            correct_flag = True if ((point_1['x'] < point_2['x']) and (point_1['y']>point_2['y'])) else False
-                        else: 
-                            # Check if point 1 is Lower than point 2, if so then it's a correct Bear flag, else not corret flag and not correct buy.
-                            correct_flag = True if ((point_1['x'] < point_2['x']) and (point_1['y']<point_2['y'])) else False
-                        
-                        return point_1_valid, point_2_valid, angle, correct_flag
-                    return point_1_valid, point_2_valid, None, None
+    for flag in all_flags:
+        if flag.get('name') == line_name:
+            point_1 = flag.get('point_1')
+            point_2 = flag.get('point_2')
+
+            point_1_valid = point_1 and point_1.get('x') is not None and point_1.get('y') is not None
+            point_2_valid = point_2 and point_2.get('x') is not None and point_2.get('y') is not None
+
+            if point_1_valid and point_2_valid:
+                x_diff = point_2['x'] - point_1['x']
+                y_diff = point_2['y'] - point_1['y']
+                angle = math.degrees(math.atan2(y_diff, x_diff))
+
+                is_greater = point_1['y'] >= point_2['y']
+                is_less = point_1['y'] <= point_2['y']
+                correct_flag = None
+
+                if print_statements:
+                    print_log(f"{indent(indent_lvl)}[CVP] line_type = {line_type}; p1>=p2: {is_greater}; p1<=p2: {is_less}")
+
+                if line_type == 'bull':
+                    correct_flag = (point_1['x'] < point_2['x']) and is_greater
+                elif line_type == 'bear':
+                    correct_flag = (point_1['x'] < point_2['x']) and is_less
+
+                return point_1_valid, point_2_valid, angle, correct_flag
+
+            return point_1_valid, point_2_valid, None, None
+
     return False, False, None, None
 
-def update_state(state_file_path, flag_counter, start_point, candle_points, slope, intercept):
-    with open(state_file_path, 'r') as file:
-        state = json.load(file)
-
-    state['flag_counter'] = flag_counter
-    state['start_point'] = start_point
-    state['slope'] = slope
-    state['intercept'] = intercept
-
-    # Create a new list for higher_lows based on the condition
-    new_candle_points = [tuple(cp) for cp in candle_points if cp[0] > start_point[0]]
-    # Update higher_lows if there are new values, otherwise empty the list
-    if new_candle_points:
-        unique_new_candle_points = set(new_candle_points)
-        state['candle_points'] = list(unique_new_candle_points)
-    else:
-        state['candle_points'] = []
-
-    with open(state_file_path, 'w') as file:
-        json.dump(state, file, indent=4)
-
-def count_flags_in_json(json_file='line_data.json'):
-    try:
-        with open(json_file, 'r') as file:
-            lines = json.load(file)
-            # Count only those flags with a status of 'complete'
-            complete_flags = [line for line in lines if line.get('status') == 'complete']
-            return len(complete_flags)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return 0  # Return 0 if file doesn't exist or is empty
     
 def reset_json(file_path, contents):
     with open(file_path, 'w') as f:
@@ -1342,6 +1270,34 @@ def empty_log(filename):
         pass  # Opening in write mode ('w') truncates the file automatically
 
     print_log(f"[CLEARED]'{filename}.log' has been emptied.")
+
+def clear_states_folder(directory="states"):
+    """
+    Deletes all JSON files in the specified directory.
+    
+    Args:
+        directory (str): The folder containing the state files to clear. Default is "states".
+    """
+    if not os.path.exists(directory):
+        print(f"Folder '{directory}' does not exist.")
+        return
+
+    # Get all JSON files in the directory
+    json_files = glob.glob(os.path.join(directory, "*.json"))
+
+    if not json_files:
+        print(f"No JSON files found in '{directory}'.")
+        return
+
+    # Delete each file
+    for file in json_files:
+        try:
+            os.remove(file)
+            print(f"Deleted: {file}")
+        except Exception as e:
+            print(f"Error deleting {file}: {e}")
+
+    print(f"[RESET] All JSON files in '{directory}' have been cleared.")
 
 def get_test_data_and_allocate(folder_name):
     # Define paths to the test data directory and the target files

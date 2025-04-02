@@ -4,15 +4,16 @@ from chart_visualization import update_2_min
 import json
 import asyncio
 from datetime import datetime, timedelta, time
-from buy_option import buy_option_cp
-from economic_calender_scraper import check_order_time_to_event_time
-from order_handler import get_profit_loss_orders_list, sell_rest_of_active_order
-from error_handler import error_log_and_discord_message, print_log
-from data_acquisition import get_current_candle_index, calculate_save_EMAs, get_candle_data_and_merge, above_below_ema, load_json_df, read_last_n_lines, load_message_ids, check_order_type_json, add_candle_type_to_json, determine_order_cancel_reason, initialize_ema_json, restart_state_json, record_priority_candle, clear_priority_candles, update_state, check_valid_points, is_angle_valid, resolve_flags, count_flags_in_json, log_order_details, candle_zone_handler, candle_ema_handler, candle_close_in_zone, start_new_flag_values, restart_flag_data, reset_json, read_config
+from order_handler_v2 import get_profit_loss_orders_list, sell_rest_of_active_order
+from error_handler import error_log_and_discord_message
+from data_acquisition import get_current_candle_index, calculate_save_EMAs, get_candle_data_and_merge, load_json_df, read_last_n_lines, load_message_ids, initialize_ema_json, restart_state_json, record_priority_candle, reset_json, read_config
+from boxes import candle_zone_handler
+from flag_manager import identify_flag, create_state
+from rule_manager import handle_rules_and_order
+from sentiment_engine import get_current_sentiment
+from shared_state import indent, print_log, latest_sentiment_score
 from pathlib import Path
 import pytz
-import cred
-import aiohttp
 
 STRATEGY_NAME = "FLAG/ZONE STRAT"
 
@@ -26,19 +27,6 @@ Desctiption:
 config_path = Path(__file__).resolve().parent / 'config.json'
 
 config = read_config()
-#IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
-#NUM_OUT_MONEY = config["NUM_OUT_OF_MONEY"]
-#SYMBOL = config["SYMBOL"]
-#TIMEFRAMES = config["TIMEFRAMES"]
-#ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
-#MIN_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MIN_NUM_CANDLES"]
-#MAX_NUM_CANDLES = config["FLAGPOLE_CRITERIA"]["MAX_NUM_CANDLES"]
-#OPTION_EXPIRATION_DTE = config["OPTION_EXPIRATION_DTE"]
-#EMA_MAX_DISTANCE = config["EMA_MAX_DISTANCE"]
-#MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION = config["MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION"]
-#TRADE_IN_BUFFERS = config["TRADE_IN_BUFFERS"]
-#START_POINT_MAX_NUM_FLAGS = config["FLAGPOLE_CRITERIA"]["START_POINT_MAX_NUM_FLAGS"]
-
 LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
 LOG_FILE_PATH = os.path.join(LOGS_DIR, f"{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}.log")  # Adjust the path accordingly
 
@@ -62,468 +50,160 @@ def get_market_open_time():
     market_open_time = datetime.combine(today, time(9, 30))
     return new_york_tz.localize(market_open_time)
 
-
-async def execute_trading_strategy(zones):
-    print_log("Starting execute_trading_strategy()...")
+async def execute_trading_strategy(zones, tpls):
+    print_log("Starting `execute_trading_strategy()`...")
     global last_processed_candle
-    message_ids_dict = load_message_ids()
-    print_log(f"message_ids_dict: {message_ids_dict}")
+    
+    # I don't think ill need these but i want to test-without them before completely removing them.
+    #message_ids_dict = load_message_ids()
+    #print_log(f"{indent(indent_lvl)}[ETS] message_ids_dict: {message_ids_dict}")
 
-    candle_list = []  # Stores candles for the first 15 minutes
+    indent_lvl=1
+    create_state(indent_lvl, "bear", None)
+    create_state(indent_lvl, "bull", None)
+    
+
     MARKET_OPEN_TIME = get_market_open_time()  # Get today's market open time
     market_open_plus_15 = MARKET_OPEN_TIME + timedelta(minutes=15)
     market_open_plus_15 = market_open_plus_15.time()
 
-    restart_state_json(True)
+    restart_state_json(True) # might not need this sense we switch it from JSON to DICT internal store for faster processing, specifically for the flag processing
 
     # Wait for the simulation to start and populate data
     while True:
         await asyncio.sleep(0.5)  # Check every half second
         f_candle = read_last_n_lines(LOG_FILE_PATH, 1)
         if f_candle:
-            print_log(f"    [ETS INFO] First candle processed: {f_candle[0]}")
+            print_log(f"{indent(indent_lvl)}[ETS] First candle processed: {f_candle[0]}")
             break
 
-    #Testing While Running: 'resistance PDH' or 'support Buffer' or "support_1 Buffer"
-    what_type_of_candle = candle_zone_handler(f_candle[0], None, zones, True)
-    print_log(f"    [ETS INFO] what_type_of_candle = {what_type_of_candle}\n\n")
-
     last_processed_candle = None
-    has_calculated_emas = False #TODO False
     candle_interval = 2
     candle_timescale = "minute"
+
+    # Ema Specific variables
+    has_calculated_emas = False #TODO False
+    candle_list = []  # Stores candles for the first 15 minutes
     AM = "AFTERMARKET"
     PM = "PREMARKET"
     aftermarket_file = f"{read_config('SYMBOL')}_{candle_interval}_{candle_timescale}_{AM}.csv"
     premarket_file = f"{read_config('SYMBOL')}_{candle_interval}_{candle_timescale}_{PM}.csv"
-    json_EMA_path = 'EMAs.json'
     merged_file_name = f"{read_config('SYMBOL')}_MERGED.csv"
 
-    initialize_ema_json(json_EMA_path)
+    initialize_ema_json('EMAs.json')
 
-    async with aiohttp.ClientSession() as session:  # Initialize HTTP session
-        headers = {"Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", "Accept": "application/json"}
-        try:
-            while True:
-                # Check if current time is within one minute of market close
-                current_time = datetime.now(new_york_tz).time()
-                if current_time >= (datetime.combine(datetime.today(), MARKET_CLOSE) - timedelta(minutes=1)).time():
-                    # If within one minute of market close, exit all positions
-                    await sell_rest_of_active_order("Market closing soon. Exiting all positions.")
-                    todays_profit_loss = sum(get_profit_loss_orders_list()) #returns todays_orders_profit_loss_list
-                    end_of_day_account_balance = read_config('ACCOUNT_BALANCES')[0] + todays_profit_loss
-                    print_log(f"ACCOUNT_BALANCES[0]: {read_config('ACCOUNT_BALANCES')[0]}, todays_profit_loss: {todays_profit_loss}\nend_of_day_account_balance: {end_of_day_account_balance}")
-                    _config = None
-                    with open(config_path, 'r') as f: # Read existing config
-                        _config = json.load(f)
-                    _config["ACCOUNT_BALANCES"][1] = end_of_day_account_balance # Update the ACCOUNT_BALANCES
-                    with open(config_path, 'w') as f: # Write back the updated config
-                        json.dump(_config, f, indent=4)  # Using indent for better readability
-                    restart_state_json(True)
-                    break
+    try:
+        while True:
+            # Check if current time is within one minute of market close
+            current_time = datetime.now(new_york_tz).time()
+            if current_time >= (datetime.combine(datetime.today(), MARKET_CLOSE) - timedelta(minutes=1)).time():
+                # If within one minute of market close, exit all positions
+                await sell_rest_of_active_order("Market closing soon. Exiting all positions.")
+                todays_profit_loss = sum(get_profit_loss_orders_list()) #returns todays_orders_profit_loss_list
+                end_of_day_account_balance = read_config('ACCOUNT_BALANCES')[0] + todays_profit_loss
+                print_log(f"{indent(indent_lvl)}[ETS] ACCOUNT_BALANCES[0]: {read_config('ACCOUNT_BALANCES')[0]}\n{indent(indent_lvl)}[ETS] todays_profit_loss: {todays_profit_loss}\n{indent(indent_lvl)}[ETS] end_of_day_account_balance: {end_of_day_account_balance}")
+                _config = None
+                with open(config_path, 'r') as f: # Read existing config
+                    _config = json.load(f)
+                _config["ACCOUNT_BALANCES"][1] = end_of_day_account_balance # Update the ACCOUNT_BALANCES
+                with open(config_path, 'w') as f: # Write back the updated config
+                    json.dump(_config, f, indent=4)  # Using indent for better readability
+                restart_state_json(True)
+                break
 
-                current_last_candle = read_last_n_lines(LOG_FILE_PATH, 1)  # Read the latest candle
-                if current_last_candle and current_last_candle != last_processed_candle:
-                    last_processed_candle = current_last_candle
-                    #get that candle, look at its OHLC values
-                    candle = last_processed_candle[0]
+            current_last_candle = read_last_n_lines(LOG_FILE_PATH, 1)  # Read the latest candle
+            if current_last_candle and current_last_candle != last_processed_candle:
+                last_processed_candle = current_last_candle
+                # Get candle, its OHLC values
+                candle = last_processed_candle[0]
+                
+                # Handle Making EMA's
+                has_calculated_emas = await EMAs_calc_save(
+                    candle, current_time, market_open_plus_15, has_calculated_emas, candle_list,
+                    aftermarket_file, premarket_file, merged_file_name, candle_interval, candle_timescale,
+                    AM, PM, indent_lvl
+                )
+
+                # Figure out where the candle is relative to zones, this tells us if were outside or inside a zone.
+                candle_zone_type, is_in_zone = candle_zone_handler(candle, zones)
+                able_to_buy = not is_in_zone # if so, don't buy inside zones
+                print_log(f"{indent(indent_lvl)}[ETS-CZH] Zone setup: {candle_zone_type}")
                     
-                    # TODO: Calculate/Save EMAs
-                    if current_time >= market_open_plus_15:
-                        # At this point, we finalize the EMA calculations and stop resetting with each new candle.
-                        if not has_calculated_emas and candle_list:
-                            # Perform final fetch and merge to cover all premarket and aftermarket data
-                            await get_candle_data_and_merge(aftermarket_file, premarket_file, candle_interval, candle_timescale, AM, PM, merged_file_name)
-                            reset_json('EMAs.json', [])
-                            # Calculate EMAs for the candle list accumulated until the 15-minute mark
-                            for _candle in reversed(candle_list):
-                                index_val_in_list = len(candle_list) - candle_list.index(_candle) - 1
-                                await calculate_save_EMAs(_candle, index_val_in_list)
+                # Data allocation
+                await record_priority_candle(candle, candle_zone_type) # Add candle into `priority_candles.json` to store certian vales into
+                last_candle = load_json_df('priority_candles.json').iloc[-1].to_dict()
+                    
+                # Flag handling
+                flags_completed = await identify_flag(last_candle, indent_lvl=indent_lvl+1, print_satements=False)
+                print_log(f"{indent(indent_lvl)}[ETS-IF] Num Flags Completed: {len(flags_completed)}")
+                # Len simpler in logs, if need be for more trackable situations just delete the 'len()'
+                update_2_min(indent_lvl=indent_lvl)
 
-                            # Calculate EMA for the current candle after processing the list
-                            await calculate_save_EMAs(candle, get_current_candle_index())
-                            print_log("    [EMA] Calculated final EMA list")
-                            has_calculated_emas = True
+                # Other code...
 
-                        elif has_calculated_emas:
-                            # After market open + 15 mins, continue calculating EMA for new candles
-                            await calculate_save_EMAs(candle, get_current_candle_index())
-                            print_log("    [EMA] Calculated EMA candle")
-                    else:
-                        # Before market_open_plus_15, calculate EMA with a continuously updated candle list
-                        candle_list.append(candle)
-                        has_calculated_emas = False
+                current_candle_score = get_current_sentiment(candle, zones, tpls, indent_lvl+1, False)
+                print_log(f"{indent(indent_lvl)}[ETS-GCS] Sentiment Score: {current_candle_score}")
+                    
+                # TODO: Give's `manage_active_order()` 'current_candle_score' access.
+                latest_sentiment_score["score"] = current_candle_score
 
-                        # Delete and recreate the CD_PM and merged files
-                        if os.path.exists(premarket_file):
-                            os.remove(premarket_file)
-                        if os.path.exists(merged_file_name):
-                            os.remove(merged_file_name)
-
-                        # Create PD_AM and CD_PM, then merge them, re-adding the candle list each time
-                        await get_candle_data_and_merge(aftermarket_file, premarket_file, candle_interval, candle_timescale, AM, PM, merged_file_name)
-
-                        # Clear EMAs.json file for a clean slate
-                        with open('EMAs.json', 'w') as f:
-                            json.dump([], f)
-
-                        # Add candles from the candle list to the merged file and recalculate EMAs
-                        for _candle in reversed(candle_list):
-                            index_val_in_list = len(candle_list) - candle_list.index(_candle) - 1
-                            await calculate_save_EMAs(_candle, index_val_in_list)
-
-                        print_log(f"    [EMA] Calculated temporary EMA for first 15 min candle list with {len(candle_list)} candles.")
-
-                    #Handle the zones
-                    what_type_of_candle = candle_zone_handler(candle, what_type_of_candle, zones, False)
-                    # Handle the candle bull or bear setup with EMA's
-                    bull_or_bear_candle = candle_ema_handler(candle)
-                    # Handle if close in zone
-                    is_in_zone = candle_close_in_zone(candle, zones) # is or isn't in zones
-                    able_to_buy = not is_in_zone # if so, don't buy inside zones
-
-                    if bull_or_bear_candle is not None:
-                        #record the candle data
-                        await record_priority_candle(candle, what_type_of_candle, bull_or_bear_candle)
-                        priority_candles = load_json_df('priority_candles.json')
-                        num_flags = count_flags_in_json()
-                        last_candle = priority_candles.iloc[-1]
-                        last_candle_dict = last_candle.to_dict()
-                        await identify_flag(last_candle_dict, num_flags, session, headers, what_type_of_candle, bull_or_bear_candle, able_to_buy)
-                    else:
-                        restart_flag_data(what_type_of_candle, bull_or_bear_candle)
+                # Other code...
+                if able_to_buy and flags_completed:
+                    handling_detials=await handle_rules_and_order(1, candle, candle_zone_type, zones, flags_completed, True, print_statements=False)
+                    print_log(f"{indent(indent_lvl)}[ETS-HRAO] Buy Signal '{handling_detials[1]}' Successful!" if handling_detials[0] else f"{indent(indent_lvl)}[HRAO] Order Blocked, {handling_detials[1]}")
                 else:
                     await asyncio.sleep(1)  # Wait for new candle data
                     update_2_min() # i hate how this has to update every second just for the boxes to be garanteed to chow up...
 
-        except Exception as e:
-            await error_log_and_discord_message(e, "tll_trading_strategy", "execute_trading_strategy")
+    except Exception as e:
+        await error_log_and_discord_message(e, "tll_trading_strategy", "execute_trading_strategy")
 
-async def identify_flag(candle, num_flags, session, headers, what_type_of_candle, bull_or_bear_candle, able_to_buy = True):
-    print_log(f"    [IDF Candle {candle['candle_index']}] OHLC: {candle['open']}, {candle['high']}, {candle['low']}, {candle['close']}")
-    state_file_path = "state.json" 
-    
-    # Read the current state from the JSON file
-    with open(state_file_path, 'r') as file:
-        state = json.load(file)
-    
-    flag_counter = state.get('flag_counter', 0)
-    start_point = state.get('start_point', None) # [X, Y, Y²]
-    candle_points = state.get('candle_points', []) # [[X, Y, Y²], [X, Y, Y²], ...]
-    # each point looks like this: [X, Y, Y²]
-    #[X (candle index), Y (close or open), Y² (high or low)]
-    #Y² means a second Y value, that we will use later on. 
-
-    slope = state.get('slope', None)
-    intercept = state.get('intercept', None)
-    breakout_detected = None
-
-    # Check if the 'zone_type' key exists in the candle dictionary
-    if 'zone_type' in candle:
-        line_name = f"flag_{num_flags}"
-        candle_type = "bull" if bull_or_bear_candle == "bullish" else "bear"
-        current_oc_high = candle['close'] if candle['close']>=candle['open'] else candle['open']
-        current_oc_low = candle['close'] if candle['close']<=candle['open'] else candle['open']
+async def EMAs_calc_save(candle, current_time, market_open_plus_15, has_calculated_emas, candle_list,
+    aftermarket_file, premarket_file, merged_file_name, candle_interval, candle_timescale,
+    AM, PM, indent_lvl
+):
+    """
+    Calculates and saves EMAs based on current time and whether we're past the first 15 minutes.
+    """
+    if current_time >= market_open_plus_15:
+        if not has_calculated_emas and candle_list:
+            print_log(f"{indent(indent_lvl)}[EMA CS] Finalizing EMAs after first 15 minutes...")
             
-        # flags for new starting points, bear and bull
-        make_bull_starting_point = candle_type == "bull" and ((start_point is None or current_oc_high > start_point[1]) or (current_oc_high == start_point[1] and candle['candle_index'] > start_point[0]))
-        make_bear_starting_point = candle_type == "bear" and ((start_point is None or current_oc_low < start_point[1]) or (current_oc_low == start_point[1]  and candle['candle_index'] > start_point[0]))
-        print_log(f"    [IDF Markers] Bull: {make_bull_starting_point}, Bear: {make_bear_starting_point}")
-        
-        # settings new highs
-        if make_bull_starting_point or make_bear_starting_point:
-            # Checking if current candle is higher then whole flag, if it is, check if should buy
-            if slope is not None and intercept is not None:
-                print_log("    [IDF PBD 1] process_breakout_detection()")
-                slope, intercept, breakout_detected = await process_breakout_detection(
-                    line_name, slope, intercept, candle, session, headers, what_type_of_candle, able_to_buy, breakout_type=candle_type
-                )
-            print_log("    [IDF] start_new_flag_values(1)")
-            start_point, candle_points, slope, intercept, flag_counter = await start_new_flag_values(candle, candle_type, current_oc_high, current_oc_low, what_type_of_candle, bull_or_bear_candle)
-                
-        else:
-            # 'oc' means Open or Close
-            if bull_or_bear_candle == "bullish": # Bull candle list
-                candle_oc = candle['open'] if candle['open']>=candle['close'] else candle['close']
-                candle_points.append((candle['candle_index'], candle_oc, candle['high']))
-            else:                                # Bear candle list
-                candle_oc = candle['close'] if candle['close']<=candle['open'] else candle['open']
-                candle_points.append((candle['candle_index'], candle_oc, candle['low']))
-            # Organize the points into ascending order, where the X value is the indicator for the order
-            candle_points = sorted(candle_points, key=lambda x: x[0])
+            await get_candle_data_and_merge(
+                aftermarket_file, premarket_file, candle_interval, candle_timescale, AM, PM, merged_file_name
+            )
 
-
-
-
-        total_candles = 1 + len(candle_points) # the 1 represents 'start_point' since its the first canlde
-        print_log(f"    [IDF] Total candles: {total_candles}")
-        if total_candles >= read_config('FLAGPOLE_CRITERIA')['MIN_NUM_CANDLES'] and (slope is None or intercept is None):
+            reset_json('EMAs.json', [])
             
-            print_log(f"    [IDF SLOPE] Calculating Slope Line 1...")
-            slope, intercept, first_point, second_point = calculate_slope_intercept(candle_points, start_point, candle_type)
+            for i, _candle in enumerate(reversed(candle_list)):
+                await calculate_save_EMAs(_candle, len(candle_list) - i - 1)
+
+            await calculate_save_EMAs(candle, get_current_candle_index())
             
-            angle_valid, angle = is_angle_valid(slope, config, bearish=(bull_or_bear_candle == "bearish"))
-            print_log(f"    [IDF VALID SLOPE] Angle/Degree: {angle}")
-            if angle_valid:
-                print_log(f"    [IDF FLAG] UPDATE: {line_name}, active")
-                line_type = "Bull" if bull_or_bear_candle == "bullish" else "Bear"
-                update_line_data(line_name, line_type, "active", first_point, second_point)
-            else:
-                print_log(f"    [IDF INVALID SLOPE] Angle/Degree outside of range")
-        elif slope is not None and intercept is not None:
-            print_log("    [IDF PBD 2] process_breakout_detection()")
-            slope, intercept, breakout_detected = await process_breakout_detection(
-                line_name, slope, intercept, candle, session, headers, what_type_of_candle, able_to_buy, breakout_type=candle_type
-            )
-            # TODO: Im not sure on how to handle this yet, i think this is where more of the muli state will take place.
-            # Where if flag is completed, still keep same start_point but erase candle_points and add current candle into candle_points, i think...
-            if not breakout_detected:
-                slope, intercept, first_point, second_point = calculate_slope_intercept(candle_points, start_point, candle_type)
-                angle_valid, angle = is_angle_valid(slope, config, bearish=(bull_or_bear_candle == "bearish"))
-                print_log(f"    [IDF VALID SLOPE] Angle/Degree: {angle}") if angle_valid else print_log(f"    [IDF INVALID SLOPE] Angle/Degree outside of range: {angle}")  
-                line_type = "Bull" if bull_or_bear_candle == "bullish" else "Bear"
-                update_line_data(line_name, line_type, "active", first_point, second_point)    
-            elif breakout_detected: 
-                flag_counter = flag_counter +1
-                print_log(f"    [IDF] Forming flag {flag_counter} for current start_point.")
-    else:
-        print_log(f"    [IDF No Support Candle] type = {what_type_of_candle}")    
-    
-    if not able_to_buy and breakout_detected:
-        #broke out while inside zone.
-        print_log(f"    [IDF] Breakout Detected and inside of zone.")
-    
-    # Write the updated state back to the JSON file
-    with open(state_file_path, 'w') as file:
-        json.dump(state, file, indent=4)
-    print_log(f"    [IDF CANDLE DIR] {what_type_of_candle}, Flag Count: {flag_counter}")
-    update_2_min()
-    update_state(state_file_path, flag_counter, start_point, candle_points, slope, intercept)
+            print_log(f"{indent(indent_lvl)}[EMA CS] Final EMA list calculated.")
+            return True  # EMAs finalized
+        elif has_calculated_emas:
+            await calculate_save_EMAs(candle, get_current_candle_index())
+            print_log(f"{indent(indent_lvl)}[EMA CS] EMA updated post-15-min.")
+            return True
+    else: # Still within first 15 min
+        candle_list.append(candle)
 
-async def process_breakout_detection(line_name, slope, intercept, candle, session, headers, what_type_of_candle, able_to_buy, breakout_type='bull'):
-    # Calculate trendline y-value using the translated line
-    trendline_y = slope * candle['candle_index'] + intercept
-    detected = False
+        # Wipe and recreate merged files
+        for file_path in [premarket_file, merged_file_name]:
+            if os.path.exists(file_path):
+                os.remove(file_path)
 
-    if breakout_type == 'bull':
-        candle_oc = candle['open'] if candle['open'] >= candle['close'] else candle['close']
-        if candle_oc > trendline_y:
-            print_log(f"    [PBD Breakout Detected] {line_name} detected bullish breakout at {candle_oc}")
-            # Handle the breakout
-            slope, intercept, detected = await check_for_bullish_breakout(
-                line_name, (candle['candle_index'], candle_oc, candle['high']), slope, intercept, candle, session, headers, what_type_of_candle, able_to_buy
-            )
-    else:  # 'bearish'
-        candle_oc = candle['close'] if candle['close'] <= candle['open'] else candle['open']
-        if candle_oc < trendline_y:
-            print_log(f"    [PBD Breakout Detected] {line_name} detected bearish breakout at {candle_oc}")
-            # Handle the breakout
-            slope, intercept, detected = await check_for_bearish_breakout(
-                line_name, (candle['candle_index'], candle_oc, candle['low']), slope, intercept, candle, session, headers, what_type_of_candle, able_to_buy
-            )
-    
-    return slope, intercept, detected
+        await get_candle_data_and_merge(
+            aftermarket_file, premarket_file, candle_interval, candle_timescale, AM, PM, merged_file_name
+        )
 
-async def check_for_bearish_breakout(line_name, point, slope, intercept, candle, session, headers, what_type_of_candle, able_to_buy):
-    
-    if slope and intercept is not None:
-        trendline_y = slope * point[0] + intercept
+        # Clear EMAs.json file for a clean slate
+        with open('EMAs.json', 'w') as f:
+            json.dump([], f)
 
-        if point[1] < trendline_y:
-            print_log(f"            [CFBB BREAKOUT] Potential Breakout Detected at {point}")
+        for i, _candle in enumerate(reversed(candle_list)):
+            await calculate_save_EMAs(_candle, len(candle_list) - i - 1)
 
-            # Check if the candle associated with this higher low completely closes below the trendline
-            if candle['close'] < trendline_y and candle['close'] <= candle['open']:
-                success = await handle_breakout_and_order(
-                    what_type_of_candle, trendline_y, line_name, point[0], session, headers, read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), line_type="Bear", able_to_buy=able_to_buy
-                )
-                if success:
-                    return slope, intercept, True
-                else:
-                    print_log(f"            [CFBB TRUE BREAKOUT 1] Condition Failure")
-                    update_line_data(line_name=line_name, line_type="Bear", status="complete")
-                    return slope, intercept, True
-            else:
-                # Test new slope and intercept
-                print_log(f"            [CFBB BREAKOUT] Failed, Went up at {point}")
-                return slope, intercept, False
-        
-        if candle['close'] < trendline_y and candle['close'] <= candle['open']:
-            print_log(f"            [CFBB BREAKOUT 2] Closed under from {trendline_y} at {candle['close']}")
-            success = await handle_breakout_and_order(
-                what_type_of_candle, trendline_y, line_name, candle['candle_index'], session, headers, read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), line_type="Bear", calculate_new_trendline=True, slope=slope, intercept=intercept, able_to_buy=able_to_buy
-            )
-            if success:
-                return None, None, True
-            else:
-                print_log(f"            [CFBB TRUE BREAKOUT 2] Condition Failure")
-                update_line_data(line_name=line_name, line_type="Bear", status="complete")
-                return None, None, True
-    return slope, intercept, False
-
-async def check_for_bullish_breakout(line_name, point, slope, intercept, candle, session, headers, what_type_of_candle, able_to_buy):
-    if slope and intercept is not None:
-        #y = mx + b
-        trendline_y = slope * point[0] + intercept
-        
-        if point[1] > trendline_y:
-            print_log(f"            [CFBB BREAKOUT] Potential Breakout Detected at {point}")
-            # Check if the candle associated with this lower high closes over the slope intercept (trendline_y)
-            if candle['close'] > trendline_y and candle['open'] <= candle['close']:
-                print_log(f"            [CFBB BREAKOUT 1] Closed over from {trendline_y} at {candle['close']}; {candle['open']}")
-                success = await handle_breakout_and_order(
-                    what_type_of_candle, trendline_y, line_name, point[0], session, headers, read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), line_type="Bull", able_to_buy=able_to_buy
-                )
-                if success:
-                    return slope, intercept, True
-                else:
-                    print_log(f"            [CFBB TRUE BREAKOUT 3] Condition Failure")
-                    update_line_data(line_name=line_name, line_type="Bull", status="complete")
-                    return slope, intercept, True
-            else:
-                # Test new slope and intercept
-                print_log(f"            [CFBB BREAKOUT] Failed, Went down at {point}")
-                return slope, intercept, False
-        
-        #this is incase the candle is the one that breaks above the whole trendline, making a new highest high
-        if candle['close'] > trendline_y and candle['open'] <= candle['close']:
-            print_log(f"            [CFBB BREAKOUT 2] Closed over from {trendline_y} at {candle['close']}")
-            success = await handle_breakout_and_order(
-                what_type_of_candle, trendline_y, line_name, candle['candle_index'], session, headers, read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), line_type="Bull", calculate_new_trendline=True, slope=slope, intercept=intercept, able_to_buy=able_to_buy
-            )
-            if success:
-                return slope, intercept, True
-            else:
-                print_log(f"            [CFBB BREAKOUT 4] Condition Failure")
-                update_line_data(line_name=line_name, line_type="Bull", status="complete")
-                return slope, intercept, True
-    return slope, intercept, False
-
-async def handle_breakout_and_order(what_type_of_candle, trendline_y, line_name, candle_x, session, headers, is_real_money, symbol, line_type, calculate_new_trendline=False, slope=None, intercept=None, able_to_buy=True):
-
-    # Calculate new trendline if required, needed for both line types
-    if calculate_new_trendline and slope is not None and intercept is not None:
-        trendline_y = slope * candle_x + intercept  # Recalculate trendline_y with new slope and intercept
-        print_log(f"                [HBAO TRENDLINE] UPDATE: {trendline_y}")
-    
-    print_log(f"                [HBAO FLAG] UPDATE 1: {line_name}, active")
-    update_line_data(line_name=line_name, line_type=line_type, status="active", point_2=(candle_x, trendline_y))
-
-    # Before we check anythin, lets see if were in the zones/boxes, AKA 'able_to_buy'
-    if not able_to_buy:
-        print_log(f"                [HBAO ORDER CANCELED] Order is in Zone. UPDATE 2: {line_name}, complete")
-        update_line_data(line_name=line_name, line_type=line_type, status="complete")
-        return False
-    
-    #Check emas
-    if line_type == 'Bull':
-        ema_condition_met, ema_price_distance_met, ema_distance = await above_below_ema('above', read_config('EMA_MAX_DISTANCE'))
-    else:  # 'Bear'
-        ema_condition_met, ema_price_distance_met, ema_distance = await above_below_ema('below', read_config('EMA_MAX_DISTANCE'))
-
-    #check if points are valid
-    vp_1, vp_2, line_degree_angle, correct_flag = check_valid_points(line_name, line_type) #vp means valid point
-
-    # Check if trade limits have been reached in this zone
-    multi_order_condition_met, num_of_matches = check_order_type_json(what_type_of_candle)
-
-    # Check if trade time is aligned with economic events
-    time_result = check_order_time_to_event_time(read_config('MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION'))
-
-    print_log(f"                [HBAO CONDITIONS] {ema_condition_met}, {vp_1}, {vp_2}, {multi_order_condition_met}, {ema_price_distance_met}, {time_result}, {correct_flag}")
-    if ema_condition_met and vp_1 and vp_2 and multi_order_condition_met and ema_price_distance_met and time_result and correct_flag: # if all conditions met, then authorize order, buy
-        action = 'call' if line_type == 'Bull' else 'put'
-        print_log(f"                [HBAO ORDER CONFIRMED] Buy Signal ({action.upper()})")
-        success, strike_price, quantity, entry_bid_price, order_cost = await buy_option_cp(is_real_money, symbol, action, session, headers, STRATEGY_NAME)
-        if success: #incase order was canceled because of another active
-            add_candle_type_to_json(what_type_of_candle)
-            time_entered_into_trade = datetime.now().strftime("%m/%d/%Y-%I:%M %p") # Convert to ISO format string
-            # Log order details
-            log_order_details('order_log.csv', what_type_of_candle, time_entered_into_trade, ema_distance, num_of_matches, line_degree_angle, symbol, strike_price, action, quantity, entry_bid_price, order_cost)
-        else:
-            print_log(f"                [HBAO ORDER FAIL] Buy Signal ({action.upper()}), what_type_of_candle = {what_type_of_candle}")
-        print_log(f"                [HBAO FLAG] UPDATE 2: {line_name}, complete")
-        update_line_data(line_name=line_name, line_type=line_type, status="complete")
-        return True
-    else:
-        reason = determine_order_cancel_reason(ema_condition_met, ema_price_distance_met, vp_1, vp_2, correct_flag, multi_order_condition_met, time_result)
-        
-        action = 'CALL' if line_type == 'Bull' else 'PUT'
-        print_log(f"                [HBAO ORDER CANCELED] Buy Signal ({action}); {reason}.")
-        #if any of the vp_1 or vp_2 are false, don't go through. but if vp_1 and vp_2 are both true and not ema_condition_met is true then go through
-        if not ema_condition_met and vp_1 and vp_2: #and not multi_order_condition_met:
-            print_log(f"                [HBAO FLAG] UPDATE 3: {line_name}, complete")
-            update_line_data(line_name=line_name, line_type=line_type, status="complete") #test this out next day to see if this fixes the wait-until above/below emas to buy error.
-        return False
-    
-def calculate_slope_intercept(points, start_point, flag_type="bull"):
-    # Ensure the start_point is included in the points list
-    if start_point not in points:
-        points = [start_point] + points
-
-    # making sure points are in order
-    points = sorted(points, key=lambda x: x[0])
-
-    # Calculate slope (m) using the linear regression formula
-    n = len(points)
-    sum_x = sum(point[0] for point in points)
-    sum_y = sum(point[1] for point in points)
-    sum_xy = sum(point[0] * point[1] for point in points)
-    sum_x_squared = sum(point[0] ** 2 for point in points)
-    
-    # m = [n(Σxy) - (Σx)(Σy)] / [n(Σx²) - (Σx)²]
-    slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x_squared - sum_x ** 2)
-    
-    # Calculate intercept: b = ȳ - m * x̄
-    mean_x = sum_x / n
-    mean_y = sum_y / n
-    intercept = mean_y - slope * mean_x
-    
-    # Perform the translation to avoid the slope line cutting through the body of the candles
-    if flag_type == "bull":
-        intercept = max(point[1] - slope * point[0] for point in points)
-    else:  # bear flag
-        intercept = min(point[1] - slope * point[0] for point in points)
-
-    first_new_Y = slope * start_point[0] + intercept    
-    first_point = (start_point[0], first_new_Y)
-    
-    second_new_Y = slope * points[-1][0] + intercept 
-    second_point = (points[-1][0], second_new_Y)
-
-    return slope, intercept, first_point, second_point
-    
-def update_line_data(line_name, line_type, status=None, point_1=None, point_2=None, json_file='line_data.json'):
-    try:
-        with open(json_file, 'r') as file:
-            lines = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        lines = []
-
-    # Find the line with the same name, if it exists
-    existing_line = next((line for line in lines if line['name'] == line_name), None)
-    
-    if existing_line:
-        # Update existing line with new values if provided, else keep old values
-        existing_line['type'] = line_type  # Assuming you always want to update the type
-        if status is not None:
-            existing_line['status'] = status
-        if point_1 is not None:
-            existing_line['point_1'] = {"x": point_1[0], "y": point_1[1]}
-        if point_2 is not None:
-            existing_line['point_2'] = {"x": point_2[0], "y": point_2[1]}
-    else:
-        # Create a new line data entry with provided values or defaults
-        new_line_data = {
-            "name": line_name,
-            "type": line_type,
-            "status": status if status is not None else "active",
-            "point_1": {"x": point_1[0], "y": point_1[1]} if point_1 else {"x": None, "y": None},
-            "point_2": {"x": point_2[0], "y": point_2[1]} if point_2 else {"x": None, "y": None}
-        }
-        lines.append(new_line_data)
-
-    with open(json_file, 'w') as file:
-        json.dump(lines, file, indent=4)
-
-    update_2_min()
+        print_log(f"{indent(indent_lvl)}[EMA CS] Calculated temporary EMA for first 15 min candle list with {len(candle_list)} candles.")
+        return False  # Still accumulating

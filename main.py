@@ -32,13 +32,6 @@ ONE_MINUTE = 60
 
 config_path = Path(__file__).resolve().parent / 'config.json'
 
-#SYMBOL = config["SYMBOL"]
-#DAYS = config["PAST_DAYS"]
-#TIMEFRAMES = config["TIMEFRAMES"]
-#IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
-#ACCOUNT_BALANCE = config["ACCOUNT_BALANCES"]
-#CANDLE_BUFFER = config["CANDLE_BUFFER"]
-#GET_PDHL = config["GET_PDHL"]
 CANDLE_DURATION = {}
 
 timeframe_mapping = {
@@ -116,42 +109,16 @@ def to_float(value):
 def extract_trade_results(message, message_id):
     # Clean up the message to remove unwanted characters
     clean_message = ''.join(e for e in message if (e.isalnum() or e.isspace() or e in ['$', '%',  '.', ':', '-', '✅', '❌']))
-    #print(f"clean_message: {clean_message}")
-
+    
     # Pattern to extract total investment (using the previous pattern)
     investment_pattern = r"Total Investment: \$(.+)"
     investment_match = re.search(investment_pattern, clean_message)
     total_investment = float(investment_match.group(1).replace(",", "")) if investment_match else 0.0
-    #print(f"total_investment: {total_investment}")
-
-    # TODO: DEBUG STARTS HERE
-    """
-    # Start with just AVG BID
-    avg_bid_pattern = r"AVG BID:\s*\$([\d,]+\.\d{3})"
-    avg_bid_match = re.search(avg_bid_pattern, clean_message)
-    print(f"avg_bid_match: {avg_bid_match}")
-
-    # Then add TOTAL
-    total_pattern = r"TOTAL:\s*(-?\$\-?[\d,]+\.\d{2})"
-    total_match = re.search(total_pattern, clean_message)
-    print(f"total_match: {total_match}")
-
-    # Then add INDICATOR
-    indicator_pattern = r"(✅|❌)"
-    indicator_match = re.search(indicator_pattern, clean_message)
-    print(f"indicator_match: {indicator_match}")
-
-    # Then add PERCENT
-    percent_pattern = r"PERCENT:\s*(-?\d+\.\d{2})%"
-    percent_match = re.search(percent_pattern, clean_message)
-    print(f"percent_match: {percent_match}")
-    """
-    # TODO: DEBUG ENDS HERE
     
     # Pattern to extract the average bid, total profit/loss, profit indicator, and percentage gain/loss
     results_pattern = r"AVG BID:\s*\$([\d,]+\.\d{3})\s*TOTAL:\s*(-?\$\-?[\d,]+\.\d{2})\s*(✅|❌)\s*PERCENT:\s*(-?\d+\.\d{2})%"
     results_match = re.search(results_pattern, clean_message, re.DOTALL)
-    #print(f"results_match: {results_match}")
+    
     if results_match:
         avg_bid = float(results_match.group(1))
         
@@ -176,12 +143,9 @@ async def calculate_day_performance(_message_ids_dict, start_balance_str, end_ba
     trades_str_list = []
     BP_float_list = []
     for message_id in _message_ids_dict.values():
-        #print(f"\n\nmessage_id: {message_id}")
         message_content = await get_message_content(message_id)
         if message_content:
-            #print(f"    Message content true, content:\n{message_content}")
             trade_info_dict = extract_trade_results(message_content, message_id)
-            #print(f"    trade info = {trade_info_dict}")
             if isinstance(trade_info_dict, str) and "Invalid" in trade_info_dict:
                 continue
             
@@ -239,8 +203,6 @@ def load_from_csv(filename):
         print_log(f"An error occurred while loading {filename}: {e}")
         return None
 
-
-
 async def process_data(queue):
     print_log("Starting process_data()...")
     global current_candles, candle_counts
@@ -274,7 +236,7 @@ async def process_data(queue):
                 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')}
             
             if now >= market_close_time:
-                print_log("Ending process_data()...")
+                print_log("Ending `process_data()`...")
                 break
 
             message = await queue.get()
@@ -286,7 +248,6 @@ async def process_data(queue):
                 # Update the shared `latest_price` variable
                 async with price_lock:
                     shared_state.latest_price = price  # Update shared_state.latest_price
-                    #print_log(f"[SHARED STATE] Updated latest_price: {shared_state.latest_price}")
 
                 for timeframe in read_config('TIMEFRAMES'):
                     current_candle = current_candles[timeframe]
@@ -371,10 +332,6 @@ async def initial_setup():
     print_log(f"We have logged in as {bot.user}")
     await print_discord(f"Starting Bot, Real Money Activated" if read_config('REAL_MONEY_ACTIVATED') else f"Starting Bot, Paper Trading Activated")
 
-#async def main(): Keeping this just incase
-    #await initial_setup()
-    #await main_loop()
-
 async def main():
     new_york = pytz.timezone('America/New_York')
     last_run_date = None  # To track the last date the functions ran
@@ -425,7 +382,6 @@ async def main():
             print_log(f"[ERROR] Exception in main loop: {e}")
             await asyncio.sleep(10)  # Avoid tight loops in case of errors
 
-
 async def main_loop():
     global websocket_connection
     global start_of_day_account_balance
@@ -447,7 +403,7 @@ async def main_loop():
             # Ensure the order log is initialized before using it
             initialize_order_log('order_log.csv')
             
-            # 2 mins before market opens
+            # Before market opens
             if ((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
                 await ensure_economic_calendar_data()
 
@@ -467,23 +423,23 @@ async def main_loop():
                     prev_days_data = pd.DataFrame()  # Initialize prev_days_data to an empty DataFrame
                     
                     # Plot the data
-                    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, read_config('SYMBOL')), name="plot_15m_candles_and_boxes")
-                    # Other code... setting up boxes/zones/tpls...
-                    chart_thread.start()
-                    await asyncio.sleep(1) # wait for the thread
+                    if chart_visualization.root is None:
+                        chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, read_config('SYMBOL')), name="plot_15m_candles_and_boxes")
+                        chart_thread.start()
+                        await asyncio.sleep(1) # wait for the thread
+                    else:
+                        chart_visualization.refresh_15_min_candle_stick_data(candle_15m_data)
 
                     for day_num in range(num_days):
                         current_date = days[day_num]
                         day_data = candle_15m_data[candle_15m_data['date'] == current_date]
                         print_log(f"[Day {day_num + 1} of {num_days}] {current_date}")
-                        #print(f"    [LENGTH DAY DATA] {len(day_data)}")
                         df_15m = pd.concat([day_data, prev_days_data])
                         Boxes, tp_lines = boxes.get_v2(Boxes, tp_lines, df_15m, current_date, len(day_data), read_config('GET_PDHL'))
                         Boxes = boxes.correct_zones_inside_other_zones(Boxes)
                         Boxes, tp_lines = boxes.correct_bleeding_zones(Boxes, tp_lines)
                         Boxes, tp_lines = boxes.correct_zones_that_are_too_close(Boxes, tp_lines)
                         prev_days_data = df_15m
-                        #await asyncio.sleep(.25)
                     print_log(" ") # space at the end of console log for visual clarity
                     setup_global_boxes(Boxes, tp_lines)
                     update_15_min()
@@ -492,7 +448,6 @@ async def main_loop():
 
                     # Save boxes into log file for later use
                     boxes_info = f"15m) Start and End days: {start_date}, {end_date}\n{Boxes}\n\nTake Profit Lines: {tp_lines}\n"
-                    
                     write_log_data_as_string(boxes_info, read_config('SYMBOL'), f"{read_config('TIMEFRAMES')[0]}_Boxes")
 
                 elif candle_15m_data is None or candle_15m_data.empty or 'timestamp' not in candle_15m_data.columns:
@@ -500,10 +455,11 @@ async def main_loop():
                 else:
                     print_log("    [ERROR] No candle data was retrieved or 'timestamp' column is missing.")
             
+            # Market is Open
             if market_open_time <= current_time <= market_close_time:
                 if websocket_connection is None:  # Start WebSocket connection
-                    data_acquisition.should_close = False
-                    chart_visualization.should_close = False
+                    data_acquisition.should_close = False # Signal its okay to open Websocket
+                    chart_visualization.should_close = False # Signal its okay to open Chart
                     
                     # Start the WebSocket connection for the active provider
                     asyncio.create_task(data_acquisition.ws_connect_v2(queue, active_provider, read_config('SYMBOL')), name="WebsocketConnection")  # Start in the background
@@ -525,13 +481,13 @@ async def main_loop():
                     await print_discord(setup_economic_news_message())
                 await asyncio.gather(
                     process_data(queue),
-                    execute_trading_strategy(Boxes) # Strategy starts
+                    execute_trading_strategy(Boxes, tp_lines) # Strategy starts
                 )
-            else:
+            else: # Market is closed
                 if websocket_connection is not None:
                     data_acquisition.should_close = True  # Signal to close WebSocket
                     await reseting_values()
-                    chart_visualization.should_close = True
+                    #chart_visualization.should_close = True # Signal to close Chart
                     already_ran = False
                     keep_loop = False
                 if current_time <= market_open_time:
@@ -561,13 +517,10 @@ async def reseting_values(start_balance=None, end_balance=None):#, message_ids=N
     global websocket_connection
     global start_of_day_account_balance
     global end_of_day_account_balance
-    #global message_ids_dict
-    #global used_buying_power
 
-    if start_balance and end_balance:# and message_ids:
+    if start_balance and end_balance:
         start_of_day_account_balance = start_balance
         end_of_day_account_balance = end_balance
-        #message_ids_dict = message_ids
 
     websocket_connection = None
     if read_config('REAL_MONEY_ACTIVATED'):
@@ -585,14 +538,10 @@ async def reseting_values(start_balance=None, end_balance=None):#, message_ids=N
     message_ids_dict = get_correct_message_ids()
 
     #Calculate/Send todays results, use the 'message_ids_dict' from ema_strategy.py
-    # TODO: the ouput_message was incorrect, fix it
     output_message = await calculate_day_performance(message_ids_dict, start_of_day_account_balance, end_of_day_account_balance)
     await print_discord(output_message)
-    #reset all values
-    #used_buying_power.clear()
-    print_log("[RESET] Cleared 'used_buying_power' list.")
-
-    #save new data in dicord, send log files
+    
+    # Save new data in dicord, send log files
     whole_log = read_log_file(LOGS_DIR / f"{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}.log")
     write_log_data_as_string(whole_log, read_config('SYMBOL'), f"{read_config('TIMEFRAMES')[0]}_Boxes")
     new_log_file_path = LOGS_DIR / f"{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}_Boxes.log"
@@ -601,6 +550,8 @@ async def reseting_values(start_balance=None, end_balance=None):#, message_ids=N
     await send_file_discord('markers.json')
     terminal_log_file_path = LOGS_DIR / "terminal_output.log"
     await send_file_discord(terminal_log_file_path)
+
+    # Reset all values
 
     #clear 'message_ids.json' file
     reset_json('message_ids.json', {})
@@ -615,11 +566,10 @@ async def reseting_values(start_balance=None, end_balance=None):#, message_ids=N
     #clear EMAs.json
     reset_json('EMAs.json', [])
               
-    #edit, maybe we can fix this by doing 
-    #since all the logging has been done and everything is recorded
+    # End of day Account Balance Calculation, JSON Config File
     with open(config_path, 'r') as f:
         config = json.load(f)
-    #after all the calculations were done, make the start of day value the end of day value for a clean start for tommorrow
+    #after all the calculations were done, make the `start of day` value the `end of day` value for a clean start for tommorrow
     config["ACCOUNT_BALANCES"][0] = end_of_day_account_balance 
     config["ACCOUNT_BALANCES"][1] = 0
     with open(config_path, 'w') as f:
@@ -628,22 +578,20 @@ async def reseting_values(start_balance=None, end_balance=None):#, message_ids=N
     start_of_day_account_balance = end_of_day_account_balance
     end_of_day_account_balance = 0
 
-    #delete all the data from the csv files
-    #find all CSV files in directory
+    # Find all CSV files in directory, Delete them
     csv_files = Path(__file__).resolve().parent.glob('*.csv')
     for file in csv_files:
         if file.name != 'order_log.csv':
             print_log(f"[RESET] Deleting File: {file.name}")
             file.unlink()  # Delete the file
 
-    #clear the Logs, logs/[ticker_symbol]_2M.log file. Don't delete it just clear it.
+    # Clear the Logs, logs/[ticker_symbol]_2M.log file.
     clear_log(read_config('SYMBOL'), "2M")
     clear_log(read_config('SYMBOL'), "2M_Boxes")
     clear_log(None, None, "terminal_output.log")
 
     # Find all the files that have 'order_log' in them and delete them
     order_log_files = glob.glob('./*order_log*')
-
     for file in order_log_files:
         try:
             if os.path.basename(file) != 'order_log.csv':

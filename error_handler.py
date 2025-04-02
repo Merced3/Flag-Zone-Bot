@@ -1,12 +1,8 @@
 #error_handler.py
 import os
 import traceback
-from pathlib import Path
 from datetime import datetime
-
-# Define the logs directory and file path
-LOGS_DIR = Path(__file__).resolve().parent / 'logs'
-LOG_FILE_PATH = LOGS_DIR / 'terminal_output.log'
+from shared_state import print_log
 
 async def error_log_and_discord_message(e, script_name, func_name, custom_message=None):
     error_type = type(e).__name__
@@ -14,7 +10,7 @@ async def error_log_and_discord_message(e, script_name, func_name, custom_messag
     error_traceback = traceback.format_exc()
     current_time = datetime.now().isoformat()
 
-    from print_discord_messages import print_discord 
+    #from print_discord_messages import print_discord 
 
     if "()" in func_name:
         func_name = func_name.replace("()", "")
@@ -46,27 +42,5 @@ async def error_log_and_discord_message(e, script_name, func_name, custom_messag
         f"Traceback:\n{error_traceback}"
     )
 
-    await print_discord(discord_error_message)
+    #await print_discord(discord_error_message)
     print_log(detailed_error_message)
-
-def print_log(message: str):
-    """
-    Logs a message to the terminal and appends it to a log file.
-    Includes a timestamp for each entry.
-    """
-    #timestamp = datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
-    #formatted_message = f"{timestamp} {message}"
-
-    # Print the message to the console
-    print(message)
-
-    # Ensure the logs folder exists
-    LOGS_DIR.mkdir(parents=True, exist_ok=True)
-
-    # Ensure the log file exists
-    if not LOG_FILE_PATH.exists():
-        LOG_FILE_PATH.touch()  # Create the file if it doesn't exist
-
-    # Append the message to the log file
-    with open(LOG_FILE_PATH, "a", encoding="utf-8") as log_file:
-        log_file.write(message + "\n")

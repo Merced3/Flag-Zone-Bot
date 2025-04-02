@@ -16,7 +16,7 @@
         200,
         300
     ],
-    "STOP_LOSS_PERCENTAGE": "EMA 13",
+    "STOP_LOSS": ["SENTIMENT", 2],
     "PAST_DAYS": 28,
     "NUM_OUT_OF_MONEY": 20,
     "BOX_SIZE_THRESHOLDS": [

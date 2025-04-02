@@ -3,22 +3,66 @@ import pandas as pd
 from pathlib import Path
 import json
 from error_handler import error_log_and_discord_message, print_log
+from data_acquisition import read_config
+from shared_state import indent
 
 config_path = Path(__file__).resolve().parent / 'config.json'
 
-def read_config(key=None):
-    """Reads the configuration file and optionally returns a specific key."""
-    with config_path.open("r") as f:
-        config = json.load(f)
-    if key is None:
-        return config  # Return the whole config if no key is provided
-    return config.get(key)  # Return the specific key's value or None if key doesn't exist
+def candle_zone_handler(candle, boxes, indent_lvl=1):
+    candle_zone_type = None
+    is_in_zone = False
+    close_price = candle['close']
+    ext = ["PDH", "PDL", "Buffer"]# Extension for zones
+    
+    zone_ranges = []  # Store (box_name, box_bottom, box_top) tuples
+    for box_name, (x_pos, high_low_of_day, buffer) in boxes.items(): 
+        # Determine zone type
+        zone_type = "support" if "support" in box_name else "resistance" if "resistance" in box_name else "PDHL"
+        PDH_or_PDL = high_low_of_day  # PDH for resistance, PDL for support
+        box_top = PDH_or_PDL if zone_type in ["resistance", "PDHL"] else buffer  # PDH or Buffer as top for resistance/PDHL
+        box_bottom = buffer if zone_type in ["resistance", "PDHL"] else PDH_or_PDL  # Buffer as bottom for resistance/PDHL
+        
+        # Store the zone range for later analysis
+        zone_ranges.append((box_name, box_top, box_bottom))
 
-#config = read_config()
-#BOX_SIZE_THRESHOLDS = config["BOX_SIZE_THRESHOLDS"]
-#BOX_SPACING = config["BOX_SPACING"]
+        # Check if the candle is outside of zone and which one's
+        if box_bottom <= close_price <= box_top:
+            candle_zone_type = f"inside_{box_name}"
+            is_in_zone = True
+            break  # No need to check further if we found a zone containing the candle
+        
+    # If not inside a zone, check if it's between two zones, above all zones, or below all zones
+    if not is_in_zone:
+        # Sort zones from highest to lowest based on box_top
+        #print_log(f"{indent(indent_lvl)}[CZH] BEFORE SORTING: {zone_ranges}")
+        zone_ranges.sort(key=lambda x: x[1], reverse=True)
+        #print_log(f"{indent(indent_lvl)}[CZH] AFTER SORTING: {zone_ranges}")
 
+        # Identify zones the candle is between
+        for i in range(len(zone_ranges) - 1):
+            current_zone, current_top, current_bottom = zone_ranges[i]
+            next_zone, next_top, next_bottom = zone_ranges[i + 1]
+            
+            if current_top > close_price > next_bottom:
+                cz_ext = ext[1] if "support" in current_zone or "PDHL" in current_zone else ext[2]
+                nz_ext = ext[0] if "resistance" in next_zone or "PDHL" in next_zone else ext[2]
+                candle_zone_type = f"{current_zone} {cz_ext}---{next_zone} {nz_ext}"
+                #break
+            #else:
+                #print_log(f"{indent(indent_lvl)} [CZH] Couldn't find 2 zones inbetween the candle close")
 
+        # If no in-between zones were found, determine if it's above or below all zones
+        if close_price < zone_ranges[-1][2]: # Below all zones
+            lowest_zone_name = zone_ranges[-1][0]  # Get the name of the lowest zone
+            extension = ext[1] if "support" in lowest_zone_name or "PDHL" in lowest_zone_name else ext[2]
+            candle_zone_type = f"below_{lowest_zone_name} {extension}"
+        
+        elif close_price > zone_ranges[0][1]: # Above all zones
+            highest_zone_name = zone_ranges[0][0]  # Get the name of the highest zone
+            extension = ext[0] if "resistance" in highest_zone_name or "PDHL" in highest_zone_name else ext[2]
+            candle_zone_type = f"above_{highest_zone_name} {extension}"
+
+    return candle_zone_type, is_in_zone
 
 def get_v2(boxes_that_already_exist, tpls_that_already_exist, candle_data, current_date, day_length, is_get_PDHL=False, print_statements=False):
     # Ensure the 'timestamp' column is in datetime format and set as index
