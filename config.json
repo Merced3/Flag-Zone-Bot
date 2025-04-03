@@ -16,7 +16,10 @@
         200,
         300
     ],
-    "STOP_LOSS": ["SENTIMENT", 2],
+    "STOP_LOSS": [
+        "SENTIMENT",
+        2
+    ],
     "PAST_DAYS": 28,
     "NUM_OUT_OF_MONEY": 20,
     "BOX_SIZE_THRESHOLDS": [
@@ -46,8 +49,8 @@
     "FLAGPOLE_CRITERIA": {
         "MIN_NUM_CANDLES": 2,
         "MAX_NUM_CANDLES": 150,
-        "MIN_ANGLE": 60,
-        "MAX_ANGLE": 0,
+        "MIN_ANGLE": 0,
+        "MAX_ANGLE": 60,
         "START_POINT_MAX_NUM_FLAGS": 3
     },
     "OPTION_EXPIRATION_DTE": "not specified",

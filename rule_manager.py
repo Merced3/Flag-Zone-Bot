@@ -18,7 +18,7 @@ async def handle_rules_and_order(indent_lvl, candle, candle_zone_type, zones, co
     action = "call" if candle['close'] > last_emas['200'] else "put"
     
     # Check if trade time is aligned with economic events
-    time_result = check_order_time_to_event_time(read_config('MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION'), sim_env_active)
+    time_result = check_order_time_to_event_time(read_config('MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION'), sim_active=sim_env_active)
     if print_statements:
         print_log(f"{indent(indent_lvl)}[HRAO] ECOM NEWS CONDITION: {time_result}")
     if not time_result:
@@ -44,14 +44,15 @@ async def handle_rules_and_order(indent_lvl, candle, candle_zone_type, zones, co
     TP_value = get_tp_value(indent_lvl+1, candle_zone_type, action, zones)
     
     if sim_env_active:
+        quantity, entry_bid_price, strike_price = None, None, None # mainly meant for paper/real trading, not trying to raise error
         if not order_active(indent_lvl):
             await start_sim_order(candle, candle['close'], candle_zone_type, TP_value, action)    
         else:
             if print_statements:
                 print_log(f"{indent(indent_lvl)}[HRAO ORDER] Canceled, active order already in play...")
             return [False, "Active order already in play..."]
-    else: # Real non-sim order...
-        success, strike_price, quantity, entry_bid_price, order_cost = await buy_option_cp(read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), action, TP_value, session, headers, STRATEGY_NAME)
+    else: # Real/paper, not-sim order...
+        success, strike_price, quantity, entry_bid_price, order_cost, error_message = await buy_option_cp(read_config('REAL_MONEY_ACTIVATED'), read_config('SYMBOL'), action, TP_value, session, headers, STRATEGY_NAME)
         if success: 
             # Log order details
             add_candle_type_to_json(candle_zone_type)
@@ -61,7 +62,8 @@ async def handle_rules_and_order(indent_lvl, candle, candle_zone_type, zones, co
         else: #incase order was canceled because of another active
             if print_statements:
                 print_log(f"{indent(indent_lvl)}[HRAO ORDER FAIL] Buy Signal ({action.upper()}), ZONE = {candle_zone_type}")
-    return [True, action]
+            return [False, error_message]
+    return [True, action, quantity, entry_bid_price, strike_price]
 
 def get_last_emas(indent_lvl, print_statements=True):
     EMAs = load_json_df('EMAs.json')

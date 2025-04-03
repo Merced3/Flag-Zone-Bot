@@ -26,7 +26,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, TP_value, sessi
 
     if current_order_active and prev_option_type == cp:
         print_log(f"Canceling buy Order, same order type '{cp}' is already active.")
-        return False, None, None, None, None
+        return False, None, None, None, None, "Another Order Active."
     elif current_order_active and prev_option_type != cp:
         # Sell the current active order if it's of a different type
         await sell_rest_of_active_order(message_ids_dict, "Switching option type.")
@@ -43,7 +43,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, TP_value, sessi
         
         if strike_price is None or strike_ask_bid is None:
             await print_discord(f"**Appropriate strike was not found**\nstrike_price = None, Canceling buy.\n(Since not enough info)")
-            return False, None, None, None, None
+            return False, None, None, None, None, "Strike Price Not Found, Canceling Buy."
         
         quantity = calculate_quantity(strike_ask_bid, read_config('ACCOUNT_ORDER_PERCENTAGE'))    
         buying_power = await get_account_balance(real_money_activated, bp=True) if real_money_activated else get_papertrade_BP()
@@ -74,14 +74,13 @@ Order Cost Buffer exceded BP
 **Price:** ${strike_ask_bid}
 **Total Cost:** ${f_order_cost}
 """)
-            return False, None, None, None, None
-        print_log(f"Attempting to buy {cp.upper()} {quantity}x @ {strike_ask_bid} (Strike: {strike_price})")
+            return False, None, None, None, None, "Not Enough Buying Power."
 
         if real_money_activated: 
             order_result = await submit_option_order(strategy_name, ticker_symbol, strike_price, cp, bid, expiration_date, quantity, side, order_type)
             
             if not order_result:
-                return False, None, None, None, None
+                return False, None, None, None, None, "No return on `order_result`."
             
             await add_markers("buy", None, None, 0)
             timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')
@@ -95,15 +94,15 @@ Order Cost Buffer exceded BP
             )
         else: # Not Real Money
             active_order = await submit_option_order(
-                strategy_name, ticker_symbol, strike_price, cp, 
-                expiration_date=expiration_date, 
+                strategy_name, ticker_symbol, strike_price,
+                cp, bid, expiration_date, 
                 session=session, headers=headers, 
                 message_ids_dict=message_ids_dict, 
                 buying_power=buying_power,
                 TP_value=TP_value
             )
             if not active_order:
-                return False, None, None, None, None
+                return False, None, None, None, None, "`active_order` returned as None"
             
             await add_markers("buy", None, None, 0)
             used_buying_power[active_order['order_id']] = (active_order["entry_price"] * 100) * active_order["quantity"]
@@ -115,9 +114,9 @@ Order Cost Buffer exceded BP
         )
         
         order_cost = (active_order["entry_price"] * 100) * active_order["quantity"]
-        return True, strike_price, active_order["quantity"], active_order["entry_price"], order_cost
+        return True, strike_price, active_order["quantity"], active_order["entry_price"], order_cost, None
 
     except Exception as e:
         await error_log_and_discord_message(e, "tll_trading_strategy", "buy_option_cp")
-        return False, None, None, None, None
+        return False, None, None, None, None, f"Error: {e}"
 

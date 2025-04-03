@@ -19,6 +19,7 @@ STATE_MEMORY = {}  # Holds state files in memory when USE_DICT_STATE is True
 
 async def identify_flag(candle, indent_lvl=2, states_dir='states', print_satements=True):
     completed_flag_names = []
+    ensure_states_dir_exists(states_dir)
     state_files = list(STATE_MEMORY.keys()) if USE_DICT_STATE else glob.glob(os.path.join(states_dir, "state_*.json"))
 
     for state_file_path in state_files:
@@ -669,5 +670,8 @@ def add_candle_to_candle_points(flag_type, candle, candle_points):
     candle_points = sorted(candle_points, key=lambda x: x[0])
     return candle_points 
 
-
+def ensure_states_dir_exists(states_dir):
+    if not os.path.exists(states_dir) and not USE_DICT_STATE:
+        os.makedirs(states_dir)
+        print_log(f"[INIT] Created missing directory: {states_dir}")
 

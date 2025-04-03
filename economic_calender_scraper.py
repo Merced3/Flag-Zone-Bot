@@ -312,8 +312,9 @@ def get_san_antonio_timezone():
     offset = now.utcoffset().total_seconds() / 60  # Convert seconds to minutes
     return int(offset)  # Returns -300 (UTC -5) or -360 (UTC -6)
 
-def check_order_time_to_event_time(time_threshold=20, json_file='week_ecom_calender.json'):
-    
+def check_order_time_to_event_time(time_threshold=20, json_file='week_ecom_calender.json', sim_active=False):
+    if sim_active:
+        return True
     # Ensure the JSON file exists
     if not os.path.exists(json_file):
         raise FileNotFoundError(f"{json_file} does not exist")
@@ -332,12 +333,12 @@ def check_order_time_to_event_time(time_threshold=20, json_file='week_ecom_calen
 
     # Get the list of events for today
     events_today = data['dates'][today_date]
-    print_log(f"Event(s): {events_today}")
+    #print_log(f"Event(s): {events_today}")
 
     # Get and convert the current time to a datetime object for comparison
     current_time = datetime.now().strftime("%I:%M %p")
     current_time_obj = datetime.strptime(current_time, "%I:%M %p")
-    print_log(f"Current Time: {current_time_obj}")
+    #print_log(f"Current Time: {current_time_obj}")
     # Check each event time
     for event_time_str in events_today:
         event_time_obj = datetime.strptime(event_time_str, "%I:%M %p")

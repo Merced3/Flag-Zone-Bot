@@ -57,39 +57,43 @@ def get_expiration(expiration_date):
 
 def get_tp_value(indent_lvl, candle_zone_type, action, zones):
     try:
-        above_zone_raw, below_zone_raw = candle_zone_type.split('---')
-        above_zone_raw = above_zone_raw.strip()
-        below_zone_raw = below_zone_raw.strip()
+        if '---' in candle_zone_type:
+            above_zone_raw, below_zone_raw = candle_zone_type.split('---')
+            above_zone_raw = above_zone_raw.strip()
+            below_zone_raw = below_zone_raw.strip()
 
-        # Select the correct side based on trade direction
-        target_zone_raw = above_zone_raw if action == "call" else below_zone_raw
+            # Select the correct side based on trade direction
+            target_zone_raw = above_zone_raw if action == "call" else below_zone_raw
 
-        # Extract zone name and extension
-        target_parts = target_zone_raw.split()  # e.g., ['support_3', 'PDL']
-        if len(target_parts) < 2:
-            raise ValueError("Missing zone extension (e.g., 'PDL', 'PDH', 'Buffer')")
+            # Extract zone name and extension
+            target_parts = target_zone_raw.split()  # e.g., ['support_3', 'PDL']
+            if len(target_parts) < 2:
+                raise ValueError("Missing zone extension (e.g., 'PDL', 'PDH', 'Buffer')")
 
-        zone_name = target_parts[0]
-        extension = target_parts[1].lower()  # 'pdl', 'pdh', 'buffer'
+            zone_name = target_parts[0]
+            extension = target_parts[1].lower()  # 'pdl', 'pdh', 'buffer'
 
-        if zone_name not in zones:
-            raise ValueError(f"Zone '{zone_name}' not found in zones dictionary.")
+            if zone_name not in zones:
+                raise ValueError(f"Zone '{zone_name}' not found in zones dictionary.")
 
-        x_pos, high_low_of_day, buffer = zones[zone_name]
+            x_pos, high_low_of_day, buffer = zones[zone_name]
 
-        # Logic for determining which value to use as TP
-        if (
-            (("support" in zone_name.lower() and extension == "pdl") or
-             (("resistance" in zone_name.lower() or "pdhl" in zone_name.lower()) and extension == "pdh"))
-        ):
-            return high_low_of_day
-        elif (
-            (("support" in zone_name.lower() and extension == "buffer") or
-             (("resistance" in zone_name.lower() or "pdhl" in zone_name.lower()) and extension == "buffer"))
-        ):
-            return buffer
+            # Logic for determining which value to use as TP
+            if (
+                (("support" in zone_name.lower() and extension == "pdl") or
+                (("resistance" in zone_name.lower() or "pdhl" in zone_name.lower()) and extension == "pdh"))
+            ):
+                return high_low_of_day
+            elif (
+                (("support" in zone_name.lower() and extension == "buffer") or
+                (("resistance" in zone_name.lower() or "pdhl" in zone_name.lower()) and extension == "buffer"))
+            ):
+                return buffer
+            else:
+                return None  # Unknown case
         else:
-            return None  # Unknown case
+            return None
+            # were either above or below all zones, don't want to raise error
 
     except Exception as e:
         print_log(f"{indent(indent_lvl)}[HRAO TP ZONE ERROR] Failed to determine TP_value → {e}")

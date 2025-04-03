@@ -1,6 +1,6 @@
 #main.py
 from chart_visualization import plot_candles_and_boxes, initiate_shutdown, update_15_min, setup_global_boxes
-from data_acquisition import get_candle_data, get_dates, reset_json, active_provider, initialize_order_log, read_config, is_market_open
+from data_acquisition import get_candle_data, get_dates, reset_json, active_provider, initialize_order_log, read_config, is_market_open, clear_states_folder
 from shared_state import price_lock
 import shared_state
 from tll_trading_strategy import execute_trading_strategy
@@ -564,6 +564,8 @@ async def reseting_values(start_balance=None, end_balance=None):#, message_ids=N
     reset_json('priority_candles.json', [])
     #clear EMAs.json
     reset_json('EMAs.json', [])
+    # Delete all files in `states` folder
+    clear_states_folder()
               
     # End of day Account Balance Calculation, JSON Config File
     with open(config_path, 'r') as f:

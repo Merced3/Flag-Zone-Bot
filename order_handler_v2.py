@@ -41,6 +41,9 @@ def get_unique_order_id_and_is_active():
 def get_profit_loss_orders_list():
     return todays_orders_profit_loss_list
 
+def get_order_log_name(symbol,option_type,strike,timestamp):
+    return f"order_log({symbol}_{option_type}_{strike}_{timestamp}).txt"
+
 async def manage_active_order(active_order_details, _message_ids_dict):
     global message_ids_dict
     global buy_entry_price
@@ -71,13 +74,13 @@ async def manage_active_order(active_order_details, _message_ids_dict):
     buy_price_already_writen = None
     remaining_quantity = order_quantity - sum(sale['quantity'] for sale in order_adjustments)
     last_check_candle_index, last_checked_ema_index = None, None
-
+    sim_active = False # only in testing
     real_money_activated = read_config('REAL_MONEY_ACTIVATED') # so that were not constantly reading a json if in while block
 
     # Creating a new session using a context manager
     async with aiohttp.ClientSession() as session: 
         
-        if real_money_activated:
+        if not sim_active: #if real_money_activated:
             order_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}accounts/{cred.TRADIER_BROKERAGE_ACCOUNT_NUMBER}/orders/{order_id}"
             headers = {
                 "Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", 
@@ -103,7 +106,7 @@ async def manage_active_order(active_order_details, _message_ids_dict):
                     parts = unique_order_id.split('-')
                     if len(parts) >= 5:
                         symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-                        order_log_name = f"order_log({symbol}_{option_type}_{strike}_{_timestamp}).txt"
+                        order_log_name = get_order_log_name(symbol, option_type, strike, _timestamp)
                         expiration_date_obj = datetime.strptime(expiration_date, "%Y%m%d")# Convert the expiration date to 'YYYY-MM-DD' format
                         formatted_expiration_date = expiration_date_obj.strftime("%Y-%m-%d")
                         try:
@@ -122,13 +125,8 @@ async def manage_active_order(active_order_details, _message_ids_dict):
                                     
                         #Starting get_option_bid_price(SPY, 419, 2023-11-01, put, session, headers)
                         current_bid_price = await get_option_bid_price(
-                            symbol=symbol, 
-                            strike=strike, 
-                            expiration_date=formatted_expiration_date, 
-                            option_type=option_type, 
-                            session=session, 
-                            headers=headers
-                        )
+                            symbol, strike, formatted_expiration_date, 
+                            option_type, session, headers)
 
                         if current_bid_price is not None:
                             # Update the lowest bid price
@@ -144,41 +142,24 @@ async def manage_active_order(active_order_details, _message_ids_dict):
 
                 # Check for stop loss condition
                 stop_hit = await check_stop_loss(
-                    current_bid_price=current_bid_price,
-                    buy_entry_price=buy_entry_price,
-                    position_type=option_type,
-                    last_check_candle_index=last_check_candle_index,
-                    last_checked_ema_index=last_checked_ema_index
+                    current_bid_price, buy_entry_price, option_type,
+                    last_check_candle_index, last_checked_ema_index
                 )
                 if stop_hit:
                     break
 
                 # Trim Logic, sell targets
                 order_adjustments, remaining_quantity, order_closed = await check_trim_targets(
-                    current_bid_price=current_bid_price,
-                    sell_points=sell_points,
-                    sell_quantities=sell_quantities,
-                    order_quantity=order_quantity,
-                    order_adjustments=order_adjustments,
-                    remaining_quantity=remaining_quantity,
-                    buy_entry_price=buy_entry_price,
-                    message_ids_dict=message_ids_dict,
-                    unique_order_id=unique_order_id,
-                    order_log_name=order_log_name,
-                    position_type=option_type,
-                    TP_value=tp_value,
-                    lowest_bid_price=lowest_bid_price,
-                    highest_bid_price=highest_bid_price
+                    current_bid_price, sell_points, sell_quantities, order_quantity,
+                    order_adjustments, remaining_quantity, buy_entry_price, message_ids_dict,
+                    unique_order_id, order_log_name, option_type, tp_value
                 )
                 if order_closed:
                     break
 
 
                 # Take Profit
-                tp_hit = await check_take_profit(
-                    TP_value=tp_value,
-                    position_type=option_type
-                )
+                tp_hit = await check_take_profit(tp_value, option_type)
                 if tp_hit:
                     break
                 
@@ -276,10 +257,11 @@ async def check_trim_targets(current_bid_price, sell_points, sell_quantities, or
                 except Exception as e:  # Catch any exception to avoid stopping the loop
                     await error_log_and_discord_message(e, "order_handler", "manage_active_fake_order", "An error occurred while getting or edditing message")
 
-        elif is_runner:
-            if TP_value is None and is_ema_broke("13", read_config('SYMBOL'), read_config('TIMEFRAMES')[0], position_type):
-                await sell_rest_of_active_order("13ema Hit on Runner")
-                return updated_adjustments, remaining_qty, True
+        # Commented Out because im waiting to see what to do with this.
+        #elif is_runner:
+            #if TP_value is None and is_ema_broke("13", read_config('SYMBOL'), read_config('TIMEFRAMES')[0], position_type):
+                #await sell_rest_of_active_order("13ema Hit on Runner")
+                #return updated_adjustments, remaining_qty, True
             
     return updated_adjustments, remaining_qty, False
 
@@ -406,10 +388,9 @@ def generate_sell_info(order_quantity, buy_entry_price, total_cost):
 
             return sell_targets, sell_quantities
 
-async def get_option_bid_price(symbol, strike, expiration_date, option_type, session):
+async def get_option_bid_price(symbol, strike, expiration_date, option_type, session, headers):
     #only realtime data
     quote_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}markets/options/chains?symbol={symbol}&expiration={expiration_date}"
-    headers = {"Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", "Accept": "application/json"}
     
     while True:
         try:
@@ -578,7 +559,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                 parts = unique_order_id.split('-')
                 if len(parts) >= 5:
                     symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-                    order_log_name = f"order_log_{symbol}_{option_type}_{strike}_{_timestamp}.txt"
+                    order_log_name = get_order_log_name(symbol, option_type, strike, _timestamp)
                     # Read the buy entry price from the log file
                     try:
                         
@@ -625,7 +606,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
         parts = unique_order_id.split('-')
         if len(parts) >= 5:
             symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-            order_log_name = f"order_log_{symbol}_{option_type}_{strike}_{_timestamp}.txt"
+            order_log_name = get_order_log_name(symbol, option_type, strike, _timestamp)
             # Read the buy entry price from the log file
             try:
                 with open(order_log_name, "r") as log_file:

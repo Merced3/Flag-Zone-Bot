@@ -681,7 +681,6 @@ def get_dates(num_of_days, use_todays_date=False):
 
     return start_date_str, end_date_str
 
-#another test function
 async def get_certain_candle_data(api_key, symbol, interval, timescale, start_date, end_date, market_type='ALL', indent_lvl=1):
     """
     Fetches interval-timescale candle data for a given symbol on a specific date, filtered by market type.
@@ -710,20 +709,24 @@ async def get_certain_candle_data(api_key, symbol, interval, timescale, start_da
             df = pd.DataFrame(data['results'])
             df['timestamp'] = pd.to_datetime(df['t'], unit='ms').dt.tz_localize('UTC').dt.tz_convert(pytz.timezone('America/New_York'))
 
-            # Filter DataFrame based on market type
+            # Filter DataFrame based on market type using full datetime boundaries
+            market_open_dt = df['timestamp'].dt.normalize() + pd.Timedelta(hours=9, minutes=30)
+            market_close_dt = df['timestamp'].dt.normalize() + pd.Timedelta(hours=16)
+            
             if market_type == 'PREMARKET':
-                df = df[df['timestamp'].dt.time < datetime.strptime("09:30", "%H:%M").time()]
+                df = df[df['timestamp'] <= market_open_dt]
             elif market_type == 'MARKET':
-                df = df[(df['timestamp'].dt.time >= datetime.strptime("09:30", "%H:%M").time()) & 
-                        (df['timestamp'].dt.time < datetime.strptime("16:00", "%H:%M").time())]
+                df = df[(df['timestamp'] >= market_open_dt) & (df['timestamp'] < market_close_dt)]
             elif market_type == 'AFTERMARKET':
-                df = df[df['timestamp'].dt.time >= datetime.strptime("16:00", "%H:%M").time()]
+                df = df[df['timestamp'] >= market_close_dt]
             # For 'ALL', no filtering is needed
 
+            start_time = df['timestamp'].iloc[0].strftime('%H:%M:%S')
+            end_time = df['timestamp'].iloc[-1].strftime('%H:%M:%S')
             df.rename(columns={'v': 'volume', 'o': 'open', 'c': 'close', 'h': 'high', 'l': 'low', 't': 'timestamp'}, inplace=True)
             csv_filename = f"{symbol}_{interval}_{timescale}_{market_type}.csv"
             df.to_csv(csv_filename, index=False)
-            print_log(f"{indent(indent_lvl)}[GCCD] Data saved: {csv_filename}")
+            print_log(f"{indent(indent_lvl)}[GCCD] Data saved: {csv_filename}; Candles from '{start_time}' to '{end_time}'")
             return df
         else:
             print_log(f"{indent(indent_lvl)}[GCCD] No 'results' key found in the API response.")
@@ -1279,25 +1282,25 @@ def clear_states_folder(directory="states"):
         directory (str): The folder containing the state files to clear. Default is "states".
     """
     if not os.path.exists(directory):
-        print(f"Folder '{directory}' does not exist.")
+        print_log(f"Folder '{directory}' does not exist.")
         return
 
     # Get all JSON files in the directory
     json_files = glob.glob(os.path.join(directory, "*.json"))
 
     if not json_files:
-        print(f"No JSON files found in '{directory}'.")
+        print_log(f"[RESET] No JSON files found in '{directory}'.")
         return
 
     # Delete each file
     for file in json_files:
         try:
             os.remove(file)
-            print(f"Deleted: {file}")
+            print_log(f" - Deleted: {file}")
         except Exception as e:
-            print(f"Error deleting {file}: {e}")
+            print_log(f" - Error deleting {file}: {e}")
 
-    print(f"[RESET] All JSON files in '{directory}' have been cleared.")
+    print_log(f"[RESET] All JSON files in '{directory}' have been cleared.")
 
 def get_test_data_and_allocate(folder_name):
     # Define paths to the test data directory and the target files

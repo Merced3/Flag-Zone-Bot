@@ -1,6 +1,6 @@
 import asyncio
 from queue import SimpleQueue
-from data_acquisition import ws_connect_v2, is_market_open, get_market_hours, read_config, get_current_price
+from data_acquisition import ws_connect_v2, is_market_open, get_market_hours, read_config, get_current_price, get_dates, get_certain_candle_data
 import datetime
 
 import asyncio
@@ -83,5 +83,22 @@ async def test_polygon_websocket(symbol):
     except Exception as e:
         print_log(f"[POLYGON] WebSocket failed: {e}")
 
+async def testing_AfterPre_Market_get_dates():
+    candle_interval = 2
+    candle_timescale = "minute"
+    AM = "AFTERMARKET"
+    PM = "PREMARKET"
+    # 'AM' Means After Market; 'PM' Means Pre-Market
+    AM_start_date, AM_end_date = get_dates(1, False)
+    print(f"After Market: {AM_start_date}, {AM_end_date}")
+    PD_AM = await get_certain_candle_data(cred.POLYGON_API_KEY, read_config('SYMBOL'), candle_interval, candle_timescale, AM_start_date, AM_end_date, AM, 1)
+    
+    PM_start_date, PM_end_date = get_dates(1, True)
+    print(f"PRE Market: {PM_start_date}, {PM_end_date}")
+    CD_PM = await get_certain_candle_data(cred.POLYGON_API_KEY, read_config('SYMBOL'), candle_interval, candle_timescale, PM_start_date, PM_end_date, PM, 1)
+    
+
 if __name__ == "__main__":
-    asyncio.run(test_polygon_websocket(read_config('SYMBOL')))
+    #asyncio.run(test_polygon_websocket(read_config('SYMBOL')))
+    asyncio.run(testing_AfterPre_Market_get_dates())
+    
