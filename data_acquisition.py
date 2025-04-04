@@ -1152,10 +1152,8 @@ def log_order_details(filepath, what_type_of_candle, time_entered, ema_distance,
                          ticker_symbol, strike_price, option_type, order_quantity, order_bid_price, total_investment])
 
 # Update the CSV file with additional details
-def update_order_details(indent_lvl, filepath, unique_order_id, **kwargs):
+def update_order_details(filepath, unique_order_id, **kwargs):
     # UOD means Update Order Details
-    print_log(f"\n{indent(indent_lvl)}[UOD] unique_order_id: {unique_order_id}")
-    print_log(f"{indent(indent_lvl)}[UOD] kwargs: {kwargs}")
     df = pd.read_csv(filepath)
     
     # `unique_order_id` is f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
@@ -1167,8 +1165,7 @@ def update_order_details(indent_lvl, filepath, unique_order_id, **kwargs):
 
     # Format the datetime object to the desired string format (ignore seconds)
     formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M %p")
-    print_log(f"{indent(indent_lvl)}[UOD] Formatted timestamp (ignoring seconds): {formatted_timestamp}")
-
+    
     row_found = False
     for index, row in df.iterrows():
         # Normalize the row's timestamp for comparison, ensuring AM/PM is preserved
@@ -1179,15 +1176,13 @@ def update_order_details(indent_lvl, filepath, unique_order_id, **kwargs):
             row['strike_price'] == float(strike_price) and 
             row['option_type'] == option_type and 
             row_time_formatted == formatted_timestamp):  # Compare normalized timestamps
-            print_log(f"{indent(indent_lvl+1)}[UOD 2] Matching row found at index {index}")
             row_found = True
             for key, value in kwargs.items():
-                print_log(f"{indent(indent_lvl+2)}[UOD 3] Updating {key} to {value}")
                 df.at[index, key] = value
             break  # If the correct row is found, no need to continue looping
     
     if not row_found:
-        print_log(f"    [UOD] No matching row found for timestamp: {formatted_timestamp}")
+        print_log(f"    [UOD] ERROR: No matching row found for timestamp: {formatted_timestamp}")
 
     df.to_csv(filepath, index=False)
 

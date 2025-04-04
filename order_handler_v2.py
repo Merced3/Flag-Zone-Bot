@@ -443,8 +443,8 @@ def calculate_max_drawdown_and_gain(start_price, lowest_price, highest_price, wr
             log_file.write(f"Highest Bid Price: {highest_price}, Max-Gain: {max_gain:.2f}%\n")
             log_file.flush()
             #TODO: add 'lowest_bid,max_drawdown,highest_bid,max_gain' into order_log.csv
-            update_order_details('order_log.csv', unique_order_id, lowest_bid=lowest_price, max_drawdown=max_drawdown,
-                         highest_bid=highest_price, max_gain=max_gain)
+            update_order_details('order_log.csv', unique_order_id, lowest_bid=lowest_price, 
+                max_drawdown=max_drawdown, highest_bid=highest_price, max_gain=max_gain)
 
 async def sell(quantity, unique_order_key, message_ids_dict, reason_for_selling):
     #selling logic here

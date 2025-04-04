@@ -608,7 +608,7 @@
         "num_of_trades": 3,
         "num_of_profitable_trades": 2,
         "num_of_negitive_trades": 1,
-        "description": "Day 1, 2 trades 1st profitable (50%) 2nd negitive (-14%), made $383, pretty much a trend up day. Day 2, made 1 trade, hit 50% $694. Day 3 no trades, had a issue with new code, wrong indentations of code, fixed so late in the day that i will start program tomorrow. Day 4, ALOT OF ERROR's FIXED, it was able to record one trade that went over 200% but had a issue at runner's stoploss.",
+        "description": "Day 1, 2 trades 1st profitable (50%) 2nd negitive (-14%), made $383, pretty much a trend up day. Day 2, made 1 trade, hit 50% $694. Day 3 no trades, had a issue with new code, wrong indentations of code, fixed so late in the day that i will start program tomorrow. Day 4, ALOT OF ERROR's FIXED, it was able to record one trade that went over 200% but had a issue at runner's stoploss. Day 5, another 200% trade, had error with 'sell_rest_of_active_order()' on end of day.",
         "important_message_ids": [1356792597531852841, 1356792669124169738, 1357053828201185379, 1357450412382355457, 1357450558071378022]
     }
 ]

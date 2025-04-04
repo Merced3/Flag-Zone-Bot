@@ -25,7 +25,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, TP_value, sessi
     prev_option_type = unique_order_id.split('-')[1] if unique_order_id else None
 
     if current_order_active and prev_option_type == cp:
-        print_log(f"Canceling buy Order, same order type '{cp}' is already active.")
+        #print_log(f"Canceling buy Order, same order type '{cp}' is already active.")
         return False, None, None, None, None, "Another Order Active."
     elif current_order_active and prev_option_type != cp:
         # Sell the current active order if it's of a different type

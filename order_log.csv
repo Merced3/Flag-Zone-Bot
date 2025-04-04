@@ -245,3 +245,5 @@ below_support_1 PDL,04/03/2025-01:46 PM,,,,SPY,538.0,put,90,0.35,3150.0
 below_support_1 PDL,04/03/2025-01:52 PM,,,,SPY,539.0,put,81,0.39,3159.0
 below_support_1 PDL,04/03/2025-02:02 PM,,,,SPY,539.0,put,77,0.41,3157.0
 Finally had V3 of program working...
+below_PDHL_1 PDL,04/04/2025-08:42 AM,,,,SPY,500.0,put,71,0.44,3124.0
+Error in selling rest of order.
