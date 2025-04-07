@@ -4,9 +4,9 @@ from datetime import datetime, timedelta
 import requests
 from print_discord_messages import print_discord, get_message_content, edit_discord_message
 import aiohttp
-from data_acquisition import read_config
+from data_acquisition import read_config, get_current_price # this if for shared state get price, more efficient
 from error_handler import error_log_and_discord_message, print_log
-from order_utils import build_active_order, calculate_quantity, get_expiration, get_strikes_to_consider
+from order_utils import build_active_order, calculate_quantity, get_strikes_to_consider
 from pathlib import Path
 import json
 import sys
@@ -32,7 +32,7 @@ def save_message_ids(order_id, message_id):
     with open(MESSAGE_IDS_FILE_PATH, 'w') as f:
         json.dump(existing_data, f, indent=4)
 
-async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_date, session, headers):
+async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_date, TP_value, session, headers):
     # Replace with actual URL to fetch option chain data
     option_chain_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}markets/options/chains?symbol={symbol}&expiration={next_expiration_date}"
     
@@ -48,31 +48,58 @@ async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_dat
             filtered_options = [opt for opt in options if opt['option_type'] == cp]
             
             # Get the current price to determine the range of strikes to consider
-            current_price = await get_current_price(symbol, session, headers)
+            #current_price = await get_current_price(symbol, session, headers)
+            # TODO shared state, more efficient, less api calls
+            current_price = await get_current_price()
+
             if not current_price:
                 raise ValueError("Could not determine current price.")
             
             # Determine the strikes to consider based on the current price
-            strikes_to_consider = get_strikes_to_consider(current_price, num_out_of_the_money, filtered_options)
+            strikes_to_consider = get_strikes_to_consider(cp, current_price, num_out_of_the_money, filtered_options)
             
-            #print(f"    Price: {current_price}\n    Strikes to consider:\n{json.dumps(strikes_to_consider, indent=4)}\n")
+            # TODO comment this out once working...
+            #print(f"    Price: {current_price}\n    Type: {cp}\n    TP_value: {TP_value}\n    Strikes to consider:\n{json.dumps(strikes_to_consider, indent=4)}\n")
             
-            # Define the price ranges
-            price_ranges = [(0.30, 0.50), (0.20, 0.80), (0.10, 1.25)]
-            
-            # Find the appropriate contract within the asking price ranges
-            for lower_bound, upper_bound in price_ranges:
-                for strike, ask in strikes_to_consider.items():
-                    if lower_bound <= ask <= upper_bound:
-                        return strike, ask
-            
-            print_log("No contracts found within the specified price ranges.")
-            return None
+            #if TP_value is not None:
+                #valid_tp_strikes = {}
+                #for strike_str, ask in strikes_to_consider.items():
+                    #strike = float(strike_str)
+                    #if cp == "call" and current_price < strike <= TP_value and ask is not None:
+                        #valid_tp_strikes[strike] = ask
+                    #elif cp == "put" and TP_value <= strike < current_price and ask is not None:
+                        #valid_tp_strikes[strike] = ask
+                #if valid_tp_strikes:
+                    # Prioritize the one closest to the TP_value
+                    #closest_strike = min(valid_tp_strikes.items(), key=lambda x: abs(x[0] - TP_value))
+                    # TODO comment this out once working...
+                    #print_log(f"[TP-BASED] Selected TP-aligned strike → Strike: {closest_strike[0]}, Ask: {closest_strike[1]}")
+                    #return closest_strike
+                #else:
+                    #print_log(f"[TP-BASED] No suitable strike near TP ({TP_value}), falling back...")
+
+            # Fallback: directional cheapest contract
+            if cp == "put":
+                # Sort strikes below current price by ask
+                fallback_candidates = {
+                    k: v for k, v in strikes_to_consider.items()
+                    if float(k) < current_price and v is not None
+                }
+            else:  # cp == "call"
+                fallback_candidates = {
+                    k: v for k, v in strikes_to_consider.items()
+                    if float(k) > current_price and v is not None
+                }
+            if fallback_candidates:
+                cheapest_strike = min(fallback_candidates.items(), key=lambda x: x[1])
+                # TODO comment this out once working...
+                print_log(f"[Using Cheapest] fallback → Strike: {cheapest_strike[0]}, Ask: {cheapest_strike[1]}")
+                return cheapest_strike
             
         except Exception as e:
             await error_log_and_discord_message(e, "submit_order", "find_what_to_buy", "Error parsing JSON or processing data")
             return None
-
+"""
 async def get_current_price(symbol, session, headers):
     quote_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}markets/quotes?symbols={symbol}"
 
@@ -88,7 +115,7 @@ async def get_current_price(symbol, session, headers):
         except Exception as e:
             await error_log_and_discord_message(e, "submit_order", "get_current_price", "Error parsing JSON")
             return None
-
+"""
 async def submit_option_order(strategy_name, symbol, strike, option_type, bid, expiration_date, quantity=None, side=None, order_type=None, session=None, headers=None, message_ids_dict=None, buying_power=None, TP_value=None):
     if read_config('REAL_MONEY_ACTIVATED'):
         order_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}accounts/{cred.TRADIER_BROKERAGE_ACCOUNT_NUMBER}/orders"

@@ -44,6 +44,9 @@ def get_profit_loss_orders_list():
 def get_order_log_name(symbol,option_type,strike,timestamp):
     return f"order_log({symbol}_{option_type}_{strike}_{timestamp}).txt"
 
+def get_sell_trim_message(sell_quantity, total_value, current_bid_price):
+    return f"Sold {sell_quantity} for ${total_value:.2f}, Fill: {current_bid_price}"
+
 async def manage_active_order(active_order_details, _message_ids_dict):
     global message_ids_dict
     global buy_entry_price
@@ -246,7 +249,7 @@ async def check_trim_targets(current_bid_price, sell_points, sell_quantities, or
                 #log_file.flush()
 
             total_value = (current_bid_price * 100) * sell_quantity
-            update_dsc_msg = f"Sold {sell_quantity} contracts for ${total_value:.2f}, Fill: {current_bid_price}" # update_dsc_msg, means update discord message
+            update_dsc_msg = get_sell_trim_message(sell_quantity, total_value, current_bid_price) # update_dsc_msg, means update discord message
             
             if unique_order_id in message_ids_dict:
                 msg_id = message_ids_dict[unique_order_id]
@@ -502,7 +505,7 @@ def calculate_profit_percentage(message, unique_order_id):
 
 
     # Extract sell details
-    sell_pattern = r"Sold (\d+) contracts for \$(\d+\.\d+), Fill: (\d+\.\d+)"
+    sell_pattern = r"Sold (\d+) for \$(\d+\.\d+), Fill: (\d+\.\d+)"
     sell_matches = re.findall(sell_pattern, message)
     if not sell_matches:
         return "Invalid Sell Details"
@@ -632,9 +635,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                 time_exited_trade = datetime.now().strftime("%m/%d/%Y-%I:%M:%S %p") # Convert to ISO format string
                 update_order_details('order_log.csv', unique_order_id, time_exited=time_exited_trade)
                 calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name, unique_order_id)
-                #with open(order_log_name, "a") as log_file:
-                    #log_file.write(f"Sold rest ({sell_quantity}) at {sold_bid_price}\nLowest Bid Price: {lowest_bid_price}, Max-Drawdown: {percentage_drop:.2f}%\n")
-                    
+                
                 all_sells = 0
                 for sells in order_adjustments:
                     sell_cost = (sells["sold_price"] * 100) * sells["quantity"]
@@ -649,7 +650,8 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                 todays_orders_profit_loss_list.append(profit_loss)
 
                 total_value = (sold_bid_price * 100) * sell_quantity
-                _message_ = f"Sold {sell_quantity} {symbol} contracts for ${total_value:.2f}, Fill: {sold_bid_price}"
+                
+                _message_ = get_sell_trim_message(sell_quantity, total_value, sold_bid_price)
                 if unique_order_id in message_ids_dict:
                     original_msg_id = message_ids_dict[unique_order_id]
                     #print(f"Fetching message content for order ID: {unique_order_id}, Message ID: {original_msg_id}")

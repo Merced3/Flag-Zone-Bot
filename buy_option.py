@@ -1,6 +1,8 @@
+# buy_option.py
 from error_handler import error_log_and_discord_message, print_log
 from order_handler_v2 import get_unique_order_id_and_is_active, manage_active_order, sell_rest_of_active_order
-from submit_order import find_what_to_buy, submit_option_order, get_order_status, get_expiration, calculate_quantity
+from submit_order import find_what_to_buy, submit_option_order, get_order_status
+from order_utils import get_expiration, calculate_quantity
 from data_acquisition import get_account_balance, add_markers, read_config
 from print_discord_messages import print_discord
 from order_utils import build_active_order
@@ -24,12 +26,12 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, TP_value, sessi
     unique_order_id, current_order_active = get_unique_order_id_and_is_active()
     prev_option_type = unique_order_id.split('-')[1] if unique_order_id else None
 
-    if current_order_active and prev_option_type == cp:
-        #print_log(f"Canceling buy Order, same order type '{cp}' is already active.")
+    if current_order_active: # and prev_option_type == cp: Trying to keep it simple
         return False, None, None, None, None, "Another Order Active."
-    elif current_order_active and prev_option_type != cp:
+    #elif current_order_active and prev_option_type != cp:
+        # IDK if we should keep this because it auto got out of a order and tried to get into another one while seniment was 0. idk if thats in accordance to this strategy.
         # Sell the current active order if it's of a different type
-        await sell_rest_of_active_order(message_ids_dict, "Switching option type.")
+        #await sell_rest_of_active_order(message_ids_dict, "Switching option type.")
 
     try:
         bid = None
@@ -38,7 +40,7 @@ async def buy_option_cp(real_money_activated, ticker_symbol, cp, TP_value, sessi
         expiration_date = get_expiration(read_config('OPTION_EXPIRATION_DTE'))
         
         strike_price, strike_ask_bid = await find_what_to_buy(
-            ticker_symbol, cp, read_config('NUM_OUT_OF_MONEY'), expiration_date, session, headers
+            ticker_symbol, cp, read_config('NUM_OUT_OF_MONEY'), expiration_date, TP_value, session, headers
         )
         
         if strike_price is None or strike_ask_bid is None:

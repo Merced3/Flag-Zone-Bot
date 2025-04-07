@@ -1,28 +1,30 @@
 {
-    "week_timespan": "03-31-25 to 04-06-25",
+    "week_timespan": "04-07-25 to 04-13-25",
     "dates": {
-        "04-01-25": {
+        "04-08-25": {
             "09:00 AM": [
-                "ISM Manufacturing PMI",
-                "JOLTs Job Openings"
+                "Ivey PMI s.a"
             ]
         },
-        "04-03-25": {
-            "07:30 AM": [
-                "Balance of Trade"
-            ],
-            "09:00 AM": [
-                "ISM Services PMI"
+        "04-09-25": {
+            "01:00 PM": [
+                "FOMC Minutes"
             ]
         },
-        "04-04-25": {
+        "04-10-25": {
             "07:30 AM": [
-                "Unemployment Rate",
-                "Non Farm Payrolls",
-                "Unemployment Rate"
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
+            ]
+        },
+        "04-11-25": {
+            "07:30 AM": [
+                "PPI MoM"
             ],
-            "10:25 AM": [
-                "Fed Chair Powell Speech"
+            "09:00 AM": [
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }

@@ -615,12 +615,12 @@
         "week_number": 50,
         "week_start_end_date": "04/07/2025-04/11/2025",
         "start_ammount": 63316.0,
-        "end_ammount": 63316.0,
-        "total_made": 0.0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
+        "end_ammount": 66581.0,
+        "total_made": 3265.0,
+        "num_of_trades": 6,
+        "num_of_profitable_trades": 6,
         "num_of_negitive_trades": 0,
-        "description": "",
-        "important_message_ids": []
+        "description": "Day 1, a bunch of trades were made but alot of errors were had aswell, there were days last week where i didn't involve the 200% trades into the calculation and today im going to involve all the trades today even with the errors, alot of overfitting was spotted today and removed hence the change in 'buy_option.py' to not flip the order if sentimate hasn't changed, total made today 3,265$.",
+        "important_message_ids": [1358895376937124022, 1358896228649271528]
     }
 ]

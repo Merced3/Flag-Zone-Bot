@@ -92,25 +92,63 @@ def get_tp_value(indent_lvl, candle_zone_type, action, zones):
             else:
                 return None  # Unknown case
         else:
+            # We're either below all zones or above all zones
+            # Expected format: "below ZONE_NAME EXT" or "above ZONE_NAME EXT"
+            parts = candle_zone_type.strip().split()
+
+            if len(parts) != 3:
+                raise ValueError(f"Invalid format for candle_zone_type: {candle_zone_type}")
+            
+            # zones = {'PDHL_1': (702, 525.87, 505.06), 'support_1': (701, 536.9, 537.64), 'PDHL_2': (624, 554.81, 553.68), 'PDHL_3': (598, 547.97, 546.87), 'PDHL_5': (27, 598.2, 597.34), 'resistance_1': (494, 576.41, 575.805), 'resistance_2': (364, 565.02, 564.19), 'support_2': (301, 549.68, 551.16), 'resistance_3': (166, 580.1736, 579.35), 'support_3': (98, 585.97, 587.48), 'support_4': (22, 591.8556, 592.54)}
+            
+            direction, zone_name, extension = parts
+
+            if zone_name not in zones:
+                raise ValueError(f"Zone '{zone_name}' not found in zones dictionary.")
+            
+            x_pos, high_low_of_day, buffer = zones[zone_name]
+            
+            if (direction == "below" and action == "call") or (direction == "above" and action == "put"):
+                # If we are below all zones and want to go long (call), use zone above as TP (high/low of day)
+                # If we are above all zones and want to go short (put), use zone below as TP (high/low of day)
+
+                if 'resistance' in zone_name or 'PDHL' in zone_name:
+                    if "Buffer" in extension or "PDL" in extension: 
+                        return buffer
+                    if 'PDH' in extension:
+                        return  high_low_of_day
+                elif 'support' in zone_name:
+                    if "PDL" in extension: 
+                        return high_low_of_day
+                    if 'Buffer' in extension:
+                        return  buffer
+            
+            # All other combos (e.g., put below, call above) = no TP
             return None
-            # were either above or below all zones, don't want to raise error
 
     except Exception as e:
         print_log(f"{indent(indent_lvl)}[HRAO TP ZONE ERROR] Failed to determine TP_value → {e}")
         return None
 
-def get_strikes_to_consider(current_price, num_out_of_the_money, options):
+def get_strikes_to_consider(cp, current_price, num_out_of_the_money, options):
     strikes_to_consider = {}
     for option in options:
         strike = option['strike']
         ask = option['ask']
 
-        # Define the range of strike prices based on current_price and num_out_of_the_money
-        lower_bound = current_price - num_out_of_the_money
-        upper_bound = current_price + num_out_of_the_money
+        # Only include if ask is valid
+        if ask is None:
+            continue
 
-        if lower_bound <= strike <= upper_bound:
-            strikes_to_consider[strike] = ask
+        # Call = strike >= current price
+        if cp == "call" and strike >= current_price:
+            if strike <= current_price + num_out_of_the_money:
+                strikes_to_consider[strike] = ask
+
+        # Put = strike <= current price
+        elif cp == "put" and strike <= current_price:
+            if strike >= current_price - num_out_of_the_money:
+                strikes_to_consider[strike] = ask
 
     return strikes_to_consider
 

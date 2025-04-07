@@ -328,7 +328,7 @@ def check_order_time_to_event_time(time_threshold=20, json_file='week_ecom_calen
 
     # Check if there are events for today
     if today_date not in data['dates']:
-        print_log("No Events today")
+        #print_log("No Events today")
         return True  # No events today
 
     # Get the list of events for today

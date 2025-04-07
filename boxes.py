@@ -27,7 +27,7 @@ def candle_zone_handler(candle, boxes, indent_lvl=1):
 
         # Check if the candle is outside of zone and which one's
         if box_bottom <= close_price <= box_top:
-            candle_zone_type = f"inside_{box_name}"
+            candle_zone_type = f"inside {box_name}"
             is_in_zone = True
             break  # No need to check further if we found a zone containing the candle
         
@@ -55,12 +55,12 @@ def candle_zone_handler(candle, boxes, indent_lvl=1):
         if close_price < zone_ranges[-1][2]: # Below all zones
             lowest_zone_name = zone_ranges[-1][0]  # Get the name of the lowest zone
             extension = ext[1] if "support" in lowest_zone_name or "PDHL" in lowest_zone_name else ext[2]
-            candle_zone_type = f"below_{lowest_zone_name} {extension}"
+            candle_zone_type = f"below {lowest_zone_name} {extension}"
         
         elif close_price > zone_ranges[0][1]: # Above all zones
             highest_zone_name = zone_ranges[0][0]  # Get the name of the highest zone
             extension = ext[0] if "resistance" in highest_zone_name or "PDHL" in highest_zone_name else ext[2]
-            candle_zone_type = f"above_{highest_zone_name} {extension}"
+            candle_zone_type = f"above {highest_zone_name} {extension}"
 
     return candle_zone_type, is_in_zone
 
