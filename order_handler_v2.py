@@ -257,11 +257,11 @@ async def check_trim_targets(current_bid_price, sell_points, sell_quantities, or
                 except Exception as e:  # Catch any exception to avoid stopping the loop
                     await error_log_and_discord_message(e, "order_handler", "manage_active_fake_order", "An error occurred while getting or edditing message")
 
-        # Commented Out because im waiting to see what to do with this.
-        #elif is_runner:
-            #if TP_value is None and is_ema_broke("13", read_config('SYMBOL'), read_config('TIMEFRAMES')[0], position_type):
-                #await sell_rest_of_active_order("13ema Hit on Runner")
-                #return updated_adjustments, remaining_qty, True
+        # Determinded theta would win most of the battles.
+        elif is_runner:
+            if TP_value is None and is_ema_broke("13", read_config('SYMBOL'), read_config('TIMEFRAMES')[0], position_type):
+                await sell_rest_of_active_order("13ema Hit on Runner")
+                return updated_adjustments, remaining_qty, True
             
     return updated_adjustments, remaining_qty, False
 
