@@ -123,7 +123,7 @@ async def manage_active_order(active_order_details, _message_ids_dict):
                         # Check if we should print the message
                         if print_once_flag:
                             current_order_cost = order_quantity * (buy_entry_price * 100)
-                            print_log(f"\nBought {order_quantity} at {buy_entry_price} resulting in a cost of ${current_order_cost:.2f}")
+                            print_log(f"    [ORDER DETIALS] Bought {order_quantity} at {buy_entry_price} resulting in a cost of ${current_order_cost:.2f}")
                             print_once_flag = False  # Set flag to False so it doesn't print again
                                     
                         #Starting get_option_bid_price(SPY, 419, 2023-11-01, put, session, headers)
@@ -177,14 +177,14 @@ async def manage_active_order(active_order_details, _message_ids_dict):
                         # Verify if the file was sent and then delete the log file
                         if os.path.exists(order_log_name):
                             os.remove(order_log_name)
-                            print_log(f"Order log file {order_log_name} deleted.")
+                            #print_log(f"Order log file {order_log_name} deleted.")
                     all_sells = 0
                     for sells in order_adjustments:
                         sell_cost = (sells["sold_price"] * 100) * sells["quantity"]
                         all_sells = all_sells + sell_cost
 
                     profit_loss = all_sells - current_order_cost 
-                    print_log(f"(manage_active_order) Profit/Loss: ${profit_loss:.2f}")
+                    print_log(f"    [ORDER DETIALS] manage_active_order(), Profit/Loss: ${profit_loss:.2f}")
                     todays_orders_profit_loss_list.append(profit_loss)
                     unique_order_id = None
                     break
@@ -237,7 +237,7 @@ async def check_trim_targets(current_bid_price, sell_points, sell_quantities, or
             remaining_quantity -= sell_quantity
             
             sold_order_cost = (current_bid_price * 100) * sell_quantity
-            print_log(f"Sold {sell_quantity} at {current_bid_price} target, {remaining_quantity} remaining. Order Cost: ${sold_order_cost:.2f}")
+            print_log(f"    [ORDER DETIALS] Sold {sell_quantity} at {current_bid_price} target, {remaining_quantity} remaining. Order Cost: ${sold_order_cost:.2f}")
 
             # Calculate Percentage for more data tracking...
             bid_percentage = calculate_bid_percentage(buy_entry_price, current_bid_price)
@@ -288,7 +288,7 @@ async def check_stop_loss(current_bid_price, buy_entry_price, position_type, las
     elif isinstance(STOP_LOSS, (int, float)): # STOP_LOSS is number; example: 20; 20% stoploss
         current_loss = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
         if current_loss <= STOP_LOSS:
-            print_log(f"[STOP LOSS] Hit: {current_loss:.2f}% <= {STOP_LOSS}%")
+            print_log(f"    [ORDER DETIALS] STOP LOSS Hit: {current_loss:.2f}% <= {STOP_LOSS}%")
             await sell_rest_of_active_order(f"{STOP_LOSS}% Stop Loss")
             return True
     
@@ -415,21 +415,21 @@ async def get_option_bid_price(symbol, strike, expiration_date, option_type, ses
                     if filtered_options:
                         return filtered_options[0]['bid']
                     else:
-                        print_log("    [get_option_bid_price] Option not found, retrying...")
+                        print_log("    [ORDER DETIALS] get_option_bid_price(); Option not found, retrying...")
                         await asyncio.sleep(1)  # Wait a second before retrying
 
                 except asyncio.TimeoutError:
-                    print_log(f"[INTERNET CONNECTION]  get_option_bid_price() Timeout Error, retrying...")
+                    print_log(f"    [ORDER DETIALS] get_option_bid_price(), INTERNET CONNECTION, Timeout Error, retrying...")
                     await asyncio.sleep(1)  # Wait a second before retrying
                 except Exception as e:
                     await error_log_and_discord_message(e, "order_handler", "get_option_bid_price", "Error parsing JSON")
                     await asyncio.sleep(1)  # Wait a second before retrying
 
         except aiohttp.ClientOSError as e:
-            print_log(f"[INTERNET CONNECTION] Client OS Error: {e}. Retrying...")
+            print_log(f"    [ORDER DETIALS] INTERNET CONNECTION; Client OS Error: {e}. Retrying...")
             await asyncio.sleep(1)  # Wait a second before retrying
         except Exception as e:
-            print_log(f"Unexpected error occurred: {e}. Retrying...")
+            print_log(f"    [ORDER DETIALS] Unexpected error occurred: {e}. Retrying...")
             await asyncio.sleep(1)  # Wait a second before retrying        
 
 def calculate_max_drawdown_and_gain(start_price, lowest_price, highest_price, write_to_file=None, order_log_name=None, unique_order_id=None):
@@ -462,7 +462,7 @@ async def sell(quantity, unique_order_key, message_ids_dict, reason_for_selling)
     if message_channel is None:
         print_log(f"Failed to find Discord channel with ID {cred.DISCORD_CHANNEL_ID}")
         return None, None, None
-    print_log(f"REASON FOR SELLING: {reason_for_selling}")
+    print_log(f"    [ORDER DETIALS] REASON FOR SELLING: {reason_for_selling}")
     #execute sell
     order_result = await submit_option_order(
         "FLAG/ZONE STRAT", symbol, strike, cp, bid, expiration_date, quantity, side, order_type
@@ -481,7 +481,7 @@ async def sell(quantity, unique_order_key, message_ids_dict, reason_for_selling)
             message_ids_dict=message_ids_dict
         )
 
-        print_log(f"sell() = {order_bid_price}, {order_quantity}, {True}\n")
+        print_log(f"    [ORDER DETIALS] sell() = {order_bid_price}, {order_quantity}, {True}\n")
 
         return order_bid_price, order_quantity, True
 
@@ -586,7 +586,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                     
                     if os.path.exists(order_log_name):
                         os.remove(order_log_name)
-                        print_log(f"Order log file {order_log_name} deleted.")
+                        #print_log(f"Order log file {order_log_name} deleted.")
     
                     current_order_active = False
                     unique_order_id = None
@@ -596,11 +596,11 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
             else:
                 # Retry logic
                 retry_count += 1
-                print_log(f"Retrying `sell_rest_of_active_order()`... Attempt {retry_count}/{retry_limit}")
+                print_log(f"    [ORDER DETIALS] Retrying `sell_rest_of_active_order()`... Attempt {retry_count}/{retry_limit}")
                 await asyncio.sleep(1)  # Wait for 1 second before retrying
 
         if retry_count >= retry_limit:
-            print_log("Reached maximum retry attempts for `sell_rest_of_active_order()`")
+            print_log("    [ORDER DETIALS] Reached maximum retry attempts for `sell_rest_of_active_order()`")
             return False  # Indicate failure after all retries
 
         return True
@@ -646,7 +646,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                 all_sells_rounded = round(all_sells, precision)
                 profit_loss = all_sells_rounded - order_cost_rounded
                 print_log(f"    [ORDER DETIALS] All Sells: {all_sells_rounded}, Order Cost: {order_cost_rounded}")
-                print_log(f"    [ORDER DETIALS] Profit/Loss: ${profit_loss:.2f}")
+                print_log(f"    [ORDER DETIALS] Profit/Loss: ${profit_loss:.2f}, {reason_for_selling}")
                 todays_orders_profit_loss_list.append(profit_loss)
 
                 total_value = (sold_bid_price * 100) * sell_quantity
@@ -662,11 +662,11 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                             #update discord order message
                             await edit_discord_message(original_msg_id, updated_content)
                         else:
-                            print_log(f"Could not retrieve original message content for ID {original_msg_id}")
+                            print_log(f"    [ORDER DETIALS] Could not retrieve original message content for ID {original_msg_id}")
                     except Exception as e:  # Catch any exception to avoid stopping the loop
                         await error_log_and_discord_message(e, "order_handler", "sell_rest_of_active_order", "An error occurred while getting or edditing message")
                 else:
-                    print_log(f"Message ID for order {unique_order_id} not found in dictionary. Dictionary contents:\n{message_ids_dict}")
+                    print_log(f"    [ORDER DETIALS] Message ID for order {unique_order_id} not found in dictionary. Dictionary contents:\n{message_ids_dict}")
                 #   Quantity of the order is zero now so we log it in discord
                 _message_ = await get_message_content(message_ids_dict[unique_order_id])
                 if _message_ is not None:
@@ -677,7 +677,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                     
                     if os.path.exists(order_log_name):
                         os.remove(order_log_name)
-                        print_log(f"Order log file {order_log_name} deleted.")
+                        #print_log(f"Order log file {order_log_name} deleted.")
                 
                 current_order_active = False
                 unique_order_id = None
@@ -694,7 +694,7 @@ def safe_write_to_file(path, data, max_retries=3, retry_delay=0.25):
                 log_file.flush()
             return True  # Successfully written
         except PermissionError as e:
-            print_log(f"Permission denied on attempt {attempt+1}: {e}")
+            print_log(f"    [ORDER DETIALS] Permission denied on attempt {attempt+1}: {e}")
             time.sleep(retry_delay)
     return False  # Failed to write after retries
 

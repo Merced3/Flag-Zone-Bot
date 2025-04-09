@@ -1,7 +1,7 @@
 {
     "REAL_MONEY_ACTIVATED": false,
     "ACCOUNT_BALANCES": [
-        66581.0,
+        63257.0,
         0
     ],
     "SYMBOL": "SPY",
@@ -50,7 +50,7 @@
         "MIN_NUM_CANDLES": 2,
         "MAX_NUM_CANDLES": 150,
         "MIN_ANGLE": 0,
-        "MAX_ANGLE": 60,
+        "MAX_ANGLE": 90,
         "START_POINT_MAX_NUM_FLAGS": 3
     },
     "OPTION_EXPIRATION_DTE": "not specified",

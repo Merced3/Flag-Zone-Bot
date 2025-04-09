@@ -615,12 +615,12 @@
         "week_number": 50,
         "week_start_end_date": "04/07/2025-04/11/2025",
         "start_ammount": 63316.0,
-        "end_ammount": 66581.0,
-        "total_made": 3265.0,
-        "num_of_trades": 6,
-        "num_of_profitable_trades": 6,
-        "num_of_negitive_trades": 0,
-        "description": "Day 1, a bunch of trades were made but alot of errors were had aswell, there were days last week where i didn't involve the 200% trades into the calculation and today im going to involve all the trades today even with the errors, alot of overfitting was spotted today and removed hence the change in 'buy_option.py' to not flip the order if sentimate hasn't changed, total made today 3,265$.",
-        "important_message_ids": [1358895376937124022, 1358896228649271528]
+        "end_ammount": 63257.0,
+        "total_made": -59.0,
+        "num_of_trades": 9,
+        "num_of_profitable_trades": 7,
+        "num_of_negitive_trades": 2,
+        "description": "Day 1, a bunch of trades were made but alot of errors were had aswell, there were days last week where i didn't involve the 200% trades into the calculation and today im going to involve all the trades today even with the errors, alot of overfitting was spotted today and removed hence the change in 'buy_option.py' to not flip the order if sentimate hasn't changed, total made today 3,265$. Day 2, There were 3 trades 1st was break even, the other 2 trades were losses, one was -16% and the other was -83% this new stoploss is going to get interesting, lost -$3324.",
+        "important_message_ids": [1358895376937124022, 1358896228649271528, 1358898406998802584, 1359169600326996008, 1359170997844049990, 1359173230199443748, 1359218775454650450]
     }
 ]
