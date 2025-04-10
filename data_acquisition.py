@@ -1269,34 +1269,6 @@ def empty_log(filename):
 
     print_log(f"[CLEARED]'{filename}.log' has been emptied.")
 
-def clear_states_folder(directory="states"):
-    """
-    Deletes all JSON files in the specified directory.
-    
-    Args:
-        directory (str): The folder containing the state files to clear. Default is "states".
-    """
-    if not os.path.exists(directory):
-        print_log(f"Folder '{directory}' does not exist.")
-        return
-
-    # Get all JSON files in the directory
-    json_files = glob.glob(os.path.join(directory, "*.json"))
-
-    if not json_files:
-        print_log(f"[RESET] No JSON files found in '{directory}'.")
-        return
-
-    # Delete each file
-    for file in json_files:
-        try:
-            os.remove(file)
-            print_log(f" - Deleted: {file}")
-        except Exception as e:
-            print_log(f" - Error deleting {file}: {e}")
-
-    print_log(f"[RESET] All JSON files in '{directory}' have been cleared.")
-
 def get_test_data_and_allocate(folder_name):
     # Define paths to the test data directory and the target files
     test_data_dir = Path(LOGS_DIR) / 'test_data' / folder_name

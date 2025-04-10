@@ -675,3 +675,22 @@ def ensure_states_dir_exists(states_dir):
         os.makedirs(states_dir)
         print_log(f"[INIT] Created missing directory: {states_dir}")
 
+def clear_all_states(states_dir='states', indent_lvl=1):
+    """
+    Clears all state data, both from disk and from in-memory dictionary.
+    This ensures a fresh start regardless of storage mode.
+    """
+    if USE_DICT_STATE:
+        STATE_MEMORY.clear()
+        print_log(f"{indent(indent_lvl)}[RESET] In-memory STATE_MEMORY cleared.")
+    else:
+        if not os.path.exists(states_dir):
+            print_log(f"{indent(indent_lvl)}[RESET] State folder '{states_dir}' does not exist.")
+            return
+        json_files = glob.glob(os.path.join(states_dir, "*.json"))
+        for file in json_files:
+            try:
+                os.remove(file)
+                print_log(f"{indent(indent_lvl)}[RESET] Deleted state file: {file}")
+            except Exception as e:
+                print_log(f"{indent(indent_lvl)}[RESET ERROR] Could not delete {file}: {e}")
