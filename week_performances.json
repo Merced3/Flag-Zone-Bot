@@ -615,12 +615,12 @@
         "week_number": 50,
         "week_start_end_date": "04/07/2025-04/11/2025",
         "start_ammount": 63316.0,
-        "end_ammount": 63211.0,
-        "total_made": -105.0,
+        "end_ammount": 60052.0,
+        "total_made": -3264.0,
         "num_of_trades": 13,
         "num_of_profitable_trades": 10,
-        "num_of_negitive_trades": 3,
-        "description": "Day 1, a bunch of trades were made but alot of errors were had aswell, there were days last week where i didn't involve the 200% trades into the calculation and today im going to involve all the trades today even with the errors, alot of overfitting was spotted today and removed hence the change in 'buy_option.py' to not flip the order if sentimate hasn't changed, total made today 3,265$. Day 2, There were 3 trades 1st was break even, the other 2 trades were losses, one was -16% and the other was -83% this new stoploss is going to get interesting, lost -$3324. Day 3, first day of leting code run longer than 24 hours to see how code would handle itself, Live flags were falsely triggering due to STATE_MEMORY (in-memory state storage) not being cleared at end-of-day resets. We fixed this by replacing clear_states_folder() with a new clear_all_states() function that clears both disk and in-memory state data, ensuring a clean slate regardless of storage mode. Day 3 we lost -$46 , 4 trades, 3 profitable 1 negitive. Day 4, no trades inbetween PDHL.",
+        "num_of_negitive_trades": 4,
+        "description": "Day 1, a bunch of trades were made but alot of errors were had aswell, there were days last week where i didn't involve the 200% trades into the calculation and today im going to involve all the trades today even with the errors, alot of overfitting was spotted today and removed hence the change in 'buy_option.py' to not flip the order if sentimate hasn't changed, total made today 3,265$. Day 2, There were 3 trades 1st was break even, the other 2 trades were losses, one was -16% and the other was -83% this new stoploss is going to get interesting, lost -$3324. Day 3, first day of leting code run longer than 24 hours to see how code would handle itself, Live flags were falsely triggering due to STATE_MEMORY (in-memory state storage) not being cleared at end-of-day resets. We fixed this by replacing clear_states_folder() with a new clear_all_states() function that clears both disk and in-memory state data, ensuring a clean slate regardless of storage mode. Day 3 we lost -$46 , 4 trades, 3 profitable 1 negitive. Day 4, no trades inbetween PDHL. Day 5 one trade, HIT 0% lost all of it, -3159$. ",
         "important_message_ids": [1358895376937124022, 1358896228649271528, 1358898406998802584, 1359169600326996008, 1359170997844049990, 1359173230199443748, 1359218775454650450, 1359522877434626158, 1359537533289103522, 1359664961206489209]
     }
 ]
