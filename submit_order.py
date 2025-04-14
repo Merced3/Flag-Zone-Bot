@@ -58,8 +58,15 @@ async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_dat
             # Determine the strikes to consider based on the current price
             strikes_to_consider = get_strikes_to_consider(cp, current_price, num_out_of_the_money, filtered_options)
             
-            # TODO comment this out once working...
-            #print(f"    Price: {current_price}\n    Type: {cp}\n    TP_value: {TP_value}\n    Strikes to consider:\n{json.dumps(strikes_to_consider, indent=4)}\n")
+            # Define the price ranges
+            price_ranges = [(0.30, 0.50), (0.20, 0.80), (0.10, 1.25)]
+
+            # Find the appropriate contract within the asking price ranges
+            for lower_bound, upper_bound in price_ranges:
+                for strike, ask in strikes_to_consider.items():
+                    if lower_bound <= ask <= upper_bound:
+                        return strike, ask
+             
             
             #if TP_value is not None:
                 #valid_tp_strikes = {}
@@ -72,12 +79,14 @@ async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_dat
                 #if valid_tp_strikes:
                     # Prioritize the one closest to the TP_value
                     #closest_strike = min(valid_tp_strikes.items(), key=lambda x: abs(x[0] - TP_value))
-                    # TODO comment this out once working...
                     #print_log(f"[TP-BASED] Selected TP-aligned strike → Strike: {closest_strike[0]}, Ask: {closest_strike[1]}")
                     #return closest_strike
                 #else:
                     #print_log(f"[TP-BASED] No suitable strike near TP ({TP_value}), falling back...")
 
+            
+            
+            # Tried this block of code for a week, turns out cheap contracts arent always the best. Using it as fall back
             # Fallback: directional cheapest contract
             if cp == "put":
                 # Sort strikes below current price by ask
@@ -92,8 +101,7 @@ async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_dat
                 }
             if fallback_candidates:
                 cheapest_strike = min(fallback_candidates.items(), key=lambda x: x[1])
-                # TODO comment this out once working...
-                print_log(f"[Using Cheapest] fallback → Strike: {cheapest_strike[0]}, Ask: {cheapest_strike[1]}")
+                print_log(f"    [Using Cheapest] fallback → Strike: {cheapest_strike[0]}, Ask: {cheapest_strike[1]}")
                 return cheapest_strike
             
         except Exception as e:
