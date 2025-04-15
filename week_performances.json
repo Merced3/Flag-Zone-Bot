@@ -627,12 +627,12 @@
         "week_number": 51,
         "week_start_end_date": "04/14/2025-04/18/2025",
         "start_ammount": 60052.0,
-        "end_ammount": 60052.0,
-        "total_made": 0.0,
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "",
+        "end_ammount": 57860.0,
+        "total_made": -2192.0,
+        "num_of_trades": 8,
+        "num_of_profitable_trades": 4,
+        "num_of_negitive_trades": 4,
+        "description": "Day 1, took 8 trades, 4 were looser 4 were winners all different percentages, timing it is always the biggest problem.",
         "important_message_ids": []
     }
 ]
