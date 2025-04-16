@@ -632,7 +632,7 @@
         "num_of_trades": 8,
         "num_of_profitable_trades": 4,
         "num_of_negitive_trades": 4,
-        "description": "Day 1, took 8 trades, 4 were looser 4 were winners all different percentages, timing it is always the biggest problem.",
+        "description": "Day 1, took 8 trades, 4 were looser 4 were winners all different percentages, timing it is always the biggest problem. Day 2, no trades inbetween PDHL, the 200 ema looked like it was guiding the chart the entire day.",
         "important_message_ids": []
     }
 ]
