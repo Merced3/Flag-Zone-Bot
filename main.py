@@ -238,6 +238,7 @@ async def process_data(queue):
             
             if now >= market_close_time:
                 print_log("Ending `process_data()`...")
+                candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')} # Reset candle counts for the next day
                 break
 
             message = await queue.get()
@@ -275,7 +276,7 @@ async def process_data(queue):
                         
                         f_current_time = datetime.now().strftime("%H:%M:%S")
                         candle_counts[timeframe] += 1
-                        print_log(f"[{f_current_time}] Candle count for {timeframe}: {candle_counts[timeframe]}")
+                        print_log(f"[{f_current_time}] Candle count for {timeframe}: {candle_counts[timeframe]+1}")
                         
                         # Remove the timestamp to avoid duplication
                         if f_now in timestamps[timeframe]:
