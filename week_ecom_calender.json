@@ -1,24 +1,12 @@
 {
-    "week_timespan": "04-14-25 to 04-20-25",
+    "week_timespan": "04-21-25 to 04-27-25",
     "dates": {
-        "04-15-25": {
+        "04-24-25": {
             "07:30 AM": [
-                "Inflation Rate YoY"
-            ]
-        },
-        "04-16-25": {
-            "07:30 AM": [
-                "Retail Sales MoM"
+                "Durable Goods Orders MoM"
             ],
-            "08:45 AM": [
-                "BoC Interest Rate Decision",
-                "BoC Monetary Policy Report"
-            ]
-        },
-        "04-17-25": {
-            "07:30 AM": [
-                "Building Permits Prel",
-                "Housing Starts"
+            "09:00 AM": [
+                "Existing Home Sales"
             ]
         }
     }
