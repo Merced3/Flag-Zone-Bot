@@ -1,12 +1,6 @@
-[RESET] Order log file .\order_log(SPY_call_514.0_20250421145603404909).txt deleted.
+[RESET] Order log file .\order_log(SPY_call_549.0_20250424130602774355).txt deleted.
 The market is closed...
 [INFO] initial_setup and main_loop completed successfully.
 Waiting until tomorrow's 8:20 AM...
     [RLTD] Created new log file: C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\logs\SPY_2M.log
     [chart_visualization.py, UCP] Waiting for live candles...
-    [UP] EMA data file is empty or invalid. Skipping EMA plot.
-    [UP] line_data.json file is empty or invalid.
-    [UP] EMA data file is empty or invalid. Skipping EMA plot.
-    [UP] line_data.json file is empty or invalid.
-    [UP] EMA data file is empty or invalid. Skipping EMA plot.
-    [UP] line_data.json file is empty or invalid.
