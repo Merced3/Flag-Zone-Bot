@@ -22,6 +22,10 @@ def get_papertrade_BP():
     current_bp_left = current_balance - all_order_costs
     return current_bp_left
 
+def reset_usedBP_messageIDs():
+    used_buying_power.clear()
+    message_ids_dict.clear()
+
 async def buy_option_cp(real_money_activated, ticker_symbol, cp, TP_value, session, headers, strategy_name):
     unique_order_id, current_order_active = get_unique_order_id_and_is_active()
     prev_option_type = unique_order_id.split('-')[1] if unique_order_id else None

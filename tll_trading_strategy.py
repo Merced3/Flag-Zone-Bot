@@ -8,6 +8,7 @@ from order_handler_v2 import get_profit_loss_orders_list, sell_rest_of_active_or
 from error_handler import error_log_and_discord_message
 from data_acquisition import get_current_candle_index, calculate_save_EMAs, get_candle_data_and_merge, load_json_df, read_last_n_lines, load_message_ids, initialize_ema_json, restart_state_json, record_priority_candle, reset_json, read_config
 from boxes import candle_zone_handler
+from buy_option import reset_usedBP_messageIDs
 from flag_manager import identify_flag, create_state
 from rule_manager import handle_rules_and_order
 from sentiment_engine import get_current_sentiment
@@ -18,13 +19,6 @@ import cred
 import aiohttp
 
 STRATEGY_NAME = "FLAG/ZONE STRAT"
-
-STRATEGY_DESCRIPTION = """
-Desctiption: 
-    1) We wait until candle breaks out of a zone, that zone dictates if we use bear or bull flags.
-    2) When we break out of those flags, we check if were above or below all the emas. if were not, we do not buy
-    3) If evreything checks out, we buy and use the 13ema as trailing stoploss and we trim along the way up.
-"""
 
 config_path = Path(__file__).resolve().parent / 'config.json'
 
@@ -55,23 +49,16 @@ def get_market_open_time():
 async def execute_trading_strategy(zones, tpls):
     print_log("Starting `execute_trading_strategy()`...")
     global last_processed_candle
-    
-    # I don't think ill need these but i want to test-without them before completely removing them.
-    #message_ids_dict = load_message_ids()
-    #print_log(f"{indent(indent_lvl)}[ETS] message_ids_dict: {message_ids_dict}")
 
     indent_lvl=1
     create_state(indent_lvl, "bear", None)
     create_state(indent_lvl, "bull", None)
-    
 
     MARKET_OPEN_TIME = get_market_open_time()  # Get today's market open time
     market_open_plus_15 = MARKET_OPEN_TIME + timedelta(minutes=15)
     market_open_plus_15 = market_open_plus_15.time()
 
-    #restart_state_json(True) # might not need this sense we switch it from JSON to DICT internal store for faster processing, specifically for the flag processing
-
-    # Wait for the simulation to start and populate data
+    # Wait for start and populate data
     while True:
         await asyncio.sleep(0.5)  # Check every half second
         f_candle = read_last_n_lines(LOG_FILE_PATH, 1)
@@ -108,7 +95,8 @@ async def execute_trading_strategy(zones, tpls):
                     _config["ACCOUNT_BALANCES"][1] = end_of_day_account_balance # Update the ACCOUNT_BALANCES
                     with open(config_path, 'w') as f: # Write back the updated config
                         json.dump(_config, f, indent=4)  # Using indent for better readability
-                    #restart_state_json(True)
+                    reset_usedBP_messageIDs()
+                    last_processed_candle = None
                     break
 
                 current_last_candle = read_last_n_lines(LOG_FILE_PATH, 1)  # Read the latest candle

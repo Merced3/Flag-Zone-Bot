@@ -514,14 +514,10 @@ def get_correct_message_ids():
     
     return json_message_ids_dict
 
-async def reseting_values(start_balance=None, end_balance=None):#, message_ids=None):
+async def reseting_values():
     global websocket_connection
     global start_of_day_account_balance
     global end_of_day_account_balance
-
-    if start_balance and end_balance:
-        start_of_day_account_balance = start_balance
-        end_of_day_account_balance = end_balance
 
     websocket_connection = None
     if read_config('REAL_MONEY_ACTIVATED'):
@@ -529,7 +525,7 @@ async def reseting_values(start_balance=None, end_balance=None):#, message_ids=N
     else:
         with open(config_path, 'r') as f:
             config = json.load(f)
-        end_of_day_account_balance = config["ACCOUNT_BALANCES"][1]
+        end_of_day_account_balance = read_config("ACCOUNT_BALANCES")[1]
     f_e_account_balance = "{:,.2f}".format(end_of_day_account_balance)
     await print_discord(f"Market is closed. Today's closing balance: ${f_e_account_balance}")
     #send 2-min chart picture to discord chat
@@ -572,14 +568,16 @@ async def reseting_values(start_balance=None, end_balance=None):#, message_ids=N
     # End of day Account Balance Calculation, JSON Config File
     with open(config_path, 'r') as f:
         config = json.load(f)
-    #after all the calculations were done, make the `start of day` value the `end of day` value for a clean start for tommorrow
+    #after all the calculations were done, make the `start of day` value the `end of day` value resetted for a clean start for tommorrow
     config["ACCOUNT_BALANCES"][0] = end_of_day_account_balance 
     config["ACCOUNT_BALANCES"][1] = 0
     with open(config_path, 'w') as f:
         print_log(f"[RESET] Updated file: config.json")
         json.dump(config, f, indent=4)  # Save the updated config
-    start_of_day_account_balance = end_of_day_account_balance
-    end_of_day_account_balance = 0
+    start_of_day_account_balance = None
+    end_of_day_account_balance = None
+    # Clear the global variables
+    shared_state.latest_price = None  # Reset the latest price
 
     # Find all CSV files in directory, Delete them
     csv_files = Path(__file__).resolve().parent.glob('*.csv')
