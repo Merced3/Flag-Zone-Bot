@@ -1,12 +1,35 @@
 {
-    "week_timespan": "04-21-25 to 04-27-25",
+    "week_timespan": "04-28-25 to 05-04-25",
     "dates": {
-        "04-24-25": {
+        "04-29-25": {
+            "09:00 AM": [
+                "JOLTs Job Openings"
+            ]
+        },
+        "04-30-25": {
             "07:30 AM": [
-                "Durable Goods Orders MoM"
+                "GDP Growth Rate QoQ Adv"
             ],
             "09:00 AM": [
-                "Existing Home Sales"
+                "Core PCE Price Index MoM",
+                "Personal Income MoM",
+                "Personal Spending MoM"
+            ]
+        },
+        "05-01-25": {
+            "09:00 AM": [
+                "ISM Manufacturing PMI"
+            ]
+        },
+        "05-02-25": {
+            "07:30 AM": [
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ]
+        },
+        "05-05-25": {
+            "09:00 AM": [
+                "ISM Services PMI"
             ]
         }
     }

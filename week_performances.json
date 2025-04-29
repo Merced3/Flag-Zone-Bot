@@ -646,5 +646,17 @@
         "num_of_negitive_trades": 14,
         "description": "Day 1, the first trade was in perfect accordance of the strategy (over 200% win, $944, 34.47%) but the next trades were not, 2nd trade was negitive because it took a put after breaking above a zone (-2,666.00, -96.88%), 3rd trade was positive because it broke the 200 EMA conwinsidentally ($776, 28.16%), lost -946$ today, 2 things evident today, zones need to be worked on and need to figure out how to handle orders being fulfilled right when price goes in and out of a zone and we still think its a same position type when in previous days it wasn't. Day 2, wasnt ablt to git commit this message beacuse wifi was out, took 5 trades, 2 profitable ($944,35% $390,14%) 3 negitive (-$2196,-81% -$876,-32% -1653,-61%), today wasn't the current version of the programs day, but the first trade was a 200% winner, today lost -4,337$ 8% account loss. Day 4, 1 trade was taken, to sold above where it bought (call) but theta ate it up, -1200$. Day 5, at the end of day 4 i realised that the end of day calculations were wrong if program was ran consistantly, that needs to be fixed, 2 trades were taken both positive, total made was $762.",
         "important_message_ids": [1365055141056614523]
+    },
+    {
+        "week_number": 53,
+        "week_start_end_date": "04/28/2025-05/02/2025",
+        "start_ammount": 45533.0,
+        "end_ammount": 43138.0,
+        "total_made": -2395.0, 
+        "num_of_trades": 4,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 3,
+        "description": "today we had 4 trades, 1 profitable and 3 negitive, lost -$2,395.00 today.",
+        "important_message_ids": []
     }
 ]
