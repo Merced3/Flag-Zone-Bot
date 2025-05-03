@@ -651,12 +651,12 @@
         "week_number": 53,
         "week_start_end_date": "04/28/2025-05/02/2025",
         "start_ammount": 45533.0,
-        "end_ammount": 41608.0,
-        "total_made": -3925.0, 
+        "end_ammount": 41307.00,
+        "total_made": -4226.0, 
         "num_of_trades": 25,
-        "num_of_profitable_trades": 10,
-        "num_of_negitive_trades": 15,
-        "description": "today we had 4 trades, 1 profitable and 3 negitive, lost -$2,395.00 today. Day 2, end of day calculations incorrect, had to change, 6 trades, 4 negitive 2 positive, theta ate heavily on one trade, lost -$1,033. Day 3, i changed trade allocation from 5% to 1%, 4 trades, 2 negitive 1 positive, 1 BE, lost -$341. Day 4, first day of the 1% trade size, 11 trades, 6 negitive 5 positive, lost -$159. ",
+        "num_of_profitable_trades": 11,
+        "num_of_negitive_trades": 16,
+        "description": "today we had 4 trades, 1 profitable and 3 negitive, lost -$2,395.00 today. Day 2, end of day calculations incorrect, had to change, 6 trades, 4 negitive 2 positive, theta ate heavily on one trade, lost -$1,033. Day 3, i changed trade allocation from 5% to 1%, 4 trades, 2 negitive 1 positive, 1 BE, lost -$341. Day 4, first day of the 1% trade size, 11 trades, 6 negitive 5 positive, lost -$159. Day 5, 2 trades, 1 positive ($75.00, 19.23%) and 1 negitive ($-376.00, -100.00%), lost -$301.00 today.",
         "important_message_ids": []
     }
 ]
