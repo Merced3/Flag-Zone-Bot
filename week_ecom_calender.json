@@ -1,35 +1,30 @@
 {
-    "week_timespan": "04-28-25 to 05-04-25",
+    "week_timespan": "05-05-25 to 05-11-25",
     "dates": {
-        "04-29-25": {
-            "09:00 AM": [
-                "JOLTs Job Openings"
-            ]
-        },
-        "04-30-25": {
-            "07:30 AM": [
-                "GDP Growth Rate QoQ Adv"
-            ],
-            "09:00 AM": [
-                "Core PCE Price Index MoM",
-                "Personal Income MoM",
-                "Personal Spending MoM"
-            ]
-        },
-        "05-01-25": {
-            "09:00 AM": [
-                "ISM Manufacturing PMI"
-            ]
-        },
-        "05-02-25": {
-            "07:30 AM": [
-                "Non Farm Payrolls",
-                "Unemployment Rate"
-            ]
-        },
         "05-05-25": {
             "09:00 AM": [
                 "ISM Services PMI"
+            ]
+        },
+        "05-06-25": {
+            "07:30 AM": [
+                "Balance of Trade"
+            ],
+            "09:00 AM": [
+                "Ivey PMI s.a"
+            ]
+        },
+        "05-07-25": {
+            "01:00 PM": [
+                "Fed Interest Rate Decision"
+            ],
+            "01:30 PM": [
+                "Fed Press Conference"
+            ]
+        },
+        "05-09-25": {
+            "07:30 AM": [
+                "Unemployment Rate"
             ]
         }
     }
