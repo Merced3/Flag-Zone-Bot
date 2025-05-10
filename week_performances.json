@@ -668,7 +668,7 @@
         "num_of_trades": 9,
         "num_of_profitable_trades": 6,
         "num_of_negitive_trades": 3,
-        "description": "Day 1, no trades, inbetween PDHL. Day 2, 3 trades, 2 positive ($71, 18% - $99, 24%) and one negitive (-33$, 8%), made a total of $137. Day 3, no trades, inbetween PDHL. Day 4, 6 trades, 4 positive 2 negitive, total lost -$108, one trade lost 97% hence the negitive day.",
+        "description": "Day 1, no trades, inbetween PDHL. Day 2, 3 trades, 2 positive ($71, 18% - $99, 24%) and one negitive (-33$, 8%), made a total of $137. Day 3, no trades, inbetween PDHL. Day 4, 6 trades, 4 positive 2 negitive, total lost -$108, one trade lost 97% hence the negitive day. Day 5, no trades, inbetween PDHL.",
         "important_message_ids": []
     }
 ]
