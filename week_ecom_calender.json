@@ -1,30 +1,27 @@
 {
-    "week_timespan": "05-05-25 to 05-11-25",
+    "week_timespan": "05-12-25 to 05-18-25",
     "dates": {
-        "05-05-25": {
-            "09:00 AM": [
-                "ISM Services PMI"
+        "05-13-25": {
+            "07:30 AM": [
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
             ]
         },
-        "05-06-25": {
+        "05-15-25": {
             "07:30 AM": [
-                "Balance of Trade"
+                "PPI MoM",
+                "Retail Sales MoM"
+            ]
+        },
+        "05-16-25": {
+            "07:30 AM": [
+                "Building Permits Prel",
+                "Housing Starts"
             ],
             "09:00 AM": [
-                "Ivey PMI s.a"
-            ]
-        },
-        "05-07-25": {
-            "01:00 PM": [
-                "Fed Interest Rate Decision"
-            ],
-            "01:30 PM": [
-                "Fed Press Conference"
-            ]
-        },
-        "05-09-25": {
-            "07:30 AM": [
-                "Unemployment Rate"
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }
