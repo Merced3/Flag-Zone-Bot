@@ -675,12 +675,12 @@
         "week_number": 55,
         "week_start_end_date": "05/12/2025-05/16/2025",
         "start_ammount": 41336.0,
-        "end_ammount": 40530.0,
-        "total_made": -806.0, 
-        "num_of_trades": 8,
+        "end_ammount": 40808.0,
+        "total_made": -528.0, 
+        "num_of_trades": 12,
         "num_of_profitable_trades": 6,
-        "num_of_negitive_trades": 2,
-        "description": "Day 1, 8 trades, 6 negitive (chop) 2 positive, last positive order had a error and wasn't able to be included in end-of-day calculation, lost -$806.",
+        "num_of_negitive_trades": 6,
+        "description": "Day 1, 8 trades, 6 negitive (chop) 2 positive, last positive order had a error and wasn't able to be included in end-of-day calculation, lost -$806. Day 2, 4 trades all positive, the end of day calculation worked correctly this time, with it ending a order 1 min before market close, made $278 today.",
         "important_message_ids": [1371676840556630207]
     }
 ]
