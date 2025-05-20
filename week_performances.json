@@ -682,5 +682,17 @@
         "num_of_negitive_trades": 9,
         "description": "Day 1, 8 trades, 6 negitive (chop) 2 positive, last positive order had a error and wasn't able to be included in end-of-day calculation, lost -$806. Day 2, 4 trades all positive, the end of day calculation worked correctly this time, with it ending a order 1 min before market close, made $278 today. Day 3, no trades, inbetween PDHL. Day 4, 3 trades, 2 positive 1 negitive, lost a total of $199 today. Day 5, 8 trades, 2 negitive 6 positive, gained $220, chopped in the morning but eventually became a trend up day after that.",
         "important_message_ids": [1371676840556630207]
+    },
+    {
+        "week_number": 56,
+        "week_start_end_date": "05/19/2025-05/23/2025",
+        "start_ammount": 40829.0,
+        "end_ammount": 40829.0,
+        "total_made": -392.0, 
+        "num_of_trades": 2,
+        "num_of_profitable_trades": 1,
+        "num_of_negitive_trades": 1,
+        "description": "Day 1, 2 trades 1st profitable $49, second one was negitive -$392, theta ate alot of it, currently working on V4 of strategy which will include new order handling, stoploss, trim ammount, zone handling, 15 min past candles and so much more (maybe new UI), today lost -343$.",
+        "important_message_ids": []
     }
 ]

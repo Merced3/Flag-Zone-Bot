@@ -1,27 +1,14 @@
 {
-    "week_timespan": "05-12-25 to 05-18-25",
+    "week_timespan": "05-19-25 to 05-25-25",
     "dates": {
-        "05-13-25": {
+        "05-20-25": {
             "07:30 AM": [
-                "Core Inflation Rate MoM",
-                "Core Inflation Rate YoY",
-                "Inflation Rate MoM",
                 "Inflation Rate YoY"
             ]
         },
-        "05-15-25": {
-            "07:30 AM": [
-                "PPI MoM",
-                "Retail Sales MoM"
-            ]
-        },
-        "05-16-25": {
-            "07:30 AM": [
-                "Building Permits Prel",
-                "Housing Starts"
-            ],
+        "05-22-25": {
             "09:00 AM": [
-                "Michigan Consumer Sentiment Prel"
+                "Existing Home Sales"
             ]
         }
     }
