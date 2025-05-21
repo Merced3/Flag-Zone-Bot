@@ -169,4 +169,10 @@ def calculate_bid_percentage(buy_entry_price, sold_bid_price):
     except ZeroDivisionError:
         return 0.0
 
-
+def to_float(value):
+    if isinstance(value, str):
+        return float(value.replace("$", "").replace(",", ""))
+    elif isinstance(value, (float, int)):
+        return float(value)
+    else:
+        raise ValueError("Value must be a string or a number")

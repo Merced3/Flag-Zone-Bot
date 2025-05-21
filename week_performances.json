@@ -687,12 +687,12 @@
         "week_number": 56,
         "week_start_end_date": "05/19/2025-05/23/2025",
         "start_ammount": 40829.0,
-        "end_ammount": 40829.0,
-        "total_made": -392.0, 
-        "num_of_trades": 2,
-        "num_of_profitable_trades": 1,
-        "num_of_negitive_trades": 1,
-        "description": "Day 1, 2 trades 1st profitable $49, second one was negitive -$392, theta ate alot of it, currently working on V4 of strategy which will include new order handling, stoploss, trim ammount, zone handling, 15 min past candles and so much more (maybe new UI), today lost -343$. Day 2, no trades, inbetween PDHL.",
+        "end_ammount": 40456.0,
+        "total_made": -422.0, 
+        "num_of_trades": 5,
+        "num_of_profitable_trades": 3,
+        "num_of_negitive_trades": 2,
+        "description": "Day 1, 2 trades 1st profitable $49, second one was negitive -$392, theta ate alot of it, currently working on V4 of strategy which will include new order handling, stoploss, trim ammount, zone handling, 15 min past candles and so much more (maybe new UI), today lost -343$. Day 2, no trades, inbetween PDHL. Day 3, 3 trades, 1 negitive (-$190) and 2 positive ($92, 23% and $68, 17%), lost a total of -$30 today.",
         "important_message_ids": []
     }
 ]

@@ -1,5 +1,7 @@
 #print_discord_messages.py
 from error_handler import error_log_and_discord_message, print_log
+from order_utils import to_float
+import re
 import asyncio
 import os
 import cred
@@ -105,3 +107,73 @@ async def send_file_discord(file_path,  retries=3, backoff_factor=1):
             if attempt < retries - 1:  # If it's not the last attempt, wait before retrying
                 await asyncio.sleep(backoff_factor * (2 ** attempt))
     print_log("Failed to send file after retries.")
+
+def extract_trade_results(message, message_id):
+    # Clean up the message to remove unwanted characters
+    clean_message = ''.join(e for e in message if (e.isalnum() or e.isspace() or e in ['$', '%',  '.', ':', '-', '✅', '❌']))
+    
+    # Pattern to extract total investment (using the previous pattern)
+    investment_pattern = r"Total Investment: \$(.+)"
+    investment_match = re.search(investment_pattern, clean_message)
+    total_investment = float(investment_match.group(1).replace(",", "")) if investment_match else 0.0
+    
+    # Pattern to extract the average bid, total profit/loss, profit indicator, and percentage gain/loss
+    results_pattern = r"AVG BID:\s*\$([\d,]+\.\d{3})\s*TOTAL:\s*(-?\$\-?[\d,]+\.\d{2})\s*(✅|❌)\s*PERCENT:\s*(-?\d+\.\d{2})%"
+    results_match = re.search(results_pattern, clean_message, re.DOTALL)
+    
+    if results_match:
+        avg_bid = float(results_match.group(1))
+        
+        # Handle 'total' value
+        total_str = results_match.group(2).replace(",", "").replace("$", "")
+        total = float(total_str) if total_str else 0.0
+        
+        profit_indicator = results_match.group(3)  # Capture ✅ or ❌
+        percent = float(results_match.group(4))  # Capture the percentage
+        
+        return {
+            "avg_bid": avg_bid,
+            "total": total,
+            "profit_indicator": profit_indicator,
+            "percent": percent,
+            "total_investment": total_investment
+        }
+    else:
+        return f"Invalid Results Details for message ID {message_id}"
+
+async def calculate_day_performance(_message_ids_dict, start_balance_str, end_balance_str):
+    trades_str_list = []
+    BP_float_list = []
+    for message_id in _message_ids_dict.values():
+        message_content = await get_message_content(message_id)
+        if message_content:
+            trade_info_dict = extract_trade_results(message_content, message_id)
+            if isinstance(trade_info_dict, str) and "Invalid" in trade_info_dict:
+                continue
+            
+            trade_info_str = f"${trade_info_dict['total']:.2f}, {trade_info_dict['percent']:.2f}%{trade_info_dict['profit_indicator']}"
+            trades_str_list.append(trade_info_str)
+            BP_float_list.append(trade_info_dict['total_investment'])
+
+    total_bp_used_today = sum(BP_float_list)
+    trades_str = '\n'.join(trades_str_list)
+    start_balance = to_float(start_balance_str)
+    end_balance = to_float(end_balance_str)
+    profit_loss = end_balance - start_balance
+    percent_gl = (profit_loss / start_balance) * 100
+
+    output_msg = f"""
+All Trades:
+{trades_str}
+
+Total BP Used Today:
+${total_bp_used_today:,.2f}
+
+Account balance:
+Start: ${"{:,.2f}".format(start_balance_str)}
+End: ${"{:,.2f}".format(end_balance_str)}
+
+Profit/Loss: ${profit_loss:,.2f}
+Percent Gain/Loss: {percent_gl:.2f}%
+"""
+    return output_msg

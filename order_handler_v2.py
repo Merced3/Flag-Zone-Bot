@@ -41,6 +41,10 @@ def get_unique_order_id_and_is_active():
 def get_profit_loss_orders_list():
     return todays_orders_profit_loss_list
 
+def reset_profit_loss_orders_list():
+    global todays_orders_profit_loss_list
+    todays_orders_profit_loss_list.clear()
+
 def get_order_log_name(symbol,option_type,strike,timestamp):
     return f"order_log({symbol}_{option_type}_{strike}_{timestamp}).txt"
 

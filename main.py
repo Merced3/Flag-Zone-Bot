@@ -1,13 +1,14 @@
 #main.py
 from chart_visualization import plot_candles_and_boxes, initiate_shutdown, update_15_min, setup_global_boxes
-from data_acquisition import get_candle_data, get_dates, reset_json, active_provider, initialize_order_log, read_config, is_market_open
-from shared_state import price_lock
+from data_acquisition import get_account_balance, get_candle_data, get_dates, reset_json, active_provider, initialize_order_log, read_config, is_market_open, clear_temp_logs_and_order_files, update_config_value
+from shared_state import price_lock, print_log
 import shared_state
 from flag_manager import clear_all_states
 from tll_trading_strategy import execute_trading_strategy
 from economic_calender_scraper import get_economic_calendar_data, setup_economic_news_message
-from print_discord_messages import bot, print_discord, get_message_content, send_file_discord
-from error_handler import error_log_and_discord_message, print_log
+from print_discord_messages import bot, print_discord, send_file_discord, calculate_day_performance
+from error_handler import error_log_and_discord_message
+from order_handler_v2 import get_profit_loss_orders_list, reset_profit_loss_orders_list
 import data_acquisition
 import chart_visualization
 import asyncio
@@ -98,84 +99,6 @@ current_candle = {
 current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
 start_times = {tf: datetime.now() for tf in read_config('TIMEFRAMES')}
 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')}
-
-def to_float(value):
-    if isinstance(value, str):
-        return float(value.replace("$", "").replace(",", ""))
-    elif isinstance(value, (float, int)):
-        return float(value)
-    else:
-        raise ValueError("Value must be a string or a number")
-
-def extract_trade_results(message, message_id):
-    # Clean up the message to remove unwanted characters
-    clean_message = ''.join(e for e in message if (e.isalnum() or e.isspace() or e in ['$', '%',  '.', ':', '-', '✅', '❌']))
-    
-    # Pattern to extract total investment (using the previous pattern)
-    investment_pattern = r"Total Investment: \$(.+)"
-    investment_match = re.search(investment_pattern, clean_message)
-    total_investment = float(investment_match.group(1).replace(",", "")) if investment_match else 0.0
-    
-    # Pattern to extract the average bid, total profit/loss, profit indicator, and percentage gain/loss
-    results_pattern = r"AVG BID:\s*\$([\d,]+\.\d{3})\s*TOTAL:\s*(-?\$\-?[\d,]+\.\d{2})\s*(✅|❌)\s*PERCENT:\s*(-?\d+\.\d{2})%"
-    results_match = re.search(results_pattern, clean_message, re.DOTALL)
-    
-    if results_match:
-        avg_bid = float(results_match.group(1))
-        
-        # Handle 'total' value
-        total_str = results_match.group(2).replace(",", "").replace("$", "")
-        total = float(total_str) if total_str else 0.0
-        
-        profit_indicator = results_match.group(3)  # Capture ✅ or ❌
-        percent = float(results_match.group(4))  # Capture the percentage
-        
-        return {
-            "avg_bid": avg_bid,
-            "total": total,
-            "profit_indicator": profit_indicator,
-            "percent": percent,
-            "total_investment": total_investment
-        }
-    else:
-        return f"Invalid Results Details for message ID {message_id}"
-
-async def calculate_day_performance(_message_ids_dict, start_balance_str, end_balance_str):
-    trades_str_list = []
-    BP_float_list = []
-    for message_id in _message_ids_dict.values():
-        message_content = await get_message_content(message_id)
-        if message_content:
-            trade_info_dict = extract_trade_results(message_content, message_id)
-            if isinstance(trade_info_dict, str) and "Invalid" in trade_info_dict:
-                continue
-            
-            trade_info_str = f"${trade_info_dict['total']:.2f}, {trade_info_dict['percent']:.2f}%{trade_info_dict['profit_indicator']}"
-            trades_str_list.append(trade_info_str)
-            BP_float_list.append(trade_info_dict['total_investment'])
-
-    total_bp_used_today = sum(BP_float_list)
-    trades_str = '\n'.join(trades_str_list)
-    start_balance = to_float(start_balance_str)
-    end_balance = to_float(end_balance_str)
-    profit_loss = end_balance - start_balance
-    percent_gl = (profit_loss / start_balance) * 100
-
-    output_msg = f"""
-All Trades:
-{trades_str}
-
-Total BP Used Today:
-${total_bp_used_today:,.2f}
-
-Account balance:
-Start: ${"{:,.2f}".format(start_balance_str)}
-End: ${"{:,.2f}".format(end_balance_str)}
-
-Profit/Loss: ${profit_loss:,.2f}
-Percent Gain/Loss: {percent_gl:.2f}%
-"""
-    return output_msg
 
 def generate_candlestick_times(start_time, end_time, interval):
     new_york_tz = pytz.timezone('America/New_York')
@@ -487,7 +410,7 @@ async def main_loop():
             else: # Market is closed
                 if websocket_connection is not None:
                     data_acquisition.should_close = True  # Signal to close WebSocket
-                    await reseting_values()
+                    await process_end_of_day()
                     #chart_visualization.should_close = True # Signal to close Chart
                     already_ran = False
                     keep_loop = False
@@ -514,92 +437,51 @@ def get_correct_message_ids():
     
     return json_message_ids_dict
 
-async def reseting_values():
+async def process_end_of_day():
     global websocket_connection
-    global start_of_day_account_balance
-    global end_of_day_account_balance
-
     websocket_connection = None
-    if read_config('REAL_MONEY_ACTIVATED'):
-        end_of_day_account_balance = await data_acquisition.get_account_balance(read_config('REAL_MONEY_ACTIVATED'))
-    else:
-        with open(config_path, 'r') as f:
-            config = json.load(f)
-        end_of_day_account_balance = read_config("ACCOUNT_BALANCES")[1]
+
+    # 1. Get balances and calculate P/L
+    rma = read_config('REAL_MONEY_ACTIVATED')
+    start_of_day_account_balance = await get_account_balance(rma) if rma else read_config('START_OF_DAY_BALANCE')
+    todays_profit_loss = sum(get_profit_loss_orders_list())
+    end_of_day_account_balance = start_of_day_account_balance + todays_profit_loss
+    
+    # 2. Announce/report to Discord
     f_e_account_balance = "{:,.2f}".format(end_of_day_account_balance)
     await print_discord(f"Market is closed. Today's closing balance: ${f_e_account_balance}")
-    #send 2-min chart picture to discord chat
-    pic_2m_filepath = Path(__file__).resolve().parent / f"{read_config('SYMBOL')}_2-min_chart.png"
-    await send_file_discord(pic_2m_filepath)
-
     message_ids_dict = get_correct_message_ids()
-
-    #Calculate/Send todays results, use the 'message_ids_dict' from ema_strategy.py
     output_message = await calculate_day_performance(message_ids_dict, start_of_day_account_balance, end_of_day_account_balance)
     await print_discord(output_message)
-    
-    # Save new data in dicord, send log files
+
+    # 3. Send relevant files/logs to Discord
+    pic_2m_filepath = Path(__file__).resolve().parent / f"{read_config('SYMBOL')}_2-min_chart.png"
+    await send_file_discord(pic_2m_filepath)
     whole_log = read_log_file(LOGS_DIR / f"{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}.log")
     write_log_data_as_string(whole_log, read_config('SYMBOL'), f"{read_config('TIMEFRAMES')[0]}_Boxes")
     new_log_file_path = LOGS_DIR / f"{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}_Boxes.log"
     await send_file_discord(new_log_file_path) #Send file
-    await send_file_discord('EMAs.json')
     await send_file_discord('markers.json')
+    await send_file_discord('EMAs.json')
     terminal_log_file_path = LOGS_DIR / "terminal_output.log"
     await send_file_discord(terminal_log_file_path)
 
-    # Reset all values
+    # 4. Administrative/config updates (do this last so nothing breaks mid-report)
+    update_config_value('START_OF_DAY_BALANCE', end_of_day_account_balance)
 
-    #clear 'message_ids.json' file
-    reset_json('message_ids.json', {})
-    #Clear the markers.json file
+    # 5. Reset all JSON/data for next session
     reset_json('markers.json', [])
-    #clear line_data_TEST.json
-    reset_json('line_data.json', {})
-    #clear order_candle_type.json
-    reset_json('order_candle_type.json', [])
-    #clear priority_candles.json
-    reset_json('priority_candles.json', [])
-    #clear EMAs.json
     reset_json('EMAs.json', [])
-    # Delete all state data, both from disk and from in-memory dictionary.
+    reset_json('message_ids.json', {})
+    reset_json('line_data.json', {})
+    reset_json('order_candle_type.json', [])
+    reset_json('priority_candles.json', [])
     clear_all_states()
-              
-    # End of day Account Balance Calculation, JSON Config File
-    with open(config_path, 'r') as f:
-        config = json.load(f)
-    #after all the calculations were done, make the `start of day` value the `end of day` value resetted for a clean start for tommorrow
-    config["ACCOUNT_BALANCES"][0] = end_of_day_account_balance 
-    config["ACCOUNT_BALANCES"][1] = 0
-    with open(config_path, 'w') as f:
-        print_log(f"[RESET] Updated file: config.json")
-        json.dump(config, f, indent=4)  # Save the updated config
-    start_of_day_account_balance = None
-    end_of_day_account_balance = None
-    # Clear the global variables
+    clear_temp_logs_and_order_files()
+    reset_profit_loss_orders_list()
+
+    # 6. Clear the global variables
     shared_state.latest_price = None  # Reset the latest price
-
-    # Find all CSV files in directory, Delete them
-    csv_files = Path(__file__).resolve().parent.glob('*.csv')
-    for file in csv_files:
-        if file.name != 'order_log.csv':
-            print_log(f"[RESET] Deleting File: {file.name}")
-            file.unlink()  # Delete the file
-
-    # Clear the Logs, logs/[ticker_symbol]_2M.log file.
-    clear_log(read_config('SYMBOL'), "2M")
-    clear_log(read_config('SYMBOL'), "2M_Boxes")
-    clear_log(None, None, "terminal_output.log")
-
-    # Find all the files that have 'order_log' in them and delete them
-    order_log_files = glob.glob('./*order_log*')
-    for file in order_log_files:
-        try:
-            if os.path.basename(file) != 'order_log.csv':
-                os.remove(file)
-                print_log(f"[RESET] Order log file {file} deleted.")
-        except Exception as e:
-            print_log(f"An error occurred while deleting {file}: {e}")
 
 async def shutdown(loop, root=None):
     """Shutdown tasks and the Discord bot."""

@@ -83,18 +83,10 @@ async def execute_trading_strategy(zones, tpls):
                 # Check if current time is within one minute of market close
                 current_time = datetime.now(new_york_tz).time()
                 if current_time >= (datetime.combine(datetime.today(), MARKET_CLOSE) - timedelta(minutes=1)).time():
-                    # If within one minute of market close, exit all positions
                     candle_list.clear()
                     await sell_rest_of_active_order("Market closing soon. Exiting all positions.")
                     todays_profit_loss = sum(get_profit_loss_orders_list()) #returns todays_orders_profit_loss_list
-                    end_of_day_account_balance = read_config('ACCOUNT_BALANCES')[0] + todays_profit_loss
-                    print_log(f"{indent(indent_lvl)}[ETS] ACCOUNT_BALANCES[0]: {read_config('ACCOUNT_BALANCES')[0]}\n{indent(indent_lvl)}[ETS] todays_profit_loss: {todays_profit_loss}\n{indent(indent_lvl)}[ETS] end_of_day_account_balance: {end_of_day_account_balance}")
-                    _config = None
-                    with open(config_path, 'r') as f: # Read existing config
-                        _config = json.load(f)
-                    _config["ACCOUNT_BALANCES"][1] = end_of_day_account_balance # Update the ACCOUNT_BALANCES
-                    with open(config_path, 'w') as f: # Write back the updated config
-                        json.dump(_config, f, indent=4)  # Using indent for better readability
+                    print_log(f"{indent(indent_lvl)}[ETS] todays_profit_loss: {todays_profit_loss}")
                     reset_usedBP_messageIDs()
                     last_processed_candle = None
                     break

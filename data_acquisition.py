@@ -204,7 +204,6 @@ async def ws_connect_v2(queue, provider, symbol):
             print_log(f"[INFO] Switching to {active_provider.capitalize()} WebSocket...")
             await asyncio.sleep(RETRY_INTERVAL)
 
-
 def get_session_id(retry_attempts=3, backoff_factor=1):
     """Retrieve a session ID from Tradier API."""
     url = "https://api.tradier.com/v1/markets/events/session"
@@ -229,6 +228,55 @@ def get_session_id(retry_attempts=3, backoff_factor=1):
     print_log("[TRADIER] Failed to get session ID after retries.")
     return None
 
+def clear_symbol_log(symbol, timeframe):
+    filepath = LOGS_DIR / f"{symbol}_{timeframe}.log"
+    if filepath.exists():
+        filepath.unlink()
+
+def clear_terminal_log():
+    filepath = LOGS_DIR / "terminal_output.log"
+    if filepath.exists():
+        filepath.unlink()
+
+def clear_temp_logs_and_order_files():
+    protected_archive = 'order_log.csv'
+    base_dir = Path(__file__).resolve().parent
+
+    # Set to keep track of files to delete (excluding protected)
+    files_to_delete = set()
+
+    # 1. Find all order_log* files (any extension) except the main archive
+    order_log_files = glob.glob(str(base_dir / '*order_log*'))
+    for file_path in order_log_files:
+        if Path(file_path).name != protected_archive:
+            files_to_delete.add(file_path)
+
+    # 2. Find all .csv files except the main archive
+    csv_files = base_dir.glob('*.csv')
+    for file_path in csv_files:
+        if file_path.name != protected_archive:
+            files_to_delete.add(str(file_path))
+
+    # 3. Delete all found files, printing a single message for each
+    for file_path in files_to_delete:
+        try:
+            os.remove(file_path)
+            print_log(f"[RESET] Deleted file: {os.path.basename(file_path)}")
+        except Exception as e:
+            print_log(f"An error occurred while deleting {file_path}: {e}")
+    
+    # (Optional) Still clear symbol logs and terminal log
+    clear_symbol_log(read_config('SYMBOL'), "2M")
+    clear_symbol_log(read_config('SYMBOL'), "2M_Boxes")
+    clear_terminal_log()
+
+def update_config_value(key, value, config_path=Path(__file__).resolve().parent / 'config.json'):
+    """Update a single key in the config file with a new value."""
+    with open(config_path, 'r') as f:
+        config = json.load(f)
+    config[key] = value
+    with open(config_path, 'w') as f:
+        json.dump(config, f, indent=4)
 
 async def is_market_open():
     """Check if the stock market is open today using Polygon.io API."""
