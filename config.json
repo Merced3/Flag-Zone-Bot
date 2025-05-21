@@ -6,7 +6,8 @@
     ],
     "SYMBOL": "SPY",
     "TIMEFRAMES": [
-        "2M"
+        "2M",
+        "15M"
     ],
     "ACCOUNT_ORDER_PERCENTAGE": 0.01,
     "TAKE_PROFIT_PERCENTAGES": [

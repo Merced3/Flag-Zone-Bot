@@ -692,7 +692,7 @@
         "num_of_trades": 2,
         "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 1,
-        "description": "Day 1, 2 trades 1st profitable $49, second one was negitive -$392, theta ate alot of it, currently working on V4 of strategy which will include new order handling, stoploss, trim ammount, zone handling, 15 min past candles and so much more (maybe new UI), today lost -343$.",
+        "description": "Day 1, 2 trades 1st profitable $49, second one was negitive -$392, theta ate alot of it, currently working on V4 of strategy which will include new order handling, stoploss, trim ammount, zone handling, 15 min past candles and so much more (maybe new UI), today lost -343$. Day 2, no trades, inbetween PDHL.",
         "important_message_ids": []
     }
 ]
