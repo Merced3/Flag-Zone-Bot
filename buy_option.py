@@ -1,16 +1,13 @@
 # buy_option.py
-from error_handler import error_log_and_discord_message, print_log
-from order_handler_v2 import get_unique_order_id_and_is_active, manage_active_order, sell_rest_of_active_order
+from error_handler import error_log_and_discord_message
+from order_handler_v2 import get_unique_order_id_and_is_active, manage_active_order
 from submit_order import find_what_to_buy, submit_option_order, get_order_status
 from order_utils import get_expiration, calculate_quantity
 from data_acquisition import get_account_balance, add_markers, read_config
 from print_discord_messages import print_discord
 from order_utils import build_active_order
 from datetime import datetime
-from pathlib import Path
 import asyncio
-
-config_path = Path(__file__).resolve().parent / 'config.json'
 
 message_ids_dict = {}
 used_buying_power = {}
