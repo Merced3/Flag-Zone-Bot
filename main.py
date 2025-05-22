@@ -309,8 +309,6 @@ async def main():
 
 async def main_loop():
     global websocket_connection
-    global start_of_day_account_balance
-    global end_of_day_account_balance
 
     queue = asyncio.Queue()
     already_ran = False
@@ -391,10 +389,8 @@ async def main_loop():
                     websocket_connection = True
 
                     # Initialize account balance and log
-                    if read_config('REAL_MONEY_ACTIVATED'):
-                        start_of_day_account_balance = await data_acquisition.get_account_balance(read_config('REAL_MONEY_ACTIVATED'))
-                    else:
-                        start_of_day_account_balance = read_config('ACCOUNT_BALANCES')[0] #0 IS START OF DAY BALANCE
+                    rma = read_config('REAL_MONEY_ACTIVATED')
+                    start_of_day_account_balance = await get_account_balance(rma) if rma else read_config('START_OF_DAY_BALANCE')
                         
                     f_s_account_balance = "{:,.2f}".format(start_of_day_account_balance)
                     await print_discord(f"Market is Open! Account BP: ${f_s_account_balance}")
