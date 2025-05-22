@@ -18,7 +18,7 @@ used_buying_power = {}
 def get_papertrade_BP():
     #get every orders cost that is in USED_BUYING_POWER, calculate how much all of it added togther costs
     all_order_costs = sum(used_buying_power.values())
-    current_balance = read_config("ACCOUNT_BALANCES")[0]
+    current_balance = read_config("START_OF_DAY_BALANCE")
     current_bp_left = current_balance - all_order_costs
     return current_bp_left
 
