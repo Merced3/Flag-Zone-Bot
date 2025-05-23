@@ -692,7 +692,7 @@
         "num_of_trades": 5,
         "num_of_profitable_trades": 3,
         "num_of_negitive_trades": 2,
-        "description": "Day 1, 2 trades 1st profitable $49, second one was negitive -$392, theta ate alot of it, currently working on V4 of strategy which will include new order handling, stoploss, trim ammount, zone handling, 15 min past candles and so much more (maybe new UI), today lost -343$. Day 2, no trades, inbetween PDHL. Day 3, 3 trades, 1 negitive (-$190) and 2 positive ($92, 23% and $68, 17%), lost a total of -$30 today. Day 4, no trades, inbetween PDHL.",
+        "description": "Day 1, 2 trades 1st profitable $49, second one was negitive -$392, theta ate alot of it, currently working on V4 of strategy which will include new order handling, stoploss, trim ammount, zone handling, 15 min past candles and so much more (maybe new UI), today lost -343$. Day 2, no trades, inbetween PDHL. Day 3, 3 trades, 1 negitive (-$190) and 2 positive ($92, 23% and $68, 17%), lost a total of -$30 today. Day 4, no trades, inbetween PDHL. Day 5, no trades because of a error, me not changing the `order_utils.py` file to include the new config account balance, oversight on my part, there were plenty of buying opportunities but today would've definitly been negitive.",
         "important_message_ids": []
     }
 ]

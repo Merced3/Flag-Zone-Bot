@@ -15,7 +15,7 @@ def build_active_order(order_id, retrieval_id, entry_price, quantity, TP_value=N
 
 def calculate_quantity(cost_per_contract, order_size_for_account):
     # 'order_size_for_account' represents the percentage of the account you want to spend on each order.
-    order_threshold = read_config('ACCOUNT_BALANCES')[0] * order_size_for_account
+    order_threshold = read_config('START_OF_DAY_BALANCE') * order_size_for_account
     order_cost = cost_per_contract * 100
 
     order_quantity = order_threshold / order_cost

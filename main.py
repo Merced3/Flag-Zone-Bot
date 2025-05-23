@@ -19,8 +19,6 @@ import boxes
 import cred
 import json
 import pytz
-import re
-import glob
 import os
 from pathlib import Path
 
@@ -250,8 +248,6 @@ async def ensure_economic_calendar_data():
 
 async def initial_setup():
     global websocket_connection
-    global start_of_day_account_balance
-    global end_of_day_account_balance
 
     await bot.wait_until_ready()
     print_log(f"We have logged in as {bot.user}")
