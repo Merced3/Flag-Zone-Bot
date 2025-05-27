@@ -1,14 +1,33 @@
 {
-    "week_timespan": "05-19-25 to 05-25-25",
+    "week_timespan": "05-26-25 to 06-01-25",
     "dates": {
-        "05-20-25": {
+        "05-27-25": {
             "07:30 AM": [
-                "Inflation Rate YoY"
+                "Durable Goods Orders MoM"
             ]
         },
-        "05-22-25": {
+        "05-28-25": {
+            "01:00 PM": [
+                "FOMC Minutes"
+            ]
+        },
+        "05-29-25": {
+            "07:30 AM": [
+                "GDP Growth Rate QoQ 2nd Est"
+            ]
+        },
+        "05-30-25": {
+            "07:30 AM": [
+                "GDP Growth Rate Annualized",
+                "GDP Growth Rate QoQ",
+                "Core PCE Price Index MoM",
+                "Personal Income MoM",
+                "Personal Spending MoM"
+            ]
+        },
+        "06-02-25": {
             "09:00 AM": [
-                "Existing Home Sales"
+                "ISM Manufacturing PMI"
             ]
         }
     }
