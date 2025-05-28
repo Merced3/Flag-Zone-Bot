@@ -699,12 +699,12 @@
         "week_number": 57,
         "week_start_end_date": "05/26/2025-05/30/2025",
         "start_ammount": 40456.0,
-        "end_ammount": 40626.0,
-        "total_made": 170.0, 
-        "num_of_trades": 2,
-        "num_of_profitable_trades": 2,
-        "num_of_negitive_trades": 0,
-        "description": "Day 1, memorial day, no trades, stock market closed. Day 2, made 2 trades, made $170 today, the 2nd trade was a mistery to me cuase idk what the stoploss was and it cashed out 1 min before days end.",
+        "end_ammount": 40879.0,
+        "total_made": 423.0, 
+        "num_of_trades": 7,
+        "num_of_profitable_trades": 6,
+        "num_of_negitive_trades": 1,
+        "description": "Day 1, memorial day, no trades, stock market closed. Day 2, made 2 trades, made $170 today, the 2nd trade was a mistery to me cuase idk what the stoploss was and it cashed out 1 min before days end. Day 3, choppy down trend day, 5 trades, 4 profitiable, 1 negitive (-55$ -14%), made a total of $253.",
         "important_message_ids": []
     }
 ]
