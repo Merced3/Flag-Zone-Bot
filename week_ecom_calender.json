@@ -1,33 +1,37 @@
 {
-    "week_timespan": "05-26-25 to 06-01-25",
+    "week_timespan": "06-02-25 to 06-08-25",
     "dates": {
-        "05-27-25": {
-            "07:30 AM": [
-                "Durable Goods Orders MoM"
-            ]
-        },
-        "05-28-25": {
-            "01:00 PM": [
-                "FOMC Minutes"
-            ]
-        },
-        "05-29-25": {
-            "07:30 AM": [
-                "GDP Growth Rate QoQ 2nd Est"
-            ]
-        },
-        "05-30-25": {
-            "07:30 AM": [
-                "GDP Growth Rate Annualized",
-                "GDP Growth Rate QoQ",
-                "Core PCE Price Index MoM",
-                "Personal Income MoM",
-                "Personal Spending MoM"
-            ]
-        },
         "06-02-25": {
             "09:00 AM": [
                 "ISM Manufacturing PMI"
+            ]
+        },
+        "06-03-25": {
+            "09:00 AM": [
+                "JOLTs Job Openings"
+            ]
+        },
+        "06-04-25": {
+            "08:45 AM": [
+                "BoC Interest Rate Decision"
+            ],
+            "09:00 AM": [
+                "ISM Services PMI"
+            ]
+        },
+        "06-05-25": {
+            "07:30 AM": [
+                "Balance of Trade"
+            ],
+            "09:00 AM": [
+                "Ivey PMI s.a"
+            ]
+        },
+        "06-06-25": {
+            "07:30 AM": [
+                "Unemployment Rate",
+                "Non Farm Payrolls",
+                "Unemployment Rate"
             ]
         }
     }

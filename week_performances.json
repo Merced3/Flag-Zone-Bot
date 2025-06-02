@@ -712,12 +712,12 @@
         "week_number": 58,
         "week_start_end_date": "06/02/2025-06/06/2025",
         "start_ammount": 40928.0,
-        "end_ammount": 40928.0,
-        "total_made": 0.0, 
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
+        "end_ammount": 40998.0,
+        "total_made": 70.0, 
+        "num_of_trades": 1,
+        "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 0,
-        "description": "",
+        "description": "Day 1, made one trade, took a little bit but hit 20% profit took off most, then later hit 100% but didn't trim anything and then later sold the rest 1 min before market close, made 70$ in profit.",
         "important_message_ids": []
     }
 ]
