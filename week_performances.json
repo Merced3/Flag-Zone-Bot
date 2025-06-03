@@ -706,18 +706,17 @@
         "num_of_negitive_trades": 1,
         "description": "Day 1, memorial day, no trades, stock market closed. Day 2, made 2 trades, made $170 today, the 2nd trade was a mistery to me cuase idk what the stoploss was and it cashed out 1 min before days end. Day 3, choppy down trend day, 5 trades, 4 profitiable, 1 negitive (-55$ -14%), made a total of $253. Day 5, 1 trade was profitable, made $49, stoploss is very questionable.",
         "important_message_ids": []
-    }
-    ,
+    },
     {
         "week_number": 58,
         "week_start_end_date": "06/02/2025-06/06/2025",
         "start_ammount": 40928.0,
-        "end_ammount": 40998.0,
-        "total_made": 70.0, 
-        "num_of_trades": 1,
-        "num_of_profitable_trades": 1,
-        "num_of_negitive_trades": 0,
-        "description": "Day 1, made one trade, took a little bit but hit 20% profit took off most, then later hit 100% but didn't trim anything and then later sold the rest 1 min before market close, made 70$ in profit.",
+        "end_ammount": 40907.0,
+        "total_made": -21.0, 
+        "num_of_trades": 5,
+        "num_of_profitable_trades": 4,
+        "num_of_negitive_trades": 1,
+        "description": "Day 1, made one trade, took a little bit but hit 20% profit took off most, then later hit 100% but didn't trim anything and then later sold the rest 1 min before market close, made 70$ in profit. Day 2, 4 trades, 3 were profitable but the 4th one wasn't, it took all the profits away and we lost a total of -91$ today.",
         "important_message_ids": []
     }
 ]
