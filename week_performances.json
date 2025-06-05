@@ -711,12 +711,12 @@
         "week_number": 58,
         "week_start_end_date": "06/02/2025-06/06/2025",
         "start_ammount": 40928.0,
-        "end_ammount": 40907.0,
-        "total_made": -21.0, 
-        "num_of_trades": 5,
-        "num_of_profitable_trades": 4,
-        "num_of_negitive_trades": 1,
-        "description": "Day 1, made one trade, took a little bit but hit 20% profit took off most, then later hit 100% but didn't trim anything and then later sold the rest 1 min before market close, made 70$ in profit. Day 2, 4 trades, 3 were profitable but the 4th one wasn't, it took all the profits away and we lost a total of -91$ today.",
+        "end_ammount": 40171.0,
+        "total_made": -757.0, 
+        "num_of_trades": 12,
+        "num_of_profitable_trades": 5,
+        "num_of_negitive_trades": 7,
+        "description": "Day 1, made one trade, took a little bit but hit 20% profit took off most, then later hit 100% but didn't trim anything and then later sold the rest 1 min before market close, made 70$ in profit. Day 2, 4 trades, 3 were profitable but the 4th one wasn't, it took all the profits away and we lost a total of -91$ today. Day 3, got into a bunch of chop and it ate me up, 7 trades, 6 loosers 1 winner, lost -$736.",
         "important_message_ids": []
     }
 ]
