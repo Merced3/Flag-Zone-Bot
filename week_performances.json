@@ -718,5 +718,17 @@
         "num_of_negitive_trades": 10,
         "description": "Day 1, made one trade, took a little bit but hit 20% profit took off most, then later hit 100% but didn't trim anything and then later sold the rest 1 min before market close, made 70$ in profit. Day 2, 4 trades, 3 were profitable but the 4th one wasn't, it took all the profits away and we lost a total of -91$ today. Day 3, got into a bunch of chop and it ate me up, 7 trades, 6 loosers 1 winner, lost -$736. Day 4, took 5 trades, 1 negitive 4 positve, made 55$, aparently elon and trump had a hissy fit on twitter/truth sent the market all over the place. Day 5, 5 trades 3 profitable 2 negitive, lost -488$ today.",
         "important_message_ids": []
+    },
+    {
+        "week_number": 59,
+        "week_start_end_date": "06/09/2025-06/13/2025",
+        "start_ammount": 39738.0,
+        "end_ammount": 39738.0,
+        "total_made": 0.0, 
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "",
+        "important_message_ids": []
     }
 ]
