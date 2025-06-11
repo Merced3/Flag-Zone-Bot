@@ -160,6 +160,7 @@ async def process_data(queue):
             if now >= market_close_time:
                 print_log("Ending `process_data()`...")
                 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')} # Reset candle counts for the next day
+                # Reset the price so next day we don't start off where we ended, makes candles not correct b/c of after/pre market might take us to a different price.
                 break
 
             message = await queue.get()

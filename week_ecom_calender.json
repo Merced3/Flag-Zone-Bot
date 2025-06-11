@@ -1,37 +1,22 @@
 {
-    "week_timespan": "06-02-25 to 06-08-25",
+    "week_timespan": "06-09-25 to 06-15-25",
     "dates": {
-        "06-02-25": {
-            "09:00 AM": [
-                "ISM Manufacturing PMI"
-            ]
-        },
-        "06-03-25": {
-            "09:00 AM": [
-                "JOLTs Job Openings"
-            ]
-        },
-        "06-04-25": {
-            "08:45 AM": [
-                "BoC Interest Rate Decision"
-            ],
-            "09:00 AM": [
-                "ISM Services PMI"
-            ]
-        },
-        "06-05-25": {
+        "06-11-25": {
             "07:30 AM": [
-                "Balance of Trade"
-            ],
-            "09:00 AM": [
-                "Ivey PMI s.a"
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
             ]
         },
-        "06-06-25": {
+        "06-12-25": {
             "07:30 AM": [
-                "Unemployment Rate",
-                "Non Farm Payrolls",
-                "Unemployment Rate"
+                "PPI MoM"
+            ]
+        },
+        "06-13-25": {
+            "09:00 AM": [
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }

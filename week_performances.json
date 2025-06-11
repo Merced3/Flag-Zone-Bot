@@ -723,12 +723,12 @@
         "week_number": 59,
         "week_start_end_date": "06/09/2025-06/13/2025",
         "start_ammount": 39738.0,
-        "end_ammount": 39738.0,
-        "total_made": 0.0, 
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
+        "end_ammount": 39750.0,
+        "total_made": 12.0, 
+        "num_of_trades": 1,
+        "num_of_profitable_trades": 1,
         "num_of_negitive_trades": 0,
-        "description": "",
+        "description": "Day 1, only took one trade, hit 20% take profit but went all the way down to stoploss hence the low ammount made, $12 profit.",
         "important_message_ids": []
     }
 ]
