@@ -213,6 +213,8 @@ async def process_data(queue):
     except Exception as e:
         await error_log_and_discord_message(e, "main", "process_data")
 
+    # issue i see with this functinon, the last candle isn't being saved to the file, figure out why.
+
 async def ensure_economic_calendar_data():
     json_file = 'week_ecom_calender.json'
     
