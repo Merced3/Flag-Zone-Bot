@@ -722,13 +722,13 @@
     {
         "week_number": 59,
         "week_start_end_date": "06/09/2025-06/13/2025",
-        "start_ammount": 39738.0,
-        "end_ammount": 39406.0,
-        "total_made": -332.0, 
-        "num_of_trades": 7,
-        "num_of_profitable_trades": 3,
+        "start_ammount": 39633.0,
+        "end_ammount": 39633.0,
+        "total_made": -105.0, 
+        "num_of_trades": 11,
+        "num_of_profitable_trades": 7,
         "num_of_negitive_trades": 4,
-        "description": "Day 1, only took one trade, hit 20% take profit but went all the way down to stoploss hence the low ammount made, $12 profit. Day 2, 6 trades, 4 negitive 2 profitable, lost -344$ or 0.87% of the account. Day 3, power went out sometime in the night, should've checked computer to see if it powered down, that was my mistake, not running program today cause of the miss handling of data it would have from late start up, no trades no data logging today. Day 4, no trades, inbetween PDHL.",
+        "description": "Day 1, only took one trade, hit 20% take profit but went all the way down to stoploss hence the low ammount made, $12 profit. Day 2, 6 trades, 4 negitive 2 profitable, lost -344$ or 0.87% of the account. Day 3, power went out sometime in the night, should've checked computer to see if it powered down, that was my mistake, not running program today cause of the miss handling of data it would have from late start up, no trades no data logging today. Day 4, no trades, inbetween PDHL. Day 5, 4 trades all positive, $227 made, 1 Trade hit stoploss but all the others hit Take profit.",
         "important_message_ids": []
     }
 ]
