@@ -1,22 +1,27 @@
 {
-    "week_timespan": "06-09-25 to 06-15-25",
+    "week_timespan": "06-16-25 to 06-22-25",
     "dates": {
-        "06-11-25": {
+        "06-17-25": {
             "07:30 AM": [
-                "Core Inflation Rate MoM",
-                "Core Inflation Rate YoY",
-                "Inflation Rate MoM",
-                "Inflation Rate YoY"
+                "Retail Sales MoM"
             ]
         },
-        "06-12-25": {
+        "06-18-25": {
             "07:30 AM": [
-                "PPI MoM"
+                "Building Permits Prel",
+                "Housing Starts"
+            ],
+            "01:00 PM": [
+                "Fed Interest Rate Decision",
+                "FOMC Economic Projections"
+            ],
+            "01:30 PM": [
+                "Fed Press Conference"
             ]
         },
-        "06-13-25": {
+        "06-23-25": {
             "09:00 AM": [
-                "Michigan Consumer Sentiment Prel"
+                "Existing Home Sales"
             ]
         }
     }

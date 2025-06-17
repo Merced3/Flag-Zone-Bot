@@ -735,12 +735,12 @@
         "week_number": 60,
         "week_start_end_date": "06/16/2025-06/20/2025",
         "start_ammount": 39633.0,
-        "end_ammount": 39633.0,
-        "total_made": 0.0, 
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "",
+        "end_ammount": 39286.0,
+        "total_made": -347.0, 
+        "num_of_trades": 11,
+        "num_of_profitable_trades": 5,
+        "num_of_negitive_trades": 6,
+        "description": "Day 1, okay ALOT of trades that arent in accordance to the strategy, made 11 trades 3 negitive 5 positive and 3 break even (I would consider the 3 BE as negitive because of transaction costs that were not taking into account), lost -$347, Im still in the development process of making Hella reliable zones without the needing of polygon.",
         "important_message_ids": []
     }
 ]
