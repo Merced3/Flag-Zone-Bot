@@ -159,9 +159,21 @@ async def process_data(queue):
             
             if now >= market_close_time:
                 print_log("Ending `process_data()`...")
+                current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
                 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')} # Reset candle counts for the next day
-                # Reset the price so next day we don't start off where we ended, makes candles not correct b/c of after/pre market might take us to a different price.
-                break
+
+                # Get the next message from the queue
+                for timeframe in read_config('TIMEFRAMES'):
+                    current_candle = current_candles[timeframe]
+                    if current_candle["open"] is not None:
+                        current_candle["timestamp"] = datetime.now().isoformat()
+                        write_to_log(current_candle, read_config('SYMBOL'), timeframe)
+                        print_log(f"[FINAL WRITE] {timeframe} candle flushed at market close.")
+                
+                async with price_lock:
+                    shared_state.latest_price = None
+                # Now break
+                break 
 
             message = await queue.get()
             data = json.loads(message)
@@ -474,9 +486,6 @@ async def process_end_of_day():
     clear_all_states()
     clear_temp_logs_and_order_files()
     reset_profit_loss_orders_list()
-
-    # 6. Clear the global variables
-    shared_state.latest_price = None  # Reset the latest price
 
 async def shutdown(loop, root=None):
     """Shutdown tasks and the Discord bot."""
