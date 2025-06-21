@@ -735,12 +735,12 @@
         "week_number": 60,
         "week_start_end_date": "06/16/2025-06/20/2025",
         "start_ammount": 39633.0,
-        "end_ammount": 39228.0,
-        "total_made": -405.0, 
-        "num_of_trades": 23,
-        "num_of_profitable_trades": 13,
+        "end_ammount": 39311.0,
+        "total_made": -322.0, 
+        "num_of_trades": 25,
+        "num_of_profitable_trades": 15,
         "num_of_negitive_trades": 10,
-        "description": "Day 1, okay ALOT of trades that arent in accordance to the strategy, made 11 trades 3 negitive 5 positive and 3 break even (I would consider the 3 BE as negitive because of transaction costs that were not taking into account), lost -$347, Im still in the development process of making Hella reliable zones without the needing of polygon. Day 2, made 1 trade, it was a put, hit 200% profit, made $39, Choppped around for a while, theta ate the runner up. Day 3, 11 trades 7 positive 4 negitive, lost -$97. June 19th, day 4, market is closed.",
+        "description": "Day 1, okay ALOT of trades that arent in accordance to the strategy, made 11 trades 3 negitive 5 positive and 3 break even (I would consider the 3 BE as negitive because of transaction costs that were not taking into account), lost -$347, Im still in the development process of making Hella reliable zones without the needing of polygon. Day 2, made 1 trade, it was a put, hit 200% profit, made $39, Choppped around for a while, theta ate the runner up. Day 3, 11 trades 7 positive 4 negitive, lost -$97. June 19th, day 4, market is closed. Day 5, 2 trades, both positive, made $83,  1st trade hit 20% then went all the way back to 200 ema, theta ate it up, 2nd trade hit 50% then sold within a minute of market close, theta ate that too.",
         "important_message_ids": []
     }
 ]
