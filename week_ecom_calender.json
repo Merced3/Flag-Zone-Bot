@@ -1,27 +1,35 @@
 {
-    "week_timespan": "06-16-25 to 06-22-25",
+    "week_timespan": "06-23-25 to 06-29-25",
     "dates": {
-        "06-17-25": {
-            "07:30 AM": [
-                "Retail Sales MoM"
-            ]
-        },
-        "06-18-25": {
-            "07:30 AM": [
-                "Building Permits Prel",
-                "Housing Starts"
-            ],
-            "01:00 PM": [
-                "Fed Interest Rate Decision",
-                "FOMC Economic Projections"
-            ],
-            "01:30 PM": [
-                "Fed Press Conference"
-            ]
-        },
         "06-23-25": {
             "09:00 AM": [
                 "Existing Home Sales"
+            ]
+        },
+        "06-24-25": {
+            "07:30 AM": [
+                "Inflation Rate YoY"
+            ],
+            "09:00 AM": [
+                "Fed Chair Powell Testimony"
+            ]
+        },
+        "06-25-25": {
+            "09:00 AM": [
+                "Fed Chair Powell Testimony"
+            ]
+        },
+        "06-26-25": {
+            "07:30 AM": [
+                "Durable Goods Orders MoM",
+                "GDP Growth Rate QoQ Final"
+            ]
+        },
+        "06-27-25": {
+            "07:30 AM": [
+                "Core PCE Price Index MoM",
+                "Personal Income MoM",
+                "Personal Spending MoM"
             ]
         }
     }

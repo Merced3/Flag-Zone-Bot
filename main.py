@@ -156,24 +156,16 @@ async def process_data(queue):
                 # Reset the candles for the new day
                 current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
                 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')}
+                start_times = {tf: now for tf in read_config('TIMEFRAMES')}
             
             if now >= market_close_time:
                 print_log("Ending `process_data()`...")
+                # Reset the candles for the new day
                 current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
                 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')} # Reset candle counts for the next day
-
-                # Get the next message from the queue
-                for timeframe in read_config('TIMEFRAMES'):
-                    current_candle = current_candles[timeframe]
-                    if current_candle["open"] is not None:
-                        current_candle["timestamp"] = datetime.now().isoformat()
-                        write_to_log(current_candle, read_config('SYMBOL'), timeframe)
-                        print_log(f"[FINAL WRITE] {timeframe} candle flushed at market close.")
-                
                 async with price_lock:
-                    shared_state.latest_price = None
-                # Now break
-                break 
+                    shared_state.latest_price = None  # Reset the latest price
+                break
 
             message = await queue.get()
             data = json.loads(message)
@@ -191,13 +183,14 @@ async def process_data(queue):
                         current_candle["open"] = price
                         current_candle["high"] = price
                         current_candle["low"] = price
+                        start_times[timeframe] = now
 
                     current_candle["high"] = max(current_candle["high"], price)
                     current_candle["low"] = min(current_candle["low"], price)
                     current_candle["close"] = price
 
                     if (f_now in timestamps[timeframe]) or (f_now in buffer_timestamps[timeframe]):
-                        current_candle["timestamp"] = datetime.now().isoformat()
+                        current_candle["timestamp"] = start_times[timeframe].isoformat()
                         write_to_log(current_candle, read_config('SYMBOL'), timeframe)
                         
                         # Reset the current candle and start time
