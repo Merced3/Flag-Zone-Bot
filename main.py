@@ -127,7 +127,7 @@ def load_from_csv(filename):
 
 async def process_data(queue):
     print_log("Starting `process_data()`...")
-    global current_candles, candle_counts
+    global current_candles, candle_counts, start_times
     
     # Define initial timestamps for the first day
     current_day = datetime.now(new_york_tz).date()
@@ -156,11 +156,19 @@ async def process_data(queue):
                 # Reset the candles for the new day
                 current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
                 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')}
-                start_times = {tf: now for tf in read_config('TIMEFRAMES')}
+                for tf in read_config('TIMEFRAMES'):
+                    start_times[tf] = now
             
             if now >= market_close_time:
                 print_log("Ending `process_data()`...")
-                # Reset the candles for the new day
+                
+                for timeframe in read_config('TIMEFRAMES'):
+                    current_candle = current_candles[timeframe]
+                    if current_candle["open"] is not None:
+                        current_candle["timestamp"] = start_times[timeframe].isoformat()
+                        write_to_log(current_candle, read_config('SYMBOL'), timeframe)
+                        print_log(f"[FINAL WRITE] Flushed final {timeframe} candle at market close")
+                        
                 current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
                 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')} # Reset candle counts for the next day
                 async with price_lock:
@@ -217,8 +225,6 @@ async def process_data(queue):
 
     except Exception as e:
         await error_log_and_discord_message(e, "main", "process_data")
-
-    # issue i see with this functinon, the last candle isn't being saved to the file, figure out why.
 
 async def ensure_economic_calendar_data():
     json_file = 'week_ecom_calender.json'

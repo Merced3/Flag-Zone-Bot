@@ -816,29 +816,42 @@ def read_log_to_df(log_file_path):
     return pd.read_json(log_file_path, lines=True)
 
 async def calculate_save_EMAs(candle, X_value):
-    """Process a single candle: Adds it to CSV, Recalculate EMAs, Saves EMA's to JSON file"""
-    
+    """
+    Process a single candle: Adds it to CSV, Recalculate EMAs, Saves EMAs to JSON file.
+    """
     merged_file_name = f"{read_config('SYMBOL')}_MERGED.csv"
-   
+    required_columns = ['timestamp', 'open', 'high', 'low', 'close']
+
+    # Step 1: Load or initialize the DataFrame
     try:
         df = pd.read_csv(merged_file_name)
+        df = df[required_columns] if not df.empty else pd.DataFrame(columns=required_columns)
     except FileNotFoundError:
-        df = pd.DataFrame(columns=['timestamp', 'open', 'high', 'low', 'close'])  # Adjust columns as needed
-    
-    # Convert the candle dictionary to a DataFrame and concatenate
+        df = pd.DataFrame(columns=required_columns)
+
+    # Step 2: Convert candle to DataFrame and ensure consistency
     candle_df = pd.DataFrame([candle])
-    df = pd.concat([df, candle_df], ignore_index=True)  # Use concat instead of append
 
-    df.to_csv(merged_file_name, mode='w', header=True, index=False) # Save updated DataFrame
+    for col in required_columns:
+        if col not in candle_df.columns:
+            candle_df[col] = pd.NA  # Fill missing column with NA
 
-    # Calculate EMAs 
+    candle_df = candle_df[required_columns]  # Ensure correct column order
+
+    # Step 3: Append and save the updated data
+    df = pd.concat([df, candle_df], ignore_index=True)
+    df.to_csv(merged_file_name, mode='w', header=True, index=False)
+
+    # Step 4: Calculate EMAs
     current_ema_values = {}
-    for window, _ in read_config('EMAS'): #window, color
+    for window, _ in read_config('EMAS'):  # window, color
         ema_column_name = f"EMA_{window}"
         df[ema_column_name] = df['close'].ewm(span=window, adjust=False).mean()
         current_ema_values[str(window)] = df[ema_column_name].iloc[-1]
-    current_ema_values['x'] = X_value #add x value to json
-    update_ema_json('EMAs.json', current_ema_values) #add/save ema values to json
+
+    # Step 5: Save EMA values to JSON
+    current_ema_values['x'] = X_value
+    update_ema_json('EMAs.json', current_ema_values)
 
 def update_ema_json(json_path, new_ema_values):
     """Update the EMA JSON file with new EMA values by appending."""

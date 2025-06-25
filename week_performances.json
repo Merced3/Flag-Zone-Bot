@@ -747,12 +747,12 @@
         "week_number": 61,
         "week_start_end_date": "06/23/2025-06/27/2025",
         "start_ammount": 39311.0,
-        "end_ammount": 39311.0,
-        "total_made": 0.0, 
-        "num_of_trades": 0,
-        "num_of_profitable_trades": 0,
-        "num_of_negitive_trades": 0,
-        "description": "Day 1, no trades, broke PDH but didn't last long enough to detect any trades.",
+        "end_ammount": 39090.0,
+        "total_made": -221.0, 
+        "num_of_trades": 7,
+        "num_of_profitable_trades": 3,
+        "num_of_negitive_trades": 4,
+        "description": "Day 1, no trades, broke PDH but didn't last long enough to detect any trades. Day 2, 7 trades, 4 negitive 3 positive, lost -$221, last trade theta really ate us up.",
         "important_message_ids": []
     }
 
