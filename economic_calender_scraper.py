@@ -11,7 +11,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
-from error_handler import error_log_and_discord_message, print_log
+from error_handler import error_log_and_discord_message
+from shared_state import print_log
+from paths import WEEK_ECOM_CALENDER_PATH
 
 # WebDriver options
 options = webdriver.ChromeOptions()
@@ -26,6 +28,38 @@ options.add_argument("--disable-gpu")   # For Windows compatibility
 options.add_argument("--window-size=1920x1080")  # Set a virtual resolution
 #options.add_argument("--headless=new")  # Uses the latest headless mode, Caused a error
 
+async def ensure_economic_calendar_data():
+    
+    # Check if the JSON file exists
+    if not os.path.exists(WEEK_ECOM_CALENDER_PATH):
+        await get_economic_calendar_data()
+        return
+
+    # Read the JSON data
+    with open(WEEK_ECOM_CALENDER_PATH, 'r') as file:
+        data = json.load(file)
+
+    # Extract week_timespan
+    week_timespan = data.get('week_timespan', "")
+    if not week_timespan:
+        await get_economic_calendar_data()
+        return
+
+    # Parse the week_timespan
+    try:
+        start_date_str, end_date_str = week_timespan.split(" to ")
+        start_date = datetime.strptime(start_date_str, '%m-%d-%y')
+        end_date = datetime.strptime(end_date_str, '%m-%d-%y')
+    except ValueError:
+        await get_economic_calendar_data()
+        return
+
+    # Get today's date
+    today_date = datetime.now()
+
+    # Check if today's date is within the week_timespan
+    if not (start_date <= today_date <= end_date):
+        await get_economic_calendar_data()
 
 async def get_economic_calendar_data():
     """Scrapes economic calendar data with improved reliability."""
@@ -295,11 +329,10 @@ async def get_economic_calendar_data():
         timespan_label = f"{(datetime.now() - timedelta(days=datetime.now().weekday())).strftime('%m-%d-%y')} to {(datetime.now() + timedelta(days=6-datetime.now().weekday())).strftime('%m-%d-%y')}"
         final_data = {f"week_timespan": timespan_label, "dates": data}
 
-        JSON_FILE = f'week_ecom_calender.json'
-        with open(JSON_FILE, 'w') as f:
+        with open(WEEK_ECOM_CALENDER_PATH, 'w') as f:
             json.dump(final_data, f, indent=4)
 
-        print_log(f"    [GECD] ✅ Data extraction completed! Total Dates: {len(data.keys())}, File Saved: {JSON_FILE}")
+        print_log(f"    [GECD] ✅ Data extraction completed! Total Dates: {len(data.keys())}, File Saved: {WEEK_ECOM_CALENDER_PATH}")
 
     except Exception as e:
         await error_log_and_discord_message(e, "economic_calender_scraper", "get_economic_calendar_data")
@@ -312,15 +345,15 @@ def get_san_antonio_timezone():
     offset = now.utcoffset().total_seconds() / 60  # Convert seconds to minutes
     return int(offset)  # Returns -300 (UTC -5) or -360 (UTC -6)
 
-def check_order_time_to_event_time(time_threshold=20, json_file='week_ecom_calender.json', sim_active=False):
+def check_order_time_to_event_time(time_threshold=20, sim_active=False):
     if sim_active:
         return True
     # Ensure the JSON file exists
-    if not os.path.exists(json_file):
-        raise FileNotFoundError(f"{json_file} does not exist")
+    if not os.path.exists(WEEK_ECOM_CALENDER_PATH):
+        raise FileNotFoundError(f"{WEEK_ECOM_CALENDER_PATH} does not exist")
 
     # Read the JSON data
-    with open(json_file, 'r') as file:
+    with open(WEEK_ECOM_CALENDER_PATH, 'r') as file:
         data = json.load(file)
 
     # Extract today's date in the format "mm-dd-yy"
@@ -352,13 +385,13 @@ def check_order_time_to_event_time(time_threshold=20, json_file='week_ecom_calen
 
     return True  # No events within the threshold
 
-def setup_economic_news_message(json_file='week_ecom_calender.json'):
+def setup_economic_news_message():
     # Ensure the JSON file exists
-    if not os.path.exists(json_file):
-        raise FileNotFoundError(f"{json_file} does not exist")
+    if not os.path.exists(WEEK_ECOM_CALENDER_PATH):
+        raise FileNotFoundError(f"{WEEK_ECOM_CALENDER_PATH} does not exist")
 
     # Read the JSON data
-    with open(json_file, 'r') as file:
+    with open(WEEK_ECOM_CALENDER_PATH, 'r') as file:
         data = json.load(file)
 
     # Extract today's date in the format "mm-dd-yy"

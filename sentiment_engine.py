@@ -1,5 +1,5 @@
 # sentiment_engine.py; use specific indicators in a ranking/weighted system to...
-from data_acquisition import load_json_df
+from utils.json_utils import load_json_df
 from shared_state import indent, print_log
 
 # ----------------------

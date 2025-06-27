@@ -1,6 +1,6 @@
 #print_discord_messages.py
 from error_handler import error_log_and_discord_message, print_log
-from order_utils import to_float
+from utils.order_utils import to_float
 import re
 import asyncio
 import os

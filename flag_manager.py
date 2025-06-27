@@ -4,7 +4,9 @@ import math
 import json
 from pathlib import Path
 from shared_state import indent, print_log, safe_read_json, safe_write_json
-from data_acquisition import read_config, check_valid_points
+from utils.json_utils import read_config
+from utils.data_utils import check_valid_points
+from paths import LINE_DATA_PATH, STATES_DIR
 
 # ----------------------
 # ⚙️ Configuration
@@ -17,10 +19,10 @@ STATE_MEMORY = {}  # Holds state files in memory when USE_DICT_STATE is True
 # 🚩 Flag Detection & Breakout Processing
 # ----------------------
 
-async def identify_flag(candle, indent_lvl=2, states_dir='states', print_satements=True):
+async def identify_flag(candle, indent_lvl=2, print_satements=True):
     completed_flag_names = []
-    ensure_states_dir_exists(states_dir)
-    state_files = list(STATE_MEMORY.keys()) if USE_DICT_STATE else glob.glob(os.path.join(states_dir, "state_*.json"))
+    ensure_states_dir_exists(STATES_DIR)
+    state_files = list(STATE_MEMORY.keys()) if USE_DICT_STATE else glob.glob(os.path.join(STATES_DIR, "state_*.json"))
 
     for state_file_path in state_files:
         state = get_state(state_file_path, indent_lvl)
@@ -81,16 +83,9 @@ async def process_breakout_detection(indent_lvl, slope, intercept, candle, flag_
     if print_satements:
         print_log(f"{indent(indent_lvl)}[PBD] Breakout detected: {detected}")
 
-
-    #print_satements = True if ("state_3" in state_file_path) and (29 < candle["candle_index"] < 33) else False
-    #if print_satements:
-        #print(f"{indent(indent_lvl)}[PBD] state: {state_file_path}")
     current_point = formated_candle_point(flag_type, candle)
     candle_points, point_type = filter_candles(indent_lvl+1, start_point, candle_points, current_point, flag_type, print_satements, point_type)
-    #print_satements=False
     
-
-
     if print_satements:
         print_log(f'{indent(indent_lvl)}[PBD] Last Candle Breakout Active? [{breakout_info["is_active"]}]')
 
@@ -199,9 +194,8 @@ async def start_new_flag_values(indent_level, candle, candle_flag_type, current_
 
     return start_point, [], None, None, point_type
 
-def update_line_data(indent_lvl, line_name, line_type, status=None, point_1=None, point_2=None, json_file='line_data.json', print_statements=True):
-    json_file_path = Path(json_file)
-    data = safe_read_json(json_file_path, default={}, indent_lvl=indent_lvl+1)
+def update_line_data(indent_lvl, line_name, line_type, status=None, point_1=None, point_2=None, print_statements=True):
+    data = safe_read_json(LINE_DATA_PATH, default={}, indent_lvl=indent_lvl+1)
 
     if not isinstance(data, dict):
         data = {}
@@ -227,7 +221,7 @@ def update_line_data(indent_lvl, line_name, line_type, status=None, point_1=None
         data["active_flags"] = [line for line in data["active_flags"] if line["name"] != line_name]
         data["active_flags"].append(line_data)
 
-    saved_correctly = safe_write_json(json_file_path, data, indent_lvl=indent_lvl+1)
+    saved_correctly = safe_write_json(LINE_DATA_PATH, data, indent_lvl=indent_lvl+1)
     
     if print_statements:
         status_msg = "SAVED" if saved_correctly else "FALIED to save"
@@ -236,24 +230,24 @@ def update_line_data(indent_lvl, line_name, line_type, status=None, point_1=None
 
     return line_data["name"]
 
-def count_flags(flag_type, json_file='line_data.json'):
+def count_flags(flag_type):
     """
     Counts all flags (active + completed) of a specific type.
     """
     try:
-        with open(json_file, 'r') as file:
+        with open(LINE_DATA_PATH, 'r') as file:
             data = json.load(file)
             all_flags = data.get("active_flags", []) + data.get("completed_flags", [])
             return len([flag for flag in all_flags if flag.get('type') == flag_type])
     except (FileNotFoundError, json.JSONDecodeError):
         return 0
 
-def get_active_flag_point_1(line_name, json_file='line_data.json', indent_lvl=0):
+def get_active_flag_point_1(line_name, indent_lvl=0):
     """
     Retrieves the 'point_1' from an active flag in line_data.json using the given line_name.
     """
     try:
-        data = safe_read_json(json_file, default={}, indent_lvl=indent_lvl+1)
+        data = safe_read_json(LINE_DATA_PATH, default={}, indent_lvl=indent_lvl+1)
         for flag in data.get("active_flags", []):
             if flag["name"] == line_name:
                 return flag.get("point_1", (None, None))
@@ -311,7 +305,7 @@ def get_state_structure():
         }
     }
 
-def create_state(indent_lvl, flag_type, start_point, directory='states', print_satements=True):
+def create_state(indent_lvl, flag_type, start_point, print_satements=True):
     """
     Creates a new state entry, either in memory (`STATE_MEMORY`) or in a file (`states/`).
 
@@ -324,7 +318,6 @@ def create_state(indent_lvl, flag_type, start_point, directory='states', print_s
     Returns:
         str: The name or key of the created state.
     """
-    os.makedirs(directory, exist_ok=True)
     
     if USE_DICT_STATE:
         # Extract existing numbers from STATE_MEMORY keys
@@ -333,7 +326,7 @@ def create_state(indent_lvl, flag_type, start_point, directory='states', print_s
         )
     else:
         # Extract existing numbers from actual files
-        existing_files = [f for f in os.listdir(directory) if f.startswith("state_") and f.endswith(".json")]
+        existing_files = [f for f in os.listdir(STATES_DIR) if f.startswith("state_") and f.endswith(".json")]
         existing_numbers = sorted(
             [int(f.split("_")[1].split(".")[0]) for f in existing_files if f.split("_")[1].split(".")[0].isdigit()]
         )
@@ -347,7 +340,7 @@ def create_state(indent_lvl, flag_type, start_point, directory='states', print_s
     
     # Construct the correct name
     state_name = f"state_{state_number}"
-    state_file = os.path.join(directory, f"{state_name}.json")
+    state_file = STATES_DIR / f"{state_name}.json"
 
     # Initialize state structure
     state_data = get_state_structure()
@@ -365,16 +358,16 @@ def create_state(indent_lvl, flag_type, start_point, directory='states', print_s
 
     if print_satements:
         print_log(f"{indent(indent_lvl)}[CTS] Created '{flag_type}' state: {state_name}")
-    return state_name  # Return the correct name (not a file path)
+    return state_name
 
-def manage_states(indent_lvl, states_dir='states', print_satements=True):
+def manage_states(indent_lvl, print_satements=True):
     if print_satements:
         print_log(f"{indent(indent_lvl)}[MSF] Managing State Files...")
     
     if USE_DICT_STATE:
         state_files = list(STATE_MEMORY.keys())  # Get all in-memory state keys
     else:
-        state_files = glob.glob(os.path.join(states_dir, "state_*.json"))
+        state_files = STATES_DIR / "state_*.json"
     
     # Sort state files numerically
     state_files.sort(key=lambda f: int(os.path.basename(f).split('_')[1].split('.')[0]))
@@ -389,15 +382,6 @@ def manage_states(indent_lvl, states_dir='states', print_satements=True):
 
         start_point = tuple(state["start_point"])
         if start_point in seen_start_points:
-            # Duplicate found, delete the older file
-            #flag_names = state.get("flag_names", [])
-            
-            #print_log(f"{indent(indent_lvl)}[MSF] {state_file}: {flag_names}")
-            
-            # 🔹 Remove associated "active" flags from line_data.json
-            #remove_flags_by_names(flag_names, indent_lvl)
-
-            # 🔹 Delete the state (dict or file)
             if USE_DICT_STATE:
                 del STATE_MEMORY[state_file]
             else:
@@ -675,7 +659,7 @@ def ensure_states_dir_exists(states_dir):
         os.makedirs(states_dir)
         print_log(f"[INIT] Created missing directory: {states_dir}")
 
-def clear_all_states(states_dir='states', indent_lvl=1):
+def clear_all_states(indent_lvl=1):
     """
     Clears all state data, both from disk and from in-memory dictionary.
     This ensures a fresh start regardless of storage mode.
@@ -684,10 +668,10 @@ def clear_all_states(states_dir='states', indent_lvl=1):
         STATE_MEMORY.clear()
         print_log(f"{indent(indent_lvl)}[RESET] In-memory STATE_MEMORY cleared.")
     else:
-        if not os.path.exists(states_dir):
-            print_log(f"{indent(indent_lvl)}[RESET] State folder '{states_dir}' does not exist.")
+        if not os.path.exists(STATES_DIR):
+            print_log(f"{indent(indent_lvl)}[RESET] State folder '{STATES_DIR}' does not exist.")
             return
-        json_files = glob.glob(os.path.join(states_dir, "*.json"))
+        json_files = glob.glob(os.path.join(STATES_DIR, "*.json"))
         for file in json_files:
             try:
                 os.remove(file)

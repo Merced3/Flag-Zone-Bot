@@ -1,23 +1,20 @@
-#submit_order.py
+# submit_order.py
 import cred
-from datetime import datetime, timedelta
+from datetime import datetime
 import requests
 from print_discord_messages import print_discord, get_message_content, edit_discord_message
 import aiohttp
 from data_acquisition import read_config, get_current_price # this if for shared state get price, more efficient
 from error_handler import error_log_and_discord_message, print_log
-from order_utils import build_active_order, calculate_quantity, get_strikes_to_consider
-from pathlib import Path
+from utils.order_utils import build_active_order, calculate_quantity, get_strikes_to_consider
 import json
 import sys
-
-config_path = Path(__file__).resolve().parent / 'config.json'
-MESSAGE_IDS_FILE_PATH = Path(__file__).resolve().parent / 'message_ids.json'
+from paths import MESSAGE_IDS_PATH
 
 def save_message_ids(order_id, message_id):
     # Load existing data
-    if MESSAGE_IDS_FILE_PATH.exists():
-        with open(MESSAGE_IDS_FILE_PATH, 'r') as f:
+    if MESSAGE_IDS_PATH.exists():
+        with open(MESSAGE_IDS_PATH, 'r') as f:
             try:
                 existing_data = json.load(f)
             except json.JSONDecodeError:
@@ -29,7 +26,7 @@ def save_message_ids(order_id, message_id):
     existing_data[order_id] = message_id
 
     # Write updated data back to file
-    with open(MESSAGE_IDS_FILE_PATH, 'w') as f:
+    with open(MESSAGE_IDS_PATH, 'w') as f:
         json.dump(existing_data, f, indent=4)
 
 async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_date, TP_value, session, headers):
@@ -67,25 +64,6 @@ async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_dat
                     if lower_bound <= ask <= upper_bound:
                         return strike, ask
              
-            
-            #if TP_value is not None:
-                #valid_tp_strikes = {}
-                #for strike_str, ask in strikes_to_consider.items():
-                    #strike = float(strike_str)
-                    #if cp == "call" and current_price < strike <= TP_value and ask is not None:
-                        #valid_tp_strikes[strike] = ask
-                    #elif cp == "put" and TP_value <= strike < current_price and ask is not None:
-                        #valid_tp_strikes[strike] = ask
-                #if valid_tp_strikes:
-                    # Prioritize the one closest to the TP_value
-                    #closest_strike = min(valid_tp_strikes.items(), key=lambda x: abs(x[0] - TP_value))
-                    #print_log(f"[TP-BASED] Selected TP-aligned strike → Strike: {closest_strike[0]}, Ask: {closest_strike[1]}")
-                    #return closest_strike
-                #else:
-                    #print_log(f"[TP-BASED] No suitable strike near TP ({TP_value}), falling back...")
-
-            
-            
             # Tried this block of code for a week, turns out cheap contracts arent always the best. Using it as fall back
             # Fallback: directional cheapest contract
             if cp == "put":
@@ -107,23 +85,7 @@ async def find_what_to_buy(symbol, cp, num_out_of_the_money, next_expiration_dat
         except Exception as e:
             await error_log_and_discord_message(e, "submit_order", "find_what_to_buy", "Error parsing JSON or processing data")
             return None
-"""
-async def get_current_price(symbol, session, headers):
-    quote_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}markets/quotes?symbols={symbol}"
 
-    async with session.get(quote_url, headers=headers) as response:  # And here
-        if response.status != 200:
-            print_log(f"Received unexpected status code {response.status}: {await response.text()}")
-            return None
-        try:
-            response_json = await response.json()
-            quote = response_json.get('quotes', {}).get('quote', {})
-            current_price = quote.get('bid', None)
-            return current_price
-        except Exception as e:
-            await error_log_and_discord_message(e, "submit_order", "get_current_price", "Error parsing JSON")
-            return None
-"""
 async def submit_option_order(strategy_name, symbol, strike, option_type, bid, expiration_date, quantity=None, side=None, order_type=None, session=None, headers=None, message_ids_dict=None, buying_power=None, TP_value=None):
     if read_config('REAL_MONEY_ACTIVATED'):
         order_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}accounts/{cred.TRADIER_BROKERAGE_ACCOUNT_NUMBER}/orders"

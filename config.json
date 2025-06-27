@@ -1,6 +1,6 @@
 {
     "REAL_MONEY_ACTIVATED": false,
-    "START_OF_DAY_BALANCE": 39005.0,
+    "START_OF_DAY_BALANCE": 39174.0,
     "SYMBOL": "SPY",
     "TIMEFRAMES": [
         "2M",
@@ -18,14 +18,7 @@
         "SENTIMENT",
         2
     ],
-    "PAST_DAYS": 28,
     "NUM_OUT_OF_MONEY": 20,
-    "BOX_SIZE_THRESHOLDS": [
-        0.5,
-        1.5
-    ],
-    "BOX_SPACING": 1,
-    "TRADE_IN_BUFFERS": false,
     "GET_PDHL": true,
     "CANDLE_BUFFER": 1,
     "EMAS": [
@@ -42,8 +35,6 @@
             "RED"
         ]
     ],
-    "EMA_MAX_DISTANCE": 0.45,
-    "EMA_PREMIEME_PLAN_ACTIVE": false,
     "FLAGPOLE_CRITERIA": {
         "MIN_NUM_CANDLES": 2,
         "MAX_NUM_CANDLES": 150,
@@ -52,6 +43,5 @@
         "START_POINT_MAX_NUM_FLAGS": 3
     },
     "OPTION_EXPIRATION_DTE": "not specified",
-    "ORDERS_ZONE_THRESHOLD": 2,
     "MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION": 20
 }

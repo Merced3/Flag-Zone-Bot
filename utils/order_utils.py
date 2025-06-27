@@ -1,7 +1,11 @@
-# order_utils.py, 
-from data_acquisition import read_config
+# utils/order_utils.py
+from utils.json_utils import read_config
 from datetime import datetime, timedelta
 from shared_state import indent, print_log
+import csv
+import os
+import pandas as pd
+from paths import ORDER_LOG_PATH
 
 def build_active_order(order_id, retrieval_id, entry_price, quantity, TP_value=None, order_adjustments=None):
     return {
@@ -15,7 +19,7 @@ def build_active_order(order_id, retrieval_id, entry_price, quantity, TP_value=N
 
 def calculate_quantity(cost_per_contract, order_size_for_account):
     # 'order_size_for_account' represents the percentage of the account you want to spend on each order.
-    order_threshold = read_config('START_OF_DAY_BALANCE') * order_size_for_account
+    order_threshold = read_config('ACCOUNT_BALANCES')[0] * order_size_for_account
     order_cost = cost_per_contract * 100
 
     order_quantity = order_threshold / order_cost
@@ -176,3 +180,51 @@ def to_float(value):
         return float(value)
     else:
         raise ValueError("Value must be a string or a number")
+
+def initialize_csv_order_log():
+    if not os.path.exists(ORDER_LOG_PATH):
+        with open(ORDER_LOG_PATH, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['what_type_of_candle', 'time_entered', 'line_degree_angle', 'ticker_symbol', 'strike_price', 'option_type', 'order_quantity', 'order_bid_price', 'total_investment', 'time_exited', 'lowest_bid', 'max_drawdown', 'highest_bid', 'max_gain', 'avg_sold_bid', 'total_profit', 'total_percentage'])
+
+def log_order_details(what_type_of_candle, time_entered, ema_distance, num_of_matches, line_degree_angle,
+                      ticker_symbol, strike_price, option_type, order_quantity, order_bid_price, total_investment):
+    with open(ORDER_LOG_PATH, 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([what_type_of_candle, time_entered, ema_distance, num_of_matches, line_degree_angle,
+                         ticker_symbol, strike_price, option_type, order_quantity, order_bid_price, total_investment])
+
+def update_order_details(unique_order_id, **kwargs):
+    # UOD means Update Order Details
+    df = pd.read_csv(ORDER_LOG_PATH)
+    
+    # `unique_order_id` is f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
+    order_id_parts = unique_order_id.split('-')
+    symbol, option_type, strike_price, expiration_date, timestamp = order_id_parts[:5]
+
+    # Convert the timestamp to datetime object
+    dt = datetime.strptime(timestamp[:12], "%Y%m%d%H%M")  # Only use up to minutes
+
+    # Format the datetime object to the desired string format (ignore seconds)
+    formatted_timestamp = dt.strftime("%m/%d/%Y-%I:%M %p")
+    
+    row_found = False
+    for index, row in df.iterrows():
+        # Normalize the row's timestamp for comparison, ensuring AM/PM is preserved
+        row_time_formatted = row['time_entered']
+        #print_log(f"{indent(indent_lvl+1)}[UOD 1] Checking row at index {index}: {row_time_formatted}")
+        
+        if (row['ticker_symbol'] == symbol and 
+            row['strike_price'] == float(strike_price) and 
+            row['option_type'] == option_type and 
+            row_time_formatted == formatted_timestamp):  # Compare normalized timestamps
+            row_found = True
+            for key, value in kwargs.items():
+                df.at[index, key] = value
+            break  # If the correct row is found, no need to continue looping
+    
+    if not row_found:
+        print_log(f"    [UOD] ERROR: No matching row found for timestamp: {formatted_timestamp}")
+
+    df.to_csv(ORDER_LOG_PATH, index=False)
+

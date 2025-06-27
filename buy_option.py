@@ -1,11 +1,11 @@
 # buy_option.py
 from error_handler import error_log_and_discord_message
-from order_handler_v2 import get_unique_order_id_and_is_active, manage_active_order
+from order_handler import get_unique_order_id_and_is_active, manage_active_order
 from submit_order import find_what_to_buy, submit_option_order, get_order_status
-from order_utils import get_expiration, calculate_quantity
-from data_acquisition import get_account_balance, add_markers, read_config
+from utils.order_utils import get_expiration, calculate_quantity, build_active_order
+from utils.json_utils import read_config
+from data_acquisition import get_account_balance, add_markers
 from print_discord_messages import print_discord
-from order_utils import build_active_order
 from datetime import datetime
 import asyncio
 
@@ -120,6 +120,6 @@ Order Cost Buffer exceded BP
         return True, strike_price, active_order["quantity"], active_order["entry_price"], order_cost, None
 
     except Exception as e:
-        await error_log_and_discord_message(e, "tll_trading_strategy", "buy_option_cp")
+        await error_log_and_discord_message(e, "buy_option", "buy_option_cp")
         return False, None, None, None, None, f"Error: {e}"
 

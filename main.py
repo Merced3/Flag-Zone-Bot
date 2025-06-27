@@ -1,26 +1,27 @@
-#main.py
-from chart_visualization import plot_candles_and_boxes, initiate_shutdown, update_15_min, setup_global_boxes
-from data_acquisition import get_account_balance, get_candle_data, get_dates, reset_json, active_provider, initialize_order_log, read_config, is_market_open, clear_temp_logs_and_order_files, update_config_value
+# main.py
+from chart_visualization import root, initiate_shutdown, plot_candles_and_boxes, refresh_15_min_candle_stick_data
+from data_acquisition import ws_auto_connect, get_account_balance, active_provider, is_market_open
+from utils.json_utils import read_config, get_correct_message_ids, update_config_value
+from utils.log_utils import write_to_log, clear_temp_logs_and_order_files
+from utils.order_utils import initialize_csv_order_log
+from utils.time_utils import generate_candlestick_times, add_seconds_to_time
 from shared_state import price_lock, print_log
 import shared_state
+import threading
 from flag_manager import clear_all_states
 from tll_trading_strategy import execute_trading_strategy
-from economic_calender_scraper import get_economic_calendar_data, setup_economic_news_message
+from economic_calender_scraper import ensure_economic_calendar_data, setup_economic_news_message
 from print_discord_messages import bot, print_discord, send_file_discord, calculate_day_performance
 from error_handler import error_log_and_discord_message
-from order_handler_v2 import get_profit_loss_orders_list, reset_profit_loss_orders_list
+from order_handler import get_profit_loss_orders_list, reset_profit_loss_orders_list
 import data_acquisition
-import chart_visualization
 import asyncio
 from datetime import datetime, timedelta
-import pandas as pd
-import threading
-import boxes
+from objects import process_end_of_day_15m_candles
 import cred
 import json
 import pytz
-import os
-from pathlib import Path
+from paths import SPY_15M_CHART_PATH, SPY_2M_CHART_PATH, TERMINAL_LOG, EMAS_PATH, MARKERS_PATH, CANDLE_LOGS
 
 async def bot_start():
     await bot.start(cred.DISCORD_TOKEN)
@@ -29,8 +30,6 @@ websocket_connection = None  # Initialize websocket_connection at the top level
 
 ONE_HOUR = 3600
 ONE_MINUTE = 60
-
-config_path = Path(__file__).resolve().parent / 'config.json'
 
 CANDLE_DURATION = {}
 
@@ -53,40 +52,6 @@ for timeframe in read_config('TIMEFRAMES'):
 # Define New York timezone
 new_york_tz = pytz.timezone('America/New_York')
 
-LOGS_DIR = Path(__file__).resolve().parent / 'logs'
-
-def write_to_log(data, symbol, timeframe):
-    filepath = LOGS_DIR / f"{symbol}_{timeframe}.log"
-    LOGS_DIR.mkdir(parents=True, exist_ok=True)
-
-    with filepath.open("a") as file:
-        json_data = json.dumps(data)
-        file.write(json_data + "\n")
-
-def clear_log(symbol=None, timeframe=None, terminal_log=None):
-    filepath = None
-    if symbol and timeframe:
-        filepath = LOGS_DIR / f"{symbol}_{timeframe}.log"
-    if terminal_log:
-        filepath = LOGS_DIR / terminal_log
-    if filepath.exists():
-        filepath.unlink() 
-
-def read_log_file(log_file_path):
-    try:
-        with open(log_file_path, 'r') as file:
-            return file.read()
-    except FileNotFoundError:
-        print_log(f"File {log_file_path} not found.")
-        return ""
-
-def write_log_data_as_string(data, symbol, timeframe):
-    filepath = LOGS_DIR / f"{symbol}_{timeframe}.log"
-    LOGS_DIR.mkdir(parents=True, exist_ok=True)
-
-    with filepath.open("a") as file:
-        file.write(data + "\n")
-
 current_candle = {
     "open": None,
     "high": None,
@@ -97,33 +62,6 @@ current_candle = {
 current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
 start_times = {tf: datetime.now() for tf in read_config('TIMEFRAMES')}
 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')}
-
-def generate_candlestick_times(start_time, end_time, interval):
-    new_york_tz = pytz.timezone('America/New_York')
-    start = new_york_tz.localize(datetime.combine(datetime.today(), start_time.time()))
-    end = new_york_tz.localize(datetime.combine(datetime.today(), end_time.time()))
-    times = []
-    while start <= end:
-        times.append(start)
-        start += interval
-    return times
-
-def add_seconds_to_time(time_str, seconds):
-    time_obj = datetime.strptime(time_str, '%H:%M:%S')
-    new_time_obj = time_obj + timedelta(seconds=seconds)
-    return new_time_obj.strftime('%H:%M:%S')
-
-def load_from_csv(filename):
-    try:
-        df = pd.read_csv(filename)
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        return df
-    except FileNotFoundError:
-        print_log(f"File {filename} not found.")
-        return None
-    except Exception as e:
-        print_log(f"An error occurred while loading {filename}: {e}")
-        return None
 
 async def process_data(queue):
     print_log("Starting `process_data()`...")
@@ -156,8 +94,7 @@ async def process_data(queue):
                 # Reset the candles for the new day
                 current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
                 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')}
-                for tf in read_config('TIMEFRAMES'):
-                    start_times[tf] = now
+                start_times = {tf: now for tf in read_config('TIMEFRAMES')}
             
             if now >= market_close_time:
                 print_log("Ending `process_data()`...")
@@ -168,7 +105,7 @@ async def process_data(queue):
                         current_candle["timestamp"] = start_times[timeframe].isoformat()
                         write_to_log(current_candle, read_config('SYMBOL'), timeframe)
                         print_log(f"[FINAL WRITE] Flushed final {timeframe} candle at market close")
-                        
+                    
                 current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
                 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')} # Reset candle counts for the next day
                 async with price_lock:
@@ -226,43 +163,7 @@ async def process_data(queue):
     except Exception as e:
         await error_log_and_discord_message(e, "main", "process_data")
 
-async def ensure_economic_calendar_data():
-    json_file = 'week_ecom_calender.json'
-    
-    # Check if the JSON file exists
-    if not os.path.exists(json_file):
-        await get_economic_calendar_data()
-        return
-
-    # Read the JSON data
-    with open(json_file, 'r') as file:
-        data = json.load(file)
-
-    # Extract week_timespan
-    week_timespan = data.get('week_timespan', "")
-    if not week_timespan:
-        await get_economic_calendar_data()
-        return
-
-    # Parse the week_timespan
-    try:
-        start_date_str, end_date_str = week_timespan.split(" to ")
-        start_date = datetime.strptime(start_date_str, '%m-%d-%y')
-        end_date = datetime.strptime(end_date_str, '%m-%d-%y')
-    except ValueError:
-        await get_economic_calendar_data()
-        return
-
-    # Get today's date
-    today_date = datetime.now()
-
-    # Check if today's date is within the week_timespan
-    if not (start_date <= today_date <= end_date):
-        await get_economic_calendar_data()
-
 async def initial_setup():
-    global websocket_connection
-
     await bot.wait_until_ready()
     print_log(f"We have logged in as {bot.user}")
     await print_discord(f"Starting Bot, Real Money Activated" if read_config('REAL_MONEY_ACTIVATED') else f"Starting Bot, Paper Trading Activated")
@@ -322,9 +223,6 @@ async def main_loop():
 
     queue = asyncio.Queue()
     already_ran = False
-    # Process the data to get zones and lines
-    Boxes = None
-    tp_lines = None
     keep_loop = True
     while keep_loop:
         try:
@@ -334,95 +232,55 @@ async def main_loop():
             market_close_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("16:00:00", "%H:%M:%S").time()))
             
             # Ensure the order log is initialized before using it
-            initialize_order_log('order_log.csv')
+            initialize_csv_order_log()
             
             # Before market opens
             if ((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
                 await ensure_economic_calendar_data()
+                already_ran = True  # Set this to True to avoid running this block again until the next day
 
-                start_date, end_date = get_dates(read_config('PAST_DAYS'))
-                print_log(f"15m) Start and End days: \n{start_date}, {end_date}\n")
-
-                candle_15m_data = load_from_csv(f"{read_config('SYMBOL')}_15_minute_candles.csv")
-                if candle_15m_data is None:
-                    candle_15m_data = await get_candle_data(cred.POLYGON_API_KEY, read_config('SYMBOL'), 15, "minute", start_date, end_date)
-
-                candle_15m_data['date'] = candle_15m_data['timestamp'].dt.date
-                days = candle_15m_data['date'].unique()
-                days = days[::-1]  # Reverse the order of days to start with the most recent date
-                num_days = min(read_config('PAST_DAYS'), len(days))
-                
-                if candle_15m_data is not None and 'timestamp' in candle_15m_data.columns:
-                    prev_days_data = pd.DataFrame()  # Initialize prev_days_data to an empty DataFrame
-                    
-                    # Plot the data
-                    if chart_visualization.root is None:
-                        chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(candle_15m_data, read_config('SYMBOL')), name="plot_15m_candles_and_boxes")
-                        chart_thread.start()
-                        await asyncio.sleep(1) # wait for the thread
-                    else:
-                        chart_visualization.refresh_15_min_candle_stick_data(candle_15m_data)
-
-                    for day_num in range(num_days):
-                        current_date = days[day_num]
-                        day_data = candle_15m_data[candle_15m_data['date'] == current_date]
-                        print_log(f"[Day {day_num + 1} of {num_days}] {current_date}")
-                        df_15m = pd.concat([day_data, prev_days_data])
-                        Boxes, tp_lines = boxes.get_v2(Boxes, tp_lines, df_15m, current_date, len(day_data), read_config('GET_PDHL'))
-                        Boxes = boxes.correct_zones_inside_other_zones(Boxes)
-                        Boxes, tp_lines = boxes.correct_bleeding_zones(Boxes, tp_lines)
-                        Boxes, tp_lines = boxes.correct_zones_that_are_too_close(Boxes, tp_lines)
-                        prev_days_data = df_15m
-                    print_log(" ") # space at the end of console log for visual clarity
-                    setup_global_boxes(Boxes, tp_lines)
-                    update_15_min()
-                    
-                    already_ran = True
-
-                    # Save boxes into log file for later use
-                    boxes_info = f"15m) Start and End days: {start_date}, {end_date}\n{Boxes}\n\nTake Profit Lines: {tp_lines}\n"
-                    write_log_data_as_string(boxes_info, read_config('SYMBOL'), f"{read_config('TIMEFRAMES')[0]}_Boxes")
-
-                elif candle_15m_data is None or candle_15m_data.empty or 'timestamp' not in candle_15m_data.columns:
-                    print_log(f"    [ERROR] Error loading or invalid data in {read_config('SYMBOL')}_15_minute_candles.csv")
-                else:
-                    print_log("    [ERROR] No candle data was retrieved or 'timestamp' column is missing.")
+                # Plot the data
+                if root is None: # For when program is first starting
+                    chart_thread = threading.Thread(
+                        target=plot_candles_and_boxes, 
+                        args=(read_config('SYMBOL'),),
+                        name="chart_root"
+                    )
+                    chart_thread.start()
+                    await asyncio.sleep(1) # wait for the thread
+                else: # For 24/7+ Run Times
+                    refresh_15_min_candle_stick_data()
             
             # Market is Open
             if market_open_time <= current_time <= market_close_time:
                 if websocket_connection is None:  # Start WebSocket connection
                     data_acquisition.should_close = False # Signal its okay to open Websocket
-                    chart_visualization.should_close = False # Signal its okay to open Chart
-                    
+        
                     # Start the WebSocket connection for the active provider
-                    asyncio.create_task(data_acquisition.ws_connect_v2(queue, active_provider, read_config('SYMBOL')), name="WebsocketConnection")  # Start in the background
+                    asyncio.create_task(ws_auto_connect(queue, active_provider, read_config('SYMBOL')), name="WebsocketConnection")  # Start in the background
                     websocket_connection = True
 
-                    # Initialize account balance and log
-                    rma = read_config('REAL_MONEY_ACTIVATED')
-                    start_of_day_account_balance = await get_account_balance(rma) if rma else read_config('START_OF_DAY_BALANCE')
-                        
+                    # Get Account Balance and Send to Discord
+                    start_of_day_account_balance = await get_account_balance(read_config('REAL_MONEY_ACTIVATED')) if read_config('REAL_MONEY_ACTIVATED') else read_config('START_OF_DAY_BALANCE')
                     f_s_account_balance = "{:,.2f}".format(start_of_day_account_balance)
                     await print_discord(f"Market is Open! Account BP: ${f_s_account_balance}")
 
                     # Send 2-min chart picture to Discord
-                    pic_15m_filepath = Path(__file__).resolve().parent / f"{read_config('SYMBOL')}_15-min_chart.png"
-                    await send_file_discord(pic_15m_filepath)
+                    await send_file_discord(SPY_15M_CHART_PATH)
 
                     await print_discord(setup_economic_news_message())
                 task1 = asyncio.create_task(process_data(queue), name="ProcessDataTask")
-                task2 = asyncio.create_task(execute_trading_strategy(Boxes, tp_lines), name="TradingStrategyTask")
+                task2 = asyncio.create_task(execute_trading_strategy(), name="TradingStrategyTask")
                 await asyncio.gather(task1, task2)
             else: # Market is closed
                 if websocket_connection is not None:
                     data_acquisition.should_close = True  # Signal to close WebSocket
                     await process_end_of_day()
-                    #chart_visualization.should_close = True # Signal to close Chart
+                    refresh_15_min_candle_stick_data()
                     already_ran = False
                     keep_loop = False
                 if current_time <= market_open_time:
-                    # Calculate the seconds until the market opens
-                    delta_until_open = (market_open_time - current_time).total_seconds()
+                    delta_until_open = (market_open_time - current_time).total_seconds() # Calculate the seconds until the market opens
                     print_log(f"The market is about to open. Waiting {int(delta_until_open)} seconds...")
                     await asyncio.sleep(delta_until_open)
                 elif market_close_time <= current_time:
@@ -430,18 +288,6 @@ async def main_loop():
                     break
         except Exception as e:
             await error_log_and_discord_message(e, "main", "main")
-
-def get_correct_message_ids():
-    # Load `message_ids.json` from the file
-    json_file_path = 'message_ids.json'
-    if os.path.exists(json_file_path):
-        with open(json_file_path, 'r') as file:
-            json_message_ids_dict = json.load(file)
-            #print (f"{json_message_ids_dict}")
-    else:
-        json_message_ids_dict = {}
-    
-    return json_message_ids_dict
 
 async def process_end_of_day():
     global websocket_connection
@@ -461,32 +307,22 @@ async def process_end_of_day():
     await print_discord(output_message)
 
     # 3. Send relevant files/logs to Discord
-    pic_2m_filepath = Path(__file__).resolve().parent / f"{read_config('SYMBOL')}_2-min_chart.png"
-    await send_file_discord(pic_2m_filepath)
-    whole_log = read_log_file(LOGS_DIR / f"{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}.log")
-    write_log_data_as_string(whole_log, read_config('SYMBOL'), f"{read_config('TIMEFRAMES')[0]}_Boxes")
-    new_log_file_path = LOGS_DIR / f"{read_config('SYMBOL')}_{read_config('TIMEFRAMES')[0]}_Boxes.log"
-    await send_file_discord(new_log_file_path) #Send file
-    await send_file_discord('markers.json')
-    await send_file_discord('EMAs.json')
-    terminal_log_file_path = LOGS_DIR / "terminal_output.log"
-    await send_file_discord(terminal_log_file_path)
+    await send_file_discord(SPY_2M_CHART_PATH)
+    await send_file_discord(CANDLE_LOGS.get("2M")) #Send file
+    await send_file_discord(MARKERS_PATH)
+    await send_file_discord(EMAS_PATH)
+    await send_file_discord(TERMINAL_LOG)
+    process_end_of_day_15m_candles()
 
     # 4. Administrative/config updates (do this last so nothing breaks mid-report)
     update_config_value('START_OF_DAY_BALANCE', end_of_day_account_balance)
 
-    # 5. Reset all JSON/data for next session
-    reset_json('markers.json', [])
-    reset_json('EMAs.json', [])
-    reset_json('message_ids.json', {})
-    reset_json('line_data.json', {})
-    reset_json('order_candle_type.json', [])
-    reset_json('priority_candles.json', [])
+    # 5. Reset all data for next session
     clear_all_states()
     clear_temp_logs_and_order_files()
     reset_profit_loss_orders_list()
 
-async def shutdown(loop, root=None):
+async def shutdown(loop):
     """Shutdown tasks and the Discord bot."""
     # Gracefully shutdown the Discord bot
     await bot.close()  # Make sure this is the correct way to close your bot instance
@@ -503,8 +339,8 @@ async def shutdown(loop, root=None):
 if __name__ == "__main__":
 
     loop = asyncio.get_event_loop()
-    loop.create_task(bot_start())
-    loop.create_task(main())
+    loop.create_task(bot_start(), name="DiscordBotStart")
+    loop.create_task(main(), name="MainLoop")
 
     try:
         loop.run_forever()
@@ -513,3 +349,4 @@ if __name__ == "__main__":
         loop.run_until_complete(shutdown(loop))
     finally:
         loop.close()
+        

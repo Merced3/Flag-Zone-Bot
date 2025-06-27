@@ -747,12 +747,12 @@
         "week_number": 61,
         "week_start_end_date": "06/23/2025-06/27/2025",
         "start_ammount": 39311.0,
-        "end_ammount": 39005.0,
-        "total_made": -306.0, 
-        "num_of_trades": 9,
-        "num_of_profitable_trades": 4,
-        "num_of_negitive_trades": 5,
-        "description": "Day 1, no trades, broke PDH but didn't last long enough to detect any trades. Day 2, 7 trades, 4 negitive 3 positive, lost -$221, last trade theta really ate us up. Day 3, 2 trades, 1 negitive (ate most of the progress) 1 rofitable, Lost -85$ today, both trades ewre above PDH, then it went inbetween PDHL for the rest of the day, last candle is finally populating scene.",
+        "end_ammount": 39174.0,
+        "total_made": -137.0, 
+        "num_of_trades": 15,
+        "num_of_profitable_trades": 8,
+        "num_of_negitive_trades": 7,
+        "description": "Day 1, no trades, broke PDH but didn't last long enough to detect any trades. Day 2, 7 trades, 4 negitive 3 positive, lost -$221, last trade theta really ate us up. Day 3, 2 trades, 1 negitive (ate most of the progress) 1 rofitable, Lost -85$ today, both trades ewre above PDH, then it went inbetween PDHL for the rest of the day, last candle is finally populating scene. Day 4, 6 trades, 2 negitive, 4 positive, made $169 today, today went pretty good, today i am also working on the new structure of project. Day 5, not trades because i disabled it, last night at 5 am i ran the new version of the program to see what errors would come up and what we need to change to make this work, after market closed i fixed almost everything, 15 minute chart still needs some work but it 'works' (sarcastically) for the most part.",
         "important_message_ids": []
     }
 

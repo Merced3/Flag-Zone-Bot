@@ -1,5 +1,4 @@
 #error_handler.py
-import os
 import traceback
 from datetime import datetime
 from shared_state import print_log

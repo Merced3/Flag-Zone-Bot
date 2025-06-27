@@ -1,5 +1,6 @@
 # shared_state.py
 from pathlib import Path
+from paths import TERMINAL_LOG, LOGS_DIR  # and any others you may need later
 import asyncio
 import json
 import time
@@ -9,10 +10,6 @@ latest_price = None  # To store the latest price
 price_lock = asyncio.Lock()  # To ensure thread-safe access
 
 latest_sentiment_score = {"score": 0} # Used for order_handler.py access
-
-# Define the logs directory and file path
-LOGS_DIR = Path(__file__).resolve().parent / 'logs'
-LOG_FILE_PATH = LOGS_DIR / 'terminal_output.log'
 
 def print_log(message: str):
     """
@@ -29,11 +26,11 @@ def print_log(message: str):
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
     # Ensure the log file exists
-    if not LOG_FILE_PATH.exists():
-        LOG_FILE_PATH.touch()  # Create the file if it doesn't exist
+    if not TERMINAL_LOG.exists():
+        TERMINAL_LOG.touch()  # Create the file if it doesn't exist
 
     # Append the message to the log file
-    with open(LOG_FILE_PATH, "a", encoding="utf-8") as log_file:
+    with open(TERMINAL_LOG, "a", encoding="utf-8") as log_file:
         log_file.write(message + "\n")
 
 def indent(level=1):
@@ -67,7 +64,9 @@ def safe_read_json(file_path, retries=5, delay=0.1, default=None, indent_lvl=Non
         default = []  # Default to an empty list if not specified
 
     expected_type = type(default)  # Determine the type of the expected return value
-    file_path = Path(file_path)
+    
+    if not isinstance(file_path, Path):
+        file_path = Path(file_path)
 
     for attempt in range(retries):
         try:
@@ -134,7 +133,8 @@ def safe_write_json(file_path, content, retries=5, delay=0.1, indent_lvl=None):
     Returns:
         bool: True if the write operation is successful, False otherwise.
     """
-    file_path = Path(file_path)
+    if not isinstance(file_path, Path):
+        file_path = Path(file_path)
 
     for attempt in range(retries):
         try:

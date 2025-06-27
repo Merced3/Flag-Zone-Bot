@@ -9,18 +9,14 @@ from pathlib import Path
 from print_discord_messages import bot, print_discord, edit_discord_message, get_message_content
 from submit_order import submit_option_order, get_order_status
 from error_handler import error_log_and_discord_message, print_log
-from data_acquisition import add_markers, is_ema_broke, get_current_candle_index, get_latest_ema_values, update_order_details, read_config
+from data_acquisition import add_markers, get_current_candle_index, get_current_price
+from utils.json_utils import read_config
+from utils.data_utils import is_ema_broke, get_latest_ema_values
+from utils.order_utils import update_order_details, calculate_bid_percentage
+from shared_state import latest_sentiment_score
 import time
 import re
 
-config_path = Path(__file__).resolve().parent / 'config.json'
-
-#config = read_config()
-#SYMBOL = config["SYMBOL"]
-#TIMEFRAMES = config["TIMEFRAMES"]
-#IS_REAL_MONEY = config["REAL_MONEY_ACTIVATED"]
-#STOP_LOSS_PERCENTAGE = config["STOP_LOSS_PERCENTAGE"]
-#TAKE_PROFIT_PERCENTAGES = config["TAKE_PROFIT_PERCENTAGES"]
 RETRY_COUNT = 3
 RETRY_DELAY = 3  # seconds
 
@@ -31,27 +27,303 @@ global order_quantity
 global current_order_active
 unique_order_id = None
 current_order_active = False
-global partial_exits
-todays_orders_profit_loss_list = [] #added the variable here instead of tll_trading_strategy.py
+global order_adjustments
+todays_orders_profit_loss_list = []
 
-LOGS_DIR = Path(__file__).resolve().parent / 'logs'
+def calculate_sell_points(buy_entry_price, percentages):
+    return [buy_entry_price * (1 + p / 100) for p in percentages]
 
-def calculate_bid_percentage(buy_entry_price, sold_bid_price):
-    """
-    Calculate the percentage change between the buy entry price and the sold bid price.
+def get_unique_order_id_and_is_active():
+    return unique_order_id, current_order_active
 
-    Args:
-    - buy_entry_price (float): The price at which the asset was bought.
-    - sold_bid_price (float): The price at which the asset was sold or trimmed.
+def get_profit_loss_orders_list():
+    return todays_orders_profit_loss_list
 
-    Returns:
-    - float: The percentage change.
-    """
-    try:
-        percentage_change = ((sold_bid_price - buy_entry_price) / buy_entry_price) * 100
-        return round(percentage_change, 2)  # Rounding to 2 decimal places
-    except ZeroDivisionError:
-        return 0.0
+def reset_profit_loss_orders_list():
+    global todays_orders_profit_loss_list
+    todays_orders_profit_loss_list.clear()
+
+def get_order_log_name(symbol,option_type,strike,timestamp):
+    return f"order_log({symbol}_{option_type}_{strike}_{timestamp}).txt"
+
+def get_sell_trim_message(sell_quantity, total_value, current_bid_price):
+    return f"Sold {sell_quantity} for ${total_value:.2f}, Fill: {current_bid_price}"
+
+async def manage_active_order(active_order_details, _message_ids_dict):
+    global message_ids_dict
+    global buy_entry_price
+    global unique_order_id # f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
+    global order_quantity
+    global current_order_active
+    global order_adjustments
+
+    if active_order_details is None:
+        return
+    
+    # Initialize variables from active_order_details 
+    order_id = active_order_details["order_retrieval"]
+    unique_order_id =   active_order_details["order_id"]
+    message_ids_dict = _message_ids_dict
+    buy_entry_price =   active_order_details["entry_price"]
+    order_quantity  =   active_order_details["quantity"]
+    total_cost = order_quantity * (buy_entry_price * 100)
+    sell_targets, sell_quantities = generate_sell_info(order_quantity, buy_entry_price, total_cost)
+    order_adjustments = active_order_details.get("order_adjustments", [])
+    tp_value = active_order_details.get("TP_value")
+    sell_points = calculate_sell_points(buy_entry_price, sell_targets[order_quantity])
+
+    print_once_flag = True
+    current_order_active = True
+    lowest_bid_price = None
+    highest_bid_price = None
+    buy_price_already_writen = None
+    remaining_quantity = order_quantity - sum(sale['quantity'] for sale in order_adjustments)
+    last_check_candle_index, last_checked_ema_index = None, None
+    sim_active = False # only in testing
+    real_money_activated = read_config('REAL_MONEY_ACTIVATED') # so that were not constantly reading a json if in while block
+
+    # Creating a new session using a context manager
+    async with aiohttp.ClientSession() as session: 
+        
+        if not sim_active: #if real_money_activated:
+            order_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}accounts/{cred.TRADIER_BROKERAGE_ACCOUNT_NUMBER}/orders/{order_id}"
+            headers = {
+                "Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", 
+                "Accept": "application/json"
+            }
+
+        while current_order_active:  # Loop to manage an individual order
+            
+            if real_money_activated:
+                async with session.get(order_url, headers=headers) as response:
+                    if response.status == 429:  # Too Many Requests, This is too not abuse Tradier Api requests
+                        print_log("Rate limit exceeded, sleeping...")
+                        await asyncio.sleep(60)  # Sleep for a minute
+                    elif response.status != 200:
+                        print_log(f"    Received unexpected status code {response.status}: {await response.text()}")
+                        continue
+            
+            # submit_order.py, get_order_status(), 'unique_order_key' looks like this \/
+            # unique_order_key = f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
+            # Split 'unique_order_id' into its components
+            try:
+                if unique_order_id:
+                    parts = unique_order_id.split('-')
+                    if len(parts) >= 5:
+                        symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
+                        order_log_name = get_order_log_name(symbol, option_type, strike, _timestamp)
+                        expiration_date_obj = datetime.strptime(expiration_date, "%Y%m%d")# Convert the expiration date to 'YYYY-MM-DD' format
+                        formatted_expiration_date = expiration_date_obj.strftime("%Y-%m-%d")
+                        try:
+                            with open(order_log_name, "a") as log_file:
+                                if buy_price_already_writen is None:
+                                    log_file.write(f"Buy Entry Price: {buy_entry_price}\n")
+                                    buy_price_already_writen = True
+                        except Exception as e:
+                                await error_log_and_discord_message(e, "order_handler", "manage_active_fake_order", f"Error writing to file {order_log_name}")
+
+                        # Check if we should print the message
+                        if print_once_flag:
+                            current_order_cost = order_quantity * (buy_entry_price * 100)
+                            print_log(f"    [ORDER DETIALS] Bought {order_quantity} at {buy_entry_price} resulting in a cost of ${current_order_cost:.2f}")
+                            print_once_flag = False  # Set flag to False so it doesn't print again
+                                    
+                        #Starting get_option_bid_price(SPY, 419, 2023-11-01, put, session, headers)
+                        current_bid_price = await get_option_bid_price(
+                            symbol, strike, formatted_expiration_date, 
+                            option_type, session, headers)
+
+                        if current_bid_price is not None:
+                            # Update the lowest bid price
+                            if lowest_bid_price is None or current_bid_price < lowest_bid_price:
+                                lowest_bid_price = current_bid_price
+                            # Update the highest bid price
+                            if highest_bid_price is None or current_bid_price > highest_bid_price:
+                                highest_bid_price = current_bid_price
+
+                            # Open the log file and write the bid price
+                            if not safe_write_to_file(order_log_name, f"{current_bid_price}\n"):
+                                print_log(f"Failed to write to {order_log_name} after retries.")
+
+                # Check for stop loss condition
+                stop_hit = await check_stop_loss(
+                    current_bid_price, buy_entry_price, option_type,
+                    last_check_candle_index, last_checked_ema_index
+                )
+                if stop_hit:
+                    break
+
+                # Trim Logic, sell targets
+                order_adjustments, remaining_quantity, order_closed = await check_trim_targets(
+                    current_bid_price, sell_points, sell_quantities, order_quantity,
+                    order_adjustments, remaining_quantity, buy_entry_price, message_ids_dict,
+                    unique_order_id, order_log_name, option_type, tp_value
+                )
+                if order_closed:
+                    break
+
+
+                # Take Profit
+                tp_hit = await check_take_profit(tp_value, option_type)
+                if tp_hit:
+                    break
+                
+                # Just incase, quantity at 0
+                if remaining_quantity <= 0:
+                    msg_id = message_ids_dict[unique_order_id]
+                    calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name, unique_order_id)
+                    content = await get_message_content(msg_id)
+                    if content:
+                        final_msg = content + calculate_profit_percentage(content, unique_order_id)  # Append the trade info to the original message content
+                        await edit_discord_message(msg_id, final_msg, None, Path(__file__).resolve().parent / f"{order_log_name}")
+                        # Verify if the file was sent and then delete the log file
+                        if os.path.exists(order_log_name):
+                            os.remove(order_log_name)
+                            #print_log(f"Order log file {order_log_name} deleted.")
+                    all_sells = 0
+                    for sells in order_adjustments:
+                        sell_cost = (sells["sold_price"] * 100) * sells["quantity"]
+                        all_sells = all_sells + sell_cost
+
+                    profit_loss = all_sells - current_order_cost 
+                    print_log(f"    [ORDER DETIALS] manage_active_order(), Profit/Loss: ${profit_loss:.2f}")
+                    todays_orders_profit_loss_list.append(profit_loss)
+                    unique_order_id = None
+                    break
+
+                # Wait before checking again
+                await asyncio.sleep(.5)
+            except aiohttp.ClientOSError as e:
+                print_log(f"[MAFO] Encountered an error: {e}. Retrying in {RETRY_DELAY} seconds.")
+                await asyncio.sleep(RETRY_DELAY)
+                # Retry loop continues indefinitely until it succeeds or the process is stopped
+
+async def check_take_profit(TP_value, position_type):
+    if TP_value is None:
+        return  # Nothing to do
+    
+    current_stock_price = await get_current_price()
+    if position_type == "call" and current_stock_price >= TP_value:
+        await sell_rest_of_active_order("Take Profit Hit")
+        return True
+    elif position_type == "put" and current_stock_price <= TP_value:
+        await sell_rest_of_active_order("Take Profit Hit")
+        return True
+    return False
+
+async def check_trim_targets(current_bid_price, sell_points, sell_quantities, order_quantity, order_adjustments, remaining_quantity, buy_entry_price, message_ids_dict, unique_order_id, order_log_name, position_type, TP_value):
+    
+    updated_adjustments = order_adjustments[:]
+    remaining_qty = remaining_quantity
+
+    for i, sell_point in enumerate(sell_points):
+        # Determine if this sell target has already been hit
+        already_sold = any(sale['target'] == sell_point for sale in updated_adjustments)
+                    
+        # Check if all previous sell points (if any) have been sold
+        # This is True if for all sell points before the current one, there exists a corresponding sale in order_adjustments
+        all_previous_sold = all(any(sale['target'] == sp for sale in updated_adjustments) for sp in sell_points[:i])
+                    
+        # Identify if the current sell point is the last one, and all previous sell points have been sold
+        is_runner = (i == len(sell_points) - 1) and all_previous_sold
+
+        if current_bid_price >= sell_point and not already_sold and not is_runner:
+            sell_quantity = min(sell_quantities[order_quantity][i], remaining_quantity)
+            sale_info = {
+                "target": sell_point,
+                "sold_price": current_bid_price,  # Using actual sold bid price
+                "quantity": sell_quantity,  # Using actual sold quantity
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            updated_adjustments.append(sale_info)
+            remaining_quantity -= sell_quantity
+            
+            sold_order_cost = (current_bid_price * 100) * sell_quantity
+            print_log(f"    [ORDER DETIALS] Sold {sell_quantity} at {current_bid_price} target, {remaining_quantity} remaining. Order Cost: ${sold_order_cost:.2f}")
+
+            # Calculate Percentage for more data tracking...
+            bid_percentage = calculate_bid_percentage(buy_entry_price, current_bid_price)
+            marker_type = "sell" if remaining_qty <= 0 else "trim"
+            await add_markers(marker_type, percentage=bid_percentage)
+
+            with open(order_log_name, "a") as log_file:
+                log_file.write(f"Sold {sell_quantity} at {current_bid_price}\n")
+                #log_file.flush()
+
+            total_value = (current_bid_price * 100) * sell_quantity
+            update_dsc_msg = get_sell_trim_message(sell_quantity, total_value, current_bid_price) # update_dsc_msg, means update discord message
+            
+            if unique_order_id in message_ids_dict:
+                msg_id = message_ids_dict[unique_order_id]
+                try:
+                    content = await get_message_content(msg_id)
+                    if content:
+                        await edit_discord_message(msg_id, content + "\n" + update_dsc_msg)
+                except Exception as e:  # Catch any exception to avoid stopping the loop
+                    await error_log_and_discord_message(e, "order_handler", "manage_active_fake_order", "An error occurred while getting or edditing message")
+
+        # Determinded theta would win most of the battles.
+        elif is_runner:
+            if TP_value is None and is_ema_broke("13", read_config('TIMEFRAMES')[0], position_type):
+                await sell_rest_of_active_order("13ema Hit on Runner")
+                return updated_adjustments, remaining_qty, True
+            
+    return updated_adjustments, remaining_qty, False
+
+async def check_stop_loss(current_bid_price, buy_entry_price, position_type, last_check_candle_index, last_checked_ema_index):
+    STOP_LOSS = read_config('STOP_LOSS')
+    if isinstance(STOP_LOSS, str): # STOP_LOSS is string
+        # Handling string type STOP_LOSS, e.g., "EMA 13", "SENTIMENT"
+        if "EMA" in STOP_LOSS:
+            ema_value = STOP_LOSS.split(' ')[-1]
+            if is_ema_broke(ema_value, read_config('TIMEFRAMES')[0], position_type):
+                await sell_rest_of_active_order("13ema Trailing stop Hit")
+                return True
+        if "SENTIMENT" in STOP_LOSS:
+            sentiment_score = latest_sentiment_score["score"]
+            threshold = 2 # Whatever you want to put
+            if (position_type == "call" and sentiment_score <= -threshold) or \
+               (position_type == "put" and sentiment_score >= threshold):
+                await sell_rest_of_active_order("Sentiment Reversal Stop Loss")
+                return True
+    
+    elif isinstance(STOP_LOSS, (int, float)): # STOP_LOSS is number; example: 20; 20% stoploss
+        current_loss = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
+        if current_loss <= STOP_LOSS:
+            print_log(f"    [ORDER DETIALS] STOP LOSS Hit: {current_loss:.2f}% <= {STOP_LOSS}%")
+            await sell_rest_of_active_order(f"{STOP_LOSS}% Stop Loss")
+            return True
+    
+    # STOP_LOSS is a list
+    # e.g., ["EMA 13", 20], Stoploss is 13 ema AND Less than 20%
+    # e.g., ["SENTIMENT", 2], Stoploss is whatever sentiment switches to the oposing threshold (2)
+    elif isinstance(STOP_LOSS, list) and len(STOP_LOSS) == 2:
+        SL_string, SL_number = STOP_LOSS
+        if isinstance(SL_string, str) and "EMA" in SL_string and isinstance(SL_number, (int, float)):
+            ema_value = SL_string.split(' ')[-1]
+            current_candle_index = get_current_candle_index()
+            current_ema_val, current_index_ema = get_latest_ema_values(ema_value)
+                
+            # Check if the current candle and ema is different since last checked
+            if (current_candle_index != last_check_candle_index 
+                and current_index_ema != last_checked_ema_index 
+                and current_candle_index == current_index_ema):
+
+                last_check_candle_index = current_candle_index
+                last_checked_ema_index = current_index_ema
+                broke = is_ema_broke(ema_value, read_config('TIMEFRAMES')[0], position_type)
+                if broke:
+                    loss = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
+                    if (loss <= SL_number) or order_adjustments:
+                        await sell_rest_of_active_order("Partial Exit & EMA Break" if order_adjustments else "EMA Break and (%) Loss")
+                        return True
+        elif isinstance(SL_string, str) and "SENTIMENT" in SL_string and isinstance(SL_number, (int, float)):
+            sentiment_score = latest_sentiment_score["score"]
+            threshold = SL_number
+            if (position_type == "call" and sentiment_score <= -threshold) or \
+               (position_type == "put" and sentiment_score >= threshold):
+                await sell_rest_of_active_order("Sentiment Reversal Stop Loss")
+                return True
 
 def distribute_remaining_contracts(remaining, n_targets):
     proportions = {
@@ -89,9 +361,6 @@ def distribute_remaining_contracts(remaining, n_targets):
 
     return distribution
 
-def calculate_sell_points(buy_entry_price, percentages):
-    return [buy_entry_price * (1 + p / 100) for p in percentages]
-
 def generate_sell_info(order_quantity, buy_entry_price, total_cost):
     sell_targets = {}
     sell_quantities = {}
@@ -123,58 +392,46 @@ def generate_sell_info(order_quantity, buy_entry_price, total_cost):
 
             return sell_targets, sell_quantities
 
-def get_unique_order_id_and_is_active():
-    #print(f"\nget_unique_order_id_and_is_active():\nunique_order_id: {unique_order_id}\ncurrent_order_active: {current_order_active}\n")
-    return unique_order_id, current_order_active
-
-def get_profit_loss_orders_list():
-    return todays_orders_profit_loss_list
-
-async def get_option_bid_price(symbol, strike, expiration_date, option_type, session):
+async def get_option_bid_price(symbol, strike, expiration_date, option_type, session, headers):
     #only realtime data
     quote_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}markets/options/chains?symbol={symbol}&expiration={expiration_date}"
-    headers = {"Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", "Accept": "application/json"}
     
-    retry_delay = 1  # Start with a 1-second delay
-    max_delay = 60  # Don't wait longer than 60 seconds between retries
-    consecutive_502_errors = 0  # Track 502 errors to apply cooldown logic
-
     while True:
         try:
             async with session.get(quote_url, headers=headers) as response:
-                if response.status == 200:
+                if response.status != 200:
+                    print_log(f"    [get_option_bid_price] Received unexpected status code {response.status}: {await response.text()}")
+                    await asyncio.sleep(1)  # Wait a second before retrying
+                    continue
+                
+                try:
                     response_json = await response.json()
                     options_data = response_json.get('options', {}).get('option', [])
                     target_strike = float(strike)
-                    
-                    # Filter option contracts based on strike price and type
-                    filtered_options = [option for option in options_data if option['strike'] == target_strike and option['option_type'] == option_type]
+                    filtered_options = [
+                        option for option in options_data 
+                        if option['strike'] == target_strike and option['option_type'] == option_type
+                    ]
                     
                     if filtered_options:
                         return filtered_options[0]['bid']
                     else:
-                        print_log(f"[get_option_bid_price] Option not found at strike {strike}, retrying in {retry_delay}s...")
-                        await asyncio.sleep(retry_delay)
-                        continue
+                        print_log("    [ORDER DETIALS] get_option_bid_price(); Option not found, retrying...")
+                        await asyncio.sleep(1)  # Wait a second before retrying
 
-                elif response.status == 502:
-                    consecutive_502_errors += 1
-                    retry_delay = min(2 ** consecutive_502_errors, max_delay)  # Exponential backoff but max 60s
-                    print_log(f"[get_option_bid_price] 502 Bad Gateway (attempt {consecutive_502_errors}). Retrying in {retry_delay}s...")
-                    await asyncio.sleep(retry_delay)
-                
-                else:
-                    print_log(f"[get_option_bid_price] Unexpected status {response.status}: {await response.text()} | Retrying in {retry_delay}s...")
-                    await asyncio.sleep(retry_delay)
+                except asyncio.TimeoutError:
+                    print_log(f"    [ORDER DETIALS] get_option_bid_price(), INTERNET CONNECTION, Timeout Error, retrying...")
+                    await asyncio.sleep(1)  # Wait a second before retrying
+                except Exception as e:
+                    await error_log_and_discord_message(e, "order_handler", "get_option_bid_price", "Error parsing JSON")
+                    await asyncio.sleep(1)  # Wait a second before retrying
 
         except aiohttp.ClientOSError as e:
-            print_log(f"[INTERNET ERROR] Client OS Error: {e}. Retrying in {retry_delay}s...")
-            await asyncio.sleep(retry_delay)
-
+            print_log(f"    [ORDER DETIALS] INTERNET CONNECTION; Client OS Error: {e}. Retrying...")
+            await asyncio.sleep(1)  # Wait a second before retrying
         except Exception as e:
-            await error_log_and_discord_message(e, "order_handler", "get_option_bid_price", "Unexpected Error in get_option_bid_price()")
-            print_log(f"[get_option_bid_price] Unexpected error: {e}. Retrying in {retry_delay}s...")
-            await asyncio.sleep(retry_delay)
+            print_log(f"    [ORDER DETIALS] Unexpected error occurred: {e}. Retrying...")
+            await asyncio.sleep(1)  # Wait a second before retrying        
 
 def calculate_max_drawdown_and_gain(start_price, lowest_price, highest_price, write_to_file=None, order_log_name=None, unique_order_id=None):
     # Calculate maximum drawdown
@@ -189,435 +446,14 @@ def calculate_max_drawdown_and_gain(start_price, lowest_price, highest_price, wr
             log_file.write(f"Lowest Bid Price: {lowest_price}, Max-Drawdown: {max_drawdown:.2f}%\n")
             log_file.write(f"Highest Bid Price: {highest_price}, Max-Gain: {max_gain:.2f}%\n")
             log_file.flush()
-            #TODO: add 'lowest_bid,max_drawdown,highest_bid,max_gain' into order_log.csv
-            update_order_details('order_log.csv', unique_order_id, lowest_bid=lowest_price, max_drawdown=max_drawdown,
-                         highest_bid=highest_price, max_gain=max_gain)
-
-async def manage_active_order(active_order_details, _message_ids_dict):
-    global message_ids_dict
-    global buy_entry_price
-    global unique_order_id # f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
-    global order_quantity
-    global current_order_active
-    global partial_exits
-
-    async with aiohttp.ClientSession() as session:  # Creating a new session using a context manager
-        order_id = active_order_details["order_retrieval"]
-        
-        if read_config('REAL_MONEY_ACTIVATED'):
-            order_url = f"{cred.TRADIER_BROKERAGE_BASE_URL}accounts/{cred.TRADIER_BROKERAGE_ACCOUNT_NUMBER}/orders/{order_id}"
-            headers = {"Authorization": f"Bearer {cred.TRADIER_BROKERAGE_ACCOUNT_ACCESS_TOKEN}", "Accept": "application/json"}
-        else:
-            order_url = f"{cred.TRADIER_SANDBOX_BASE_URL}accounts/{cred.TRADIER_SANDBOX_ACCOUNT_NUMBER}/orders/{order_id}"
-            headers = {"Authorization": f"Bearer {cred.TRADIER_SANDBOX_ACCESS_TOKEN}", "Accept": "application/json"}
-
-        if not active_order_details.get("partial_exits"):
-            active_order_details["partial_exits"] = []
-        
-        unique_order_id =   active_order_details["order_id"]
-        message_ids_dict = _message_ids_dict
-        buy_entry_price =   active_order_details["entry_price"]
-        order_quantity  =   active_order_details["quantity"]
-        total_cost = order_quantity * (buy_entry_price * 100)
-        sell_targets, sell_quantities = generate_sell_info(order_quantity, buy_entry_price, total_cost)
-        partial_exits = active_order_details["partial_exits"]
-        sell_points = calculate_sell_points(buy_entry_price, sell_targets[order_quantity])
-
-        print_once_flag = True
-        current_order_active = True
-        lowest_bid_price = None
-        highest_bid_price = None
-        buy_price_already_writen = None
-        remaining_quantity = order_quantity - sum(sale['quantity'] for sale in partial_exits)
-
-        while current_order_active:  # Loop to manage an individual order
-            if unique_order_id is None:  # Check if the order was cleared
-                print_log("Order was cleared. Exiting management loop.")
-                break
-
-            async with session.get(order_url, headers=headers) as response:
-                if response.status == 429:  # Too Many Requests, This is too not abuse Tradier Api requests
-                    print_log("Rate limit exceeded, sleeping...")
-                    await asyncio.sleep(60)  # Sleep for a minute
-                elif response.status != 200:
-                    print_log(f"    Received unexpected status code {response.status}: {await response.text()}")
-                    continue
-                        
-                # submit_order.py, get_order_status(), 'unique_order_key' looks like this \/
-                # unique_order_key = f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
-                # Split 'unique_order_id' into its components
-                if unique_order_id:
-                    parts = unique_order_id.split('-')
-                    if len(parts) >= 5:
-                        symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-                        order_log_name = f"order_log({symbol}_{option_type}_{strike}_{_timestamp}).txt"
-
-                        
-                        expiration_date_obj = datetime.strptime(expiration_date, "%Y%m%d")# Convert the expiration date to 'YYYY-MM-DD' format
-                        formatted_expiration_date = expiration_date_obj.strftime("%Y-%m-%d")
-
-                        # Check if we should print the message
-                        if print_once_flag:
-                            print_log(f"    Starting get_option_bid_price({symbol}, {strike}, {formatted_expiration_date}, {option_type}, session, headers)\n")
-                            print_once_flag = False  # Set flag to False so it doesn't print again
-                                
-                        #Starting get_option_bid_price(SPY, 419, 2023-11-01, put, session, headers)
-                        current_bid_price = await get_option_bid_price(
-                            symbol=symbol, 
-                            strike=strike, 
-                            expiration_date=formatted_expiration_date, 
-                            option_type=option_type, 
-                            session=session, 
-                            headers=headers
-                        )
-
-                        if current_bid_price is not None:
-                            # Update the lowest bid price
-                            if lowest_bid_price is None or current_bid_price < lowest_bid_price:
-                                lowest_bid_price = current_bid_price
-                            # Update the highest bid price
-                            if highest_bid_price is None or current_bid_price > highest_bid_price:
-                                highest_bid_price = current_bid_price
-                            
-                            # Open the log file and write the bid price
-                            with open(order_log_name, "a") as log_file:
-                                if buy_price_already_writen is None:
-                                    log_file.write(f"Buy Entry Price: {buy_entry_price}\n")
-                                    buy_price_already_writen = True
-                                log_file.write(f"{current_bid_price}\n")
-                                log_file.flush()  # Ensure the data is written to the file
-
-            # Check for stop loss condition
-            if isinstance(read_config('STOP_LOSS_PERCENTAGE'), str): # if STOP_LOSS_PERCENTAGE is string
-                # Handling string type STOP_LOSS_PERCENTAGE, e.g., "EMA 13"
-                if "EMA" in read_config('STOP_LOSS_PERCENTAGE'):
-                    ema_value = read_config('STOP_LOSS_PERCENTAGE').split(' ')[-1]
-                    if is_ema_broke(ema_value, read_config('SYMBOL'), read_config('TIMEFRAMES')[0], option_type):
-                        await sell_rest_of_active_order("13ema Trailing stop Hit")
-                        break
-            elif isinstance(read_config('STOP_LOSS_PERCENTAGE'), (int, float)): # if STOP_LOSS_PERCENTAGE is number
-                if current_bid_price is not None and buy_entry_price is not None:
-                    current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
-                    if current_loss_percentage <= read_config('STOP_LOSS_PERCENTAGE'):
-                        print_log(f"\nStop loss triggered at {current_loss_percentage}% loss.")
-                        await sell_rest_of_active_order("Stop Loss Triggered")
-                        break
-            elif isinstance(read_config('STOP_LOSS_PERCENTAGE'), list) and len(read_config('STOP_LOSS_PERCENTAGE')) == 2:  # if STOP_LOSS_PERCENTAGE is a list containing an EMA and a percentage
-                    ema_string, loss_percentage = read_config('STOP_LOSS_PERCENTAGE')
-                    if isinstance(ema_string, str) and "EMA" in ema_string and isinstance(loss_percentage, (int, float)):
-                        ema_value = ema_string.split(' ')[-1]
-                        if is_ema_broke(ema_value, read_config('SYMBOL'), read_config('TIMEFRAMES')[0], option_type):
-                            if current_bid_price is not None and buy_entry_price is not None:
-                                current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
-                                if current_loss_percentage <= loss_percentage:
-                                    await sell_rest_of_active_order("13ema Trailing stop Hit and is more than desired percentage")
-                                    break
-
-            #this handles the sell targets
-            for i, sell_point in enumerate(sell_points):
-                # Check if this target has already been hit and part of the order sold
-                already_sold = any(sale['target'] == sell_point for sale in partial_exits)
-                if current_bid_price >= sell_point and not already_sold:
-                    sell_quantity = min(sell_quantities[order_quantity][i], remaining_quantity)
-
-                    # Unpack the returned values from the sell function
-                    sold_bid_price, sold_quantity, success = await sell(
-                        sell_quantity, unique_order_id, message_ids_dict, f"Hit Sell Target Of {sell_point}"
-                    )
-
-                    if success and sold_quantity is not None and sold_bid_price is not None:
-                        sale_info = {
-                            "target": sell_point,
-                            "sold_price": sold_bid_price,  # Using actual sold bid price
-                            "quantity": sold_quantity,  # Using actual sold quantity
-                            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        }
-                        partial_exits.append(sale_info)
-                        remaining_quantity -= sold_quantity
-                        print_log(f"Sold {sold_quantity} at {sold_bid_price} target, {remaining_quantity} remaining.")
-
-                        # Calculate Percentage for more data tracking...
-                        bid_percentage = calculate_bid_percentage(buy_entry_price, sold_bid_price)
-                        if remaining_quantity <= 0:
-                            await add_markers("sell", None, None, bid_percentage)
-                        else:
-                            await add_markers("trim", None, None, bid_percentage)
-                        
-                        #have 'already_sold' some how afftected right here, i think that will help with selling issue
-                        
-                        with open(order_log_name, "a") as log_file:
-                            log_file.write(f"Sold {sold_quantity} at {sold_bid_price}\n")
-                            log_file.flush()
-                        if remaining_quantity <= 0:
-                            calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name, unique_order_id)
-                            #print end of message calculations
-                            _message_ = await get_message_content(message_ids_dict[unique_order_id])  
-                            if _message_ is not None:
-                                trade_info = calculate_profit_percentage(_message_, unique_order_id)
-                                new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content
-                                await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content)
-                                current_order_active = False
-                                unique_order_id = None
-                            else:
-                                await print_discord("Could not fetch message content.")
-                            break
-                    else:
-                        print_log("Sell order failed. Retrying...")
-            if remaining_quantity <= 0:
-                unique_order_id = None
-                break
-            # Wait before checking again
-            await asyncio.sleep(.5)
-
-def safe_write_to_file(path, data, max_retries=3, retry_delay=0.25):
-    for attempt in range(max_retries):
-        try:
-            with open(path, "a") as log_file:
-                log_file.write(data)
-                log_file.flush()
-            return True  # Successfully written
-        except PermissionError as e:
-            print_log(f"Permission denied on attempt {attempt+1}: {e}")
-            time.sleep(retry_delay)
-    return False  # Failed to write after retries
-
-async def manage_active_fake_order(active_order_details, _message_ids_dict):
-    global message_ids_dict
-    global buy_entry_price
-    global unique_order_id
-    global order_quantity
-    global current_order_active
-    global partial_exits
-
-    if active_order_details is None:
-        return
-
-    # Initialize variables from active_order_details
-    unique_order_id = active_order_details["order_id"]
-    message_ids_dict = _message_ids_dict
-    buy_entry_price = active_order_details["entry_price"]
-    order_quantity = active_order_details["quantity"]
-    total_cost = order_quantity * (buy_entry_price * 100)
-    sell_targets, sell_quantities = generate_sell_info(order_quantity, buy_entry_price, total_cost)
-    partial_exits = active_order_details.get("partial_exits", [])
-    sell_points = calculate_sell_points(buy_entry_price, sell_targets[order_quantity])
-    
-    print_once_flag = True
-    current_order_active = True
-    lowest_bid_price = None
-    highest_bid_price = None
-    buy_price_already_writen = None
-    remaining_quantity = order_quantity - sum(sale['quantity'] for sale in partial_exits)
-    last_check_candle_index = None
-    last_checked_ema_index = None
-
-    async with aiohttp.ClientSession() as session:
-        retry_attempts = 0
-        while current_order_active:
-            # For simulation, we can use a static or randomly generated current bid price.
-            # In a real scenario, this would be fetched from live market data.
-
-            # submit_order.py, get_order_status(), 'unique_order_key' looks like this \/
-            # unique_order_key = f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
-            # Split 'unique_order_id' into its components
-            try:
-                if unique_order_id:
-                    parts = unique_order_id.split('-')
-                    if len(parts) >= 5:
-                        symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-                        order_log_name = f"order_log_{symbol}_{option_type}_{strike}_{_timestamp}.txt"
-                        expiration_date_obj = datetime.strptime(expiration_date, "%Y%m%d")# Convert the expiration date to 'YYYY-MM-DD' format
-                        formatted_expiration_date = expiration_date_obj.strftime("%Y-%m-%d")
-                        try:
-                            with open(order_log_name, "a") as log_file:
-                                if buy_price_already_writen is None:
-                                    log_file.write(f"Buy Entry Price: {buy_entry_price}\n")
-                                    buy_price_already_writen = True
-                        except Exception as e:
-                            await error_log_and_discord_message(e, "order_handler", "manage_active_fake_order", f"Error writing to file {order_log_name}")
-
-                        # Check if we should print the message
-                        if print_once_flag:
-                            #print(f"    Starting get_option_bid_price({symbol}, {strike}, {formatted_expiration_date}, {option_type}, session)\n")
-                            current_order_cost = order_quantity * (buy_entry_price * 100)
-                            print_log(f"\nBought {order_quantity} at {buy_entry_price} resulting in a cost of ${current_order_cost:.2f}")
-                            print_once_flag = False  # Set flag to False so it doesn't print again
-                                        
-                        current_bid_price = await get_option_bid_price(
-                            symbol=symbol, 
-                            strike=strike, 
-                            expiration_date=formatted_expiration_date, 
-                            option_type=option_type, 
-                            session=session
-                        )
-
-                        if current_bid_price is not None:
-                            # Update the lowest bid price
-                            if lowest_bid_price is None or current_bid_price < lowest_bid_price:
-                                lowest_bid_price = current_bid_price
-                            # Update the highest bid price
-                            if highest_bid_price is None or current_bid_price > highest_bid_price:
-                                highest_bid_price = current_bid_price
-                            
-                            # Open the log file and write the bid price
-                            if not safe_write_to_file(order_log_name, f"{current_bid_price}\n"):
-                                print_log(f"Failed to write to {order_log_name} after retries.")
-                            #with open(order_log_name, "a") as log_file: #ERROR HAPPEND HERE ------------------------------------------
-                                #log_file.write(f"{current_bid_price}\n")
-                                #log_file.flush()  # Ensure the data is written to the file
-
-                # Check for stop loss condition
-                if isinstance(read_config('STOP_LOSS_PERCENTAGE'), str): # if STOP_LOSS_PERCENTAGE is string
-                    # Handling string type STOP_LOSS_PERCENTAGE, e.g., "EMA 13"
-                    if "EMA" in read_config('STOP_LOSS_PERCENTAGE'):
-                        ema_value = read_config('STOP_LOSS_PERCENTAGE').split(' ')[-1]
-                        if is_ema_broke(ema_value, read_config('SYMBOL'), read_config('TIMEFRAMES')[0], option_type):
-                            await sell_rest_of_active_order("13ema Trailing stop Hit")
-                            break
-                elif isinstance(read_config('STOP_LOSS_PERCENTAGE'), (int, float)): # if STOP_LOSS_PERCENTAGE is number
-                    if current_bid_price is not None and buy_entry_price is not None:
-                        current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
-                        if current_loss_percentage <= read_config('STOP_LOSS_PERCENTAGE'):
-                            Sell_order_cost = remaining_quantity * (current_bid_price * 100)
-                            print_log(f"    [STOP LOSS] {current_loss_percentage:.2f}% loss. Sold {remaining_quantity} at {current_bid_price}, costing ${Sell_order_cost:.2f}")
-                            await sell_rest_of_active_order("Stop Loss Triggered")
-                            break
-                elif isinstance(read_config('STOP_LOSS_PERCENTAGE'), list) and len(read_config('STOP_LOSS_PERCENTAGE')) == 2:  # if STOP_LOSS_PERCENTAGE is a list containing an EMA and a percentage
-                    ema_string, loss_percentage = read_config('STOP_LOSS_PERCENTAGE')
-                    if isinstance(ema_string, str) and "EMA" in ema_string and isinstance(loss_percentage, (int, float)):
-                        # Get EMA value and current candle index
-                        ema_value = ema_string.split(' ')[-1]
-                        current_candle_index = get_current_candle_index()
-                        current_latest_ema_value, current_index_ema = get_latest_ema_values(ema_value) # we don't need current_latest_ema_value unless for something else
-                        
-                        # Check if the current candle and ema is different since last checked
-                        if (current_candle_index != last_check_candle_index 
-                            and current_index_ema != last_checked_ema_index 
-                            and current_candle_index == current_index_ema):
-
-                            last_check_candle_index = current_candle_index
-                            last_checked_ema_index = current_index_ema
-                            broke_13_ema = is_ema_broke(ema_value, read_config('SYMBOL'), read_config('TIMEFRAMES')[0], option_type)
-                            print_log(f"    [MAFO] Current EMA index: {last_checked_ema_index}")
-                            print_log(f"    [MAFO] Current Candle Index: {last_check_candle_index}")
-                            print_log(f"    [MAFO] Broke 13 ema: {broke_13_ema}")
-                            # Check if a partial exit has already occurred and if the 13 EMA is broken
-                            if partial_exits and broke_13_ema:
-                                await sell_rest_of_active_order("13ema Trailing stop Hit after partial exit")
-                                break
-                            
-                            # If no partial exit has occurred, see if were below loss percentage then sell, sell order else stay in order.
-                            if current_bid_price is not None and buy_entry_price is not None:
-                                current_loss_percentage = ((current_bid_price - buy_entry_price) / buy_entry_price) * 100
-                                print_log(f"    [MAFO] Current Bid and Loss: {current_bid_price}, {current_loss_percentage}% | {loss_percentage}%")
-                                if current_loss_percentage <= loss_percentage and broke_13_ema:
-                                    await sell_rest_of_active_order("13ema Trailing stop Hit and is more than desired percentage")
-                                    break
- 
-                #this handles the sell targets
-                for i, sell_point in enumerate(sell_points):
-                    # Determine if this sell target has already been hit
-                    already_sold = any(sale['target'] == sell_point for sale in partial_exits)
-                    
-                    # Check if all previous sell points (if any) have been sold
-                    # This is True if for all sell points before the current one, there exists a corresponding sale in partial_exits
-                    all_previous_sold = all(any(sale['target'] == sp for sale in partial_exits) for sp in sell_points[:i])
-                    
-                    # Identify if the current sell point is the last one, and all previous sell points have been sold
-                    is_runner = (i == len(sell_points) - 1) and all_previous_sold
-
-                    if current_bid_price >= sell_point and not already_sold and not is_runner:
-                        print_log(f"        [SELL ACTION] Selling at sell point {sell_point}. Sell quantities: {sell_quantities[order_quantity][i]}")
-                        sell_quantity = min(sell_quantities[order_quantity][i], remaining_quantity)
-                        sale_info = {
-                            "target": sell_point,
-                            "sold_price": current_bid_price,  # Using actual sold bid price
-                            "quantity": sell_quantity,  # Using actual sold quantity
-                            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        }
-                        partial_exits.append(sale_info)
-                        remaining_quantity -= sell_quantity
-                        sold_order_cost = (current_bid_price * 100) * sell_quantity
-                        print_log(f"Sold {sell_quantity} at {current_bid_price} target, {remaining_quantity} remaining. Order Cost: ${sold_order_cost:.2f}")
-
-                        # Calculate Percentage for more data tracking...
-                        bid_percentage = calculate_bid_percentage(buy_entry_price, current_bid_price)
-                        if remaining_quantity <= 0:
-                            await add_markers("sell", None, None, bid_percentage)
-                        else:
-                            await add_markers("trim", None, None, bid_percentage)
-
-                        with open(order_log_name, "a") as log_file:
-                            log_file.write(f"Sold {sell_quantity} at {current_bid_price}\n")
-                            log_file.flush()
-
-                        total_value = (current_bid_price * 100) * sell_quantity
-                        _message_ = f"Sold {sell_quantity} {symbol} contracts for ${total_value:.2f}, Fill: {current_bid_price}"
-                        if unique_order_id in message_ids_dict:
-                            original_msg_id = message_ids_dict[unique_order_id]
-                            try:
-                                original_content = await get_message_content(original_msg_id)
-                                if original_content:
-                                    updated_content = original_content + "\n" + _message_
-                                    #update discord order message
-                                    await edit_discord_message(original_msg_id, updated_content)
-                                else:
-                                    print_log(f"Could not retrieve original message content for ID {original_msg_id}")
-                            except Exception as e:  # Catch any exception to avoid stopping the loop
-                                await error_log_and_discord_message(e, "order_handler", "manage_active_fake_order", "An error occurred while getting or edditing message")
-                        else:
-                            print_log(f"Message ID for order {unique_order_id} not found in dictionary. Dictionary contents:\n{message_ids_dict}")
-
-                        if remaining_quantity <= 0:
-                            calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name, unique_order_id)
-                            #print end of message calculations
-                            _message_ = await get_message_content(message_ids_dict[unique_order_id])  
-                            if _message_ is not None:
-                                trade_info = calculate_profit_percentage(_message_, unique_order_id)
-                                new_user_msg_content = _message_ + trade_info  # Append the trade info to the original message content
-                                order_log_file_path = Path(__file__).resolve().parent / f"{order_log_name}"
-                                await edit_discord_message(message_ids_dict[unique_order_id], new_user_msg_content, None, order_log_file_path)
-                                # Verify if the file was sent and then delete the log file
-                                if os.path.exists(order_log_name):
-                                    os.remove(order_log_name)
-                                    print_log(f"Order log file {order_log_name} deleted.")
-                            else:
-                                await print_discord("Could not fetch message content.")
-                            current_order_active = False
-                            unique_order_id = None
-                            break
-                    elif is_runner:
-                        #print(f"        [RUNNER DETECTED] Preparing to check runner conditions for sell point {sell_point}")
-                        if is_ema_broke("13", read_config('SYMBOL'), read_config('TIMEFRAMES')[0], option_type):
-                            await sell_rest_of_active_order("13ema Hit")
-                            break
-                        
-                
-                if remaining_quantity <= 0:
-                    all_sells = 0
-                    for sells in partial_exits:
-                        sell_cost = (sells["sold_price"] * 100) * sells["quantity"]
-                        all_sells = all_sells + sell_cost
-
-                    profit_loss = all_sells - current_order_cost 
-                    print_log(f"(manage_active_fake_order) Profit/Loss: ${profit_loss:.2f}")
-                    todays_orders_profit_loss_list.append(profit_loss)
-                    unique_order_id = None
-                    break
-                
-                # Wait before checking again
-                await asyncio.sleep(.5)
-            except aiohttp.ClientOSError as e:
-                print_log(f"[MAFO] Encountered an error: {e}. Retrying in {RETRY_DELAY} seconds.")
-                await asyncio.sleep(RETRY_DELAY)
-                # Retry loop continues indefinitely until it succeeds or the process is stopped
+            update_order_details(unique_order_id, lowest_bid=lowest_price, max_drawdown=max_drawdown, highest_bid=highest_price, max_gain=max_gain)
 
 async def sell(quantity, unique_order_key, message_ids_dict, reason_for_selling):
     #selling logic here
     bid = None
     side = "sell_to_close"
     order_type = "market"
-    print_log(f"\n    message_ids_dict[unique_order_key]: {message_ids_dict[unique_order_key]}")
+    print_log(f"\nmessage_ids_dict[unique_order_key]: {message_ids_dict[unique_order_key]}")
 
     symbol, cp, strike, expiration_date, timestamp_from_order_id = unique_order_key.split('-')[:5]
     
@@ -625,10 +461,10 @@ async def sell(quantity, unique_order_key, message_ids_dict, reason_for_selling)
     if message_channel is None:
         print_log(f"Failed to find Discord channel with ID {cred.DISCORD_CHANNEL_ID}")
         return None, None, None
-    print_log(f"    REASON FOR SELLING: {reason_for_selling}")
+    print_log(f"    [ORDER DETIALS] REASON FOR SELLING: {reason_for_selling}")
     #execute sell
     order_result = await submit_option_order(
-        read_config('REAL_MONEY_ACTIVATED'), symbol, strike, cp, bid, expiration_date, quantity, side, order_type
+        "FLAG/ZONE STRAT", symbol, strike, cp, bid, expiration_date, quantity, side, order_type
     )
     if order_result:
         unique_order_ID, order_bid_price, order_quantity = await get_order_status(
@@ -644,7 +480,7 @@ async def sell(quantity, unique_order_key, message_ids_dict, reason_for_selling)
             message_ids_dict=message_ids_dict
         )
 
-        print_log(f"    sell() = {order_bid_price}, {order_quantity}, {True}\n")
+        print_log(f"    [ORDER DETIALS] sell() = {order_bid_price}, {order_quantity}, {True}\n")
 
         return order_bid_price, order_quantity, True
 
@@ -652,9 +488,6 @@ async def sell(quantity, unique_order_key, message_ids_dict, reason_for_selling)
         return None, None, False
     
     return None, None, False
-
-def calculate_sell_points(buy_entry_price, percentages):
-    return [buy_entry_price * (1 + p / 100) for p in percentages]
 
 def calculate_profit_percentage(message, unique_order_id):
     # Extract buy details based on the new Discord message format
@@ -671,7 +504,7 @@ def calculate_profit_percentage(message, unique_order_id):
 
 
     # Extract sell details
-    sell_pattern = r"Sold (\d+) .+? contracts for \$(\d+\.\d+), Fill: (\d+\.\d+)"
+    sell_pattern = r"Sold (\d+) for \$(\d+\.\d+), Fill: (\d+\.\d+)"
     sell_matches = re.findall(sell_pattern, message)
     if not sell_matches:
         return "Invalid Sell Details"
@@ -685,10 +518,7 @@ def calculate_profit_percentage(message, unique_order_id):
     # Calculate profit or loss
     profit_or_loss = total_sales - total_investment
     profit_or_loss_percentage = (profit_or_loss / total_investment) * 100
-    
-    #TODO: add 'avg_bid:.3f', 'profit_or_loss:.2f', 'profit_or_loss_percentage:.2f' to 'avg_sold_bid,total_profit,total_percentage' in order_log.csv
-    update_order_details('order_log.csv', unique_order_id, avg_sold_bid=avg_bid, total_profit=profit_or_loss, total_percentage=profit_or_loss_percentage)
-
+    update_order_details(unique_order_id, avg_sold_bid=avg_bid, total_profit=profit_or_loss, total_percentage=profit_or_loss_percentage)
     if profit_or_loss_percentage >= 0: 
         #if trade is positive
         return f"\n-----\n**AVG BID:**    ${avg_bid:.3f}\n**TOTAL:**    ${profit_or_loss:.2f}✅\n**PERCENT:**    {profit_or_loss_percentage:.2f}%"
@@ -703,7 +533,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
     global unique_order_id # f"{ticker_symbol}-{cp}-{strike}-{expiration_date}-{order_timestamp}"
     global order_quantity
     global current_order_active
-    global partial_exits
+    global order_adjustments
 
     retry_count = 0
 
@@ -712,33 +542,31 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
     if read_config('REAL_MONEY_ACTIVATED'):
         while current_order_active and retry_count < retry_limit:
             #calculate how much to sell/remaining quantity
-            sell_quantity = order_quantity - sum(sale['quantity'] for sale in partial_exits)
+            sell_quantity = order_quantity - sum(sale['quantity'] for sale in order_adjustments)
 
             #sell/Unpack the returned values from the sell function
             sold_bid_price, sold_quantity, success = await sell(sell_quantity, unique_order_id, message_ids_dict, reason_for_selling)
             
             if success and sold_quantity is not None and sold_bid_price is not None:
-                #TODO: add 'time_exited_trade' to 'time_exited' to order_log.csv
+                # Add 'time_exited_trade' to 'time_exited' to order_log.csv
                 time_exited_trade = datetime.now().strftime("%m/%d/%Y-%I:%M:%S %p") # Convert to ISO format string
-                update_order_details('order_log.csv', unique_order_id, time_exited=time_exited_trade)
+                update_order_details(unique_order_id, time_exited=time_exited_trade)
+                
                 bid_percentage = calculate_bid_percentage(buy_entry_price, sold_bid_price)
                 await add_markers("sell", None, None, bid_percentage)
+                
                 parts = unique_order_id.split('-')
                 if len(parts) >= 5:
                     symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-                    order_log_name = f"order_log_{symbol}_{option_type}_{strike}_{_timestamp}.txt"
+                    order_log_name = get_order_log_name(symbol, option_type, strike, _timestamp)
                     # Read the buy entry price from the log file
                     try:
                         
                         with open(order_log_name, "r") as log_file:
                             lines = log_file.readlines()
-                            #buy_entry_price = float(lines[0].split(": ")[1])  #"Buy Entry Price: <price>"
                             bid_prices = [float(line.strip()) for line in lines[1:] if line.strip() and "Sold" not in line]
                             lowest_bid_price = min(bid_prices, default=buy_entry_price)
                             highest_bid_price = max(bid_prices, default=buy_entry_price)
-                            #percentage_drop = ((buy_entry_price - lowest_bid_price) / buy_entry_price) * 100
-                        #with open(order_log_name, "a") as log_file:
-                            #log_file.write(f"Sold rest ({sell_quantity}) at {sold_bid_price}\nLowest Bid Price: {lowest_bid_price}, Max-Drawdown: {percentage_drop:.2f}%\n")
                             calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name, unique_order_id)
                     except Exception as e:
                         await error_log_and_discord_message(e, "order_handler", "sell_rest_of_active_order", f"Error processing order log file")
@@ -754,7 +582,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                     
                     if os.path.exists(order_log_name):
                         os.remove(order_log_name)
-                        print_log(f"Order log file {order_log_name} deleted.")
+                        #print_log(f"Order log file {order_log_name} deleted.")
     
                     current_order_active = False
                     unique_order_id = None
@@ -764,20 +592,20 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
             else:
                 # Retry logic
                 retry_count += 1
-                print_log(f"Retrying sell_rest_of_active_order... Attempt {retry_count}/{retry_limit}")
+                print_log(f"    [ORDER DETIALS] Retrying `sell_rest_of_active_order()`... Attempt {retry_count}/{retry_limit}")
                 await asyncio.sleep(1)  # Wait for 1 second before retrying
 
         if retry_count >= retry_limit:
-            print_log("Reached maximum retry attempts for sell_rest_of_active_order")
+            print_log("    [ORDER DETIALS] Reached maximum retry attempts for `sell_rest_of_active_order()`")
             return False  # Indicate failure after all retries
 
         return True
     else: # this section is for 'submit_option_order_v2()' 
-        sell_quantity = order_quantity - sum(sale['quantity'] for sale in partial_exits)
+        sell_quantity = order_quantity - sum(sale['quantity'] for sale in order_adjustments)
         parts = unique_order_id.split('-')
         if len(parts) >= 5:
             symbol, option_type, strike, expiration_date, _timestamp = parts[:5]
-            order_log_name = f"order_log_{symbol}_{option_type}_{strike}_{_timestamp}.txt"
+            order_log_name = get_order_log_name(symbol, option_type, strike, _timestamp)
             # Read the buy entry price from the log file
             try:
                 with open(order_log_name, "r") as log_file:
@@ -798,16 +626,13 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                 }
                 bid_percentage = calculate_bid_percentage(buy_entry_price, sold_bid_price)
                 await add_markers("sell", None, None, bid_percentage)
-                partial_exits.append(sale_info)
-                #TODO: add 'time_exited_trade' to 'time_exited' to order_log.csv
+                order_adjustments.append(sale_info)
                 time_exited_trade = datetime.now().strftime("%m/%d/%Y-%I:%M:%S %p") # Convert to ISO format string
-                update_order_details('order_log.csv', unique_order_id, time_exited=time_exited_trade)
+                update_order_details(unique_order_id, time_exited=time_exited_trade)
                 calculate_max_drawdown_and_gain(buy_entry_price, lowest_bid_price, highest_bid_price, True, order_log_name, unique_order_id)
-                #with open(order_log_name, "a") as log_file:
-                    #log_file.write(f"Sold rest ({sell_quantity}) at {sold_bid_price}\nLowest Bid Price: {lowest_bid_price}, Max-Drawdown: {percentage_drop:.2f}%\n")
-                    
+                
                 all_sells = 0
-                for sells in partial_exits:
+                for sells in order_adjustments:
                     sell_cost = (sells["sold_price"] * 100) * sells["quantity"]
                     all_sells = all_sells + sell_cost
 
@@ -816,11 +641,12 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                 all_sells_rounded = round(all_sells, precision)
                 profit_loss = all_sells_rounded - order_cost_rounded
                 print_log(f"    [ORDER DETIALS] All Sells: {all_sells_rounded}, Order Cost: {order_cost_rounded}")
-                print_log(f"    [ORDER DETIALS] Profit/Loss: ${profit_loss:.2f}")
+                print_log(f"    [ORDER DETIALS] Profit/Loss: ${profit_loss:.2f}, {reason_for_selling}")
                 todays_orders_profit_loss_list.append(profit_loss)
 
                 total_value = (sold_bid_price * 100) * sell_quantity
-                _message_ = f"Sold {sell_quantity} {symbol} contracts for ${total_value:.2f}, Fill: {sold_bid_price}"
+                
+                _message_ = get_sell_trim_message(sell_quantity, total_value, sold_bid_price)
                 if unique_order_id in message_ids_dict:
                     original_msg_id = message_ids_dict[unique_order_id]
                     #print(f"Fetching message content for order ID: {unique_order_id}, Message ID: {original_msg_id}")
@@ -831,11 +657,11 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                             #update discord order message
                             await edit_discord_message(original_msg_id, updated_content)
                         else:
-                            print_log(f"Could not retrieve original message content for ID {original_msg_id}")
+                            print_log(f"    [ORDER DETIALS] Could not retrieve original message content for ID {original_msg_id}")
                     except Exception as e:  # Catch any exception to avoid stopping the loop
                         await error_log_and_discord_message(e, "order_handler", "sell_rest_of_active_order", "An error occurred while getting or edditing message")
                 else:
-                    print_log(f"Message ID for order {unique_order_id} not found in dictionary. Dictionary contents:\n{message_ids_dict}")
+                    print_log(f"    [ORDER DETIALS] Message ID for order {unique_order_id} not found in dictionary. Dictionary contents:\n{message_ids_dict}")
                 #   Quantity of the order is zero now so we log it in discord
                 _message_ = await get_message_content(message_ids_dict[unique_order_id])
                 if _message_ is not None:
@@ -846,7 +672,7 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
                     
                     if os.path.exists(order_log_name):
                         os.remove(order_log_name)
-                        print_log(f"Order log file {order_log_name} deleted.")
+                        #print_log(f"Order log file {order_log_name} deleted.")
                 
                 current_order_active = False
                 unique_order_id = None
@@ -854,3 +680,16 @@ async def sell_rest_of_active_order(reason_for_selling, retry_limit=3):
             except Exception as e:
                 await error_log_and_discord_message(e, "order_handler", "sell_rest_of_active_order", f"Error processing order log file")
                 return
+            
+def safe_write_to_file(path, data, max_retries=5, retry_delay=0.25):
+    for attempt in range(max_retries):
+        try:
+            with open(path, "a") as log_file:
+                log_file.write(data)
+                log_file.flush()
+            return True  # Successfully written
+        except PermissionError as e:
+            print_log(f"    [ORDER DETIALS] Permission denied on attempt {attempt+1}: {e}")
+            time.sleep(retry_delay)
+    return False  # Failed to write after retries
+
