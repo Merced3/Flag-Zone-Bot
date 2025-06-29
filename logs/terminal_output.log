@@ -6888,3 +6888,500 @@ Starting `execute_trading_strategy()`...
     [ETS-IF] Num Flags Completed: 0
     [ETS] todays_profit_loss: 0
 Manually interrupted, cleaning up...
+
+
+
+
+
+
+
+FIXING CHART
+
+
+
+
+
+
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...
+[setup_global_chart] setting global root and canvas
+    [UP] Detials: 
+Window: 2025-06-23 13:30:00 - 2025-06-26 15:45:00
+Candles: 0 103
+    [chart_visualization.py, UCP] Waiting for live candles...
+[setup_global_chart] setting global root and canvas
+[display_update] Step set to 0. 0 objects displayed.
+[display_update] Step set to 0. 0 objects displayed.
+[display_update] Step set to 3764. 197 objects displayed.
+[display_update] Step set to 3763. 195 objects displayed.
+[display_update] Step set to 3764. 197 objects displayed.
+[display_update] Step set to 0. 0 objects displayed.
+[display_update] Step set to 0. 0 objects displayed.
+[display_update] Step set to 3764. 197 objects displayed.
+[setup_global_chart] setting global root and canvas
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...
+[load_recent_15m_candles] Loaded 104 rows, offset = 33079
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...
+[load_recent_15m_candles] Loaded 104 rows, offset = 33079
+[setup_global_chart] setting global root and canvas
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [chart_visualization.py, UCP] Waiting for live candles...
+[load_recent_15m_candles] Loaded 104 rows, offset = 33079
+[setup_global_chart] setting global root and canvas
+[load_recent_15m_candles] Loaded 104 rows, offset = 33079
+[setup_global_chart] setting global root and canvas
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] offset: 33079, zone_left: 0, width: 104
+    [chart_visualization.py, UCP] Waiting for live candles...
+[load_recent_15m_candles] Loaded 104 rows, offset = 33079
+[setup_global_chart] setting global root and canvas
+    [DISPLAY LVLS] left:8, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:364, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:625, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:650, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:683, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:813, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:885, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:938, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:1107, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:1198, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2210, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2238, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2907, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2933, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2948, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2958, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2967, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:3021, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:15631, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:15682, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:15708, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:15787, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:16023, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:16065, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:16151, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:16918, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:16991, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:17071, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:17132, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18276, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18341, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18354, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18401, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18511, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18565, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18579, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18613, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18593, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18631, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19237, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19238, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19248, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19264, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19358, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19413, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22254, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22269, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22326, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22423, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22430, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22473, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22453, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22501, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22477, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22528, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22503, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22529, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22658, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22676, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22690, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22711, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22775, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22799, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22815, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22849, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23010, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23051, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23071, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23120, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23146, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23176, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23198, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23202, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23224, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23614, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23642, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23781, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23817, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23846, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23840, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23852, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:30894, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31551, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31727, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31778, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31785, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31954, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31979, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31998, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31987, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32037, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32039, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32144, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32291, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32312, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32304, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32325, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32329, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32585, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32625, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32701, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32717, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32816, offset: 33079, start: 0, end: 104
+    [DISPLAY ZONES] left: 33032, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] left: 33097, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] left: 33091, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] left: 33107, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] left: 33147, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] left: 33176, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] left: 33158, offset: 33079, zone_left: 0, width: 104
+    [chart_visualization.py, UCP] Waiting for live candles...
+[load_recent_15m_candles] Loaded 104 rows, offset = 33079
+[setup_global_chart] setting global root and canvas
+    [DISPLAY LVLS] left:8, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:364, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:625, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:650, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:683, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:813, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:885, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:938, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:1107, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:1198, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2210, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2238, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2907, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2933, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2948, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2958, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:2967, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:3021, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:15631, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:15682, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:15708, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:15787, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:16023, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:16065, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:16151, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:16918, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:16991, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:17071, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:17132, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18276, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18341, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18354, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18401, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18511, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18565, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18579, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18613, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18593, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:18631, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19237, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19238, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19248, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19264, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19358, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:19413, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22254, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22269, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22326, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22423, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22430, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22473, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22453, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22501, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22477, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22528, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22503, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22529, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22658, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22676, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22690, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22711, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22775, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22799, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22815, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:22849, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23010, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23051, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23071, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23120, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23146, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23176, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23198, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23202, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23224, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23614, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23642, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23781, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23817, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23846, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23840, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:23852, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31551, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31727, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31778, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31785, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31954, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31979, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31998, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:31987, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32037, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32039, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32144, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32291, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32312, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32304, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32325, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32329, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32585, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32625, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32701, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32717, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:32816, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:33007, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:33032, offset: 33079, start: 0, end: 104
+    [DISPLAY ZONES] left: 33032, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY LVLS] left:33104, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:33091, offset: 33079, start: 0, end: 104
+    [DISPLAY ZONES] left: 33097, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] left: 33091, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY LVLS] left:33107, offset: 33079, start: 0, end: 104
+    [DISPLAY ZONES] left: 33107, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY LVLS] left:33147, offset: 33079, start: 0, end: 104
+    [DISPLAY ZONES] left: 33147, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY LVLS] left:33182, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:33158, offset: 33079, start: 0, end: 104
+    [DISPLAY ZONES] left: 33176, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY ZONES] left: 33158, offset: 33079, zone_left: 0, width: 104
+    [chart_visualization.py, UCP] Waiting for live candles...
+[load_recent_15m_candles] Loaded 104 rows, offset = 33079
+[setup_global_chart] setting global root and canvas
+    [DISPLAY LVLS] left:33007, offset: 33079, start: -72, end: 104
+    [DISPLAY LVLS] left:33032, offset: 33079, start: -47, end: 104
+    [DISPLAY ZONES] left: 33032, offset: 33079, zone_left: -47, width: 151
+    [DISPLAY LVLS] left:33104, offset: 33079, start: 25, end: 104
+    [DISPLAY LVLS] left:33091, offset: 33079, start: 12, end: 104
+    [DISPLAY ZONES] left: 33097, offset: 33079, zone_left: 18, width: 86
+    [DISPLAY ZONES] left: 33091, offset: 33079, zone_left: 12, width: 92
+    [DISPLAY LVLS] left:33107, offset: 33079, start: 28, end: 104
+    [DISPLAY ZONES] left: 33107, offset: 33079, zone_left: 28, width: 76
+    [DISPLAY LVLS] left:33147, offset: 33079, start: 68, end: 104
+    [DISPLAY ZONES] left: 33147, offset: 33079, zone_left: 68, width: 36
+    [DISPLAY LVLS] left:33182, offset: 33079, start: 103, end: 104
+    [DISPLAY LVLS] left:33158, offset: 33079, start: 79, end: 104
+    [DISPLAY ZONES] left: 33176, offset: 33079, zone_left: 97, width: 7
+    [DISPLAY ZONES] left: 33158, offset: 33079, zone_left: 79, width: 25
+    [chart_visualization.py, UCP] Waiting for live candles...
+[load_recent_15m_candles] Loaded 104 rows, offset = 33079
+[setup_global_chart] setting global root and canvas
+    [DISPLAY LVLS] left:33007, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:33032, offset: 33079, start: 0, end: 104
+    [DISPLAY ZONES] left: 33032, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY LVLS] left:33104, offset: 33079, start: 25, end: 104
+    [DISPLAY LVLS] left:33091, offset: 33079, start: 12, end: 104
+    [DISPLAY ZONES] left: 33097, offset: 33079, zone_left: 18, width: 86
+    [DISPLAY ZONES] left: 33091, offset: 33079, zone_left: 12, width: 92
+    [DISPLAY LVLS] left:33107, offset: 33079, start: 28, end: 104
+    [DISPLAY ZONES] left: 33107, offset: 33079, zone_left: 28, width: 76
+    [DISPLAY LVLS] left:33147, offset: 33079, start: 68, end: 104
+    [DISPLAY ZONES] left: 33147, offset: 33079, zone_left: 68, width: 36
+    [DISPLAY LVLS] left:33182, offset: 33079, start: 103, end: 104
+    [DISPLAY LVLS] left:33158, offset: 33079, start: 79, end: 104
+    [DISPLAY ZONES] left: 33176, offset: 33079, zone_left: 97, width: 7
+    [DISPLAY ZONES] left: 33158, offset: 33079, zone_left: 79, width: 25
+    [chart_visualization.py, UCP] Waiting for live candles...
+    [DISPLAY LVLS] left:33007, offset: 33079, start: 0, end: 104
+    [DISPLAY LVLS] left:33032, offset: 33079, start: 0, end: 104
+    [DISPLAY ZONES] left: 33032, offset: 33079, zone_left: 0, width: 104
+    [DISPLAY LVLS] left:33104, offset: 33079, start: 25, end: 104
+    [DISPLAY LVLS] left:33091, offset: 33079, start: 12, end: 104
+    [DISPLAY ZONES] left: 33097, offset: 33079, zone_left: 18, width: 86
+    [DISPLAY ZONES] left: 33091, offset: 33079, zone_left: 12, width: 92
+    [DISPLAY LVLS] left:33107, offset: 33079, start: 28, end: 104
+    [DISPLAY ZONES] left: 33107, offset: 33079, zone_left: 28, width: 76
+    [DISPLAY LVLS] left:33147, offset: 33079, start: 68, end: 104
+    [DISPLAY ZONES] left: 33147, offset: 33079, zone_left: 68, width: 36
+    [DISPLAY LVLS] left:33182, offset: 33079, start: 103, end: 104
+    [DISPLAY LVLS] left:33158, offset: 33079, start: 79, end: 104
+    [DISPLAY ZONES] left: 33176, offset: 33079, zone_left: 97, width: 7
+    [DISPLAY ZONES] left: 33158, offset: 33079, zone_left: 79, width: 25
+[load_recent_15m_candles] Loaded 104 rows, offset = 33079
+[setup_global_chart] setting global root and canvas
+[load_recent_15m_candles] Loaded 104 rows, offset = 33079
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...
+    [UP] EMA data file is empty or invalid. Skipping EMA plot.
+    [UP] C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\storage\line_data.json file is empty or invalid.
+    [UP] EMA data file is empty or invalid. Skipping EMA plot.
+    [UP] C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\storage\line_data.json file is empty or invalid.
+[setup_global_chart] setting global root and canvas
+    [DISPLAY ZONES] left: 33032, offset: 33079, local_left: 0, width: 57
+    [DISPLAY ZONES] left: 33097, offset: 33079, local_left: 18, width: 86
+    [DISPLAY ZONES] left: 33091, offset: 33079, local_left: 12, width: 92
+    [DISPLAY ZONES] left: 33107, offset: 33079, local_left: 28, width: 76
+    [DISPLAY ZONES] left: 33147, offset: 33079, local_left: 68, width: 36
+    [DISPLAY ZONES] left: 33176, offset: 33079, local_left: 97, width: 7
+    [DISPLAY ZONES] left: 33158, offset: 33079, local_left: 79, width: 25
+    [DISPLAY ZONES] left: 31998, offset: None, local_left: 0, width: 3
+    [UP] EMA data file is empty or invalid. Skipping EMA plot.
+    [UP] C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\storage\line_data.json file is empty or invalid.
+    [DISPLAY ZONES] left: 33032, offset: 33079, local_left: 0, width: 57
+    [DISPLAY ZONES] left: 33097, offset: 33079, local_left: 18, width: 86
+    [DISPLAY ZONES] left: 33091, offset: 33079, local_left: 12, width: 92
+    [DISPLAY ZONES] left: 33107, offset: 33079, local_left: 28, width: 76
+    [DISPLAY ZONES] left: 33147, offset: 33079, local_left: 68, width: 36
+    [DISPLAY ZONES] left: 33176, offset: 33079, local_left: 97, width: 7
+    [DISPLAY ZONES] left: 33158, offset: 33079, local_left: 79, width: 25
+[setup_global_chart] setting global root and canvas
+    [DISPLAY ZONES] left: 33032, offset: 33079, local_left: 0, width: 104
+    [DISPLAY ZONES] left: 33097, offset: 33079, local_left: 18, width: 104
+    [DISPLAY ZONES] left: 33091, offset: 33079, local_left: 12, width: 104
+    [DISPLAY ZONES] left: 33107, offset: 33079, local_left: 28, width: 104
+    [DISPLAY ZONES] left: 33147, offset: 33079, local_left: 68, width: 104
+    [DISPLAY ZONES] left: 33176, offset: 33079, local_left: 97, width: 104
+    [DISPLAY ZONES] left: 33158, offset: 33079, local_left: 79, width: 104
+    [DISPLAY ZONES] left: 31998, offset: None, local_left: 0, width: 3
+    [UP] EMA data file is empty or invalid. Skipping EMA plot.
+    [UP] C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\storage\line_data.json file is empty or invalid.
+    [DISPLAY ZONES] left: 33032, offset: 33079, local_left: 0, width: 104
+    [DISPLAY ZONES] left: 33097, offset: 33079, local_left: 18, width: 104
+    [DISPLAY ZONES] left: 33091, offset: 33079, local_left: 12, width: 104
+    [DISPLAY ZONES] left: 33107, offset: 33079, local_left: 28, width: 104
+    [DISPLAY ZONES] left: 33147, offset: 33079, local_left: 68, width: 104
+    [DISPLAY ZONES] left: 33176, offset: 33079, local_left: 97, width: 104
+    [DISPLAY ZONES] left: 33158, offset: 33079, local_left: 79, width: 104
+[setup_global_chart] setting global root and canvas
+    [DISPLAY ZONES] left: 33032, offset: 33079, local_left: 0, width: 104
+    [DISPLAY ZONES] left: 33097, offset: 33079, local_left: 18, width: 86
+    [DISPLAY ZONES] left: 33091, offset: 33079, local_left: 12, width: 92
+    [DISPLAY ZONES] left: 33107, offset: 33079, local_left: 28, width: 76
+    [DISPLAY ZONES] left: 33147, offset: 33079, local_left: 68, width: 36
+    [DISPLAY ZONES] left: 33176, offset: 33079, local_left: 97, width: 7
+    [DISPLAY ZONES] left: 33158, offset: 33079, local_left: 79, width: 25
+    [DISPLAY ZONES] left: 31998, offset: None, local_left: 0, width: 3
+    [UP] EMA data file is empty or invalid. Skipping EMA plot.
+    [UP] C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\storage\line_data.json file is empty or invalid.
+    [DISPLAY ZONES] left: 33032, offset: 33079, local_left: 0, width: 104
+    [DISPLAY ZONES] left: 33097, offset: 33079, local_left: 18, width: 86
+    [DISPLAY ZONES] left: 33091, offset: 33079, local_left: 12, width: 92
+    [DISPLAY ZONES] left: 33107, offset: 33079, local_left: 28, width: 76
+    [DISPLAY ZONES] left: 33147, offset: 33079, local_left: 68, width: 36
+    [DISPLAY ZONES] left: 33176, offset: 33079, local_left: 97, width: 7
+    [DISPLAY ZONES] left: 33158, offset: 33079, local_left: 79, width: 25
+[setup_global_chart] setting global root and canvas
+    [UP] EMA data file is empty or invalid. Skipping EMA plot.
+    [UP] C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\storage\line_data.json file is empty or invalid.
+    [UP] EMA data file is empty or invalid. Skipping EMA plot.
+    [UP] C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\storage\line_data.json file is empty or invalid.
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...
+[load_recent_15m_candles] Loaded 104 rows covering 4 days, offset = 33079
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...
+[load_recent_15m_candles] Loaded 130 rows covering 5 days, offset = 33053
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...

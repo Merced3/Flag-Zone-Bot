@@ -21,21 +21,37 @@ canvas = None
 df_15_min = None
 df_2_min = None
 button_2_min = None
+global_offset_15m = None
 
-def load_recent_15m_candles():
+def load_recent_15m_candles(days=5):
     df = load_from_csv(SPY_15_MINUTE_CANDLES_PATH)
     if df is None or df.empty:
         print_log("[load_recent_15m_candles] No 15M data found.")
-        return pd.DataFrame()
-    
+        return pd.DataFrame(), 0  # Return 0 offset if no data
+
     df = df.sort_values('timestamp')
     df['timestamp'] = pd.to_datetime(df['timestamp'])
-    last_day = df['timestamp'].dt.normalize().max()
-    five_days_ago = last_day - pd.Timedelta(days=5)
-    mask = df['timestamp'] >= five_days_ago
-    df = df.loc[mask]
-    df.set_index('timestamp', inplace=True)
-    return df
+
+    unique_days = sorted(df['timestamp'].dt.normalize().unique())
+    if len(unique_days) >= days:
+        start_day = unique_days[-days]
+    else:
+        start_day = unique_days[0]
+
+    mask = df['timestamp'] >= start_day
+    df_recent = df.loc[mask].copy()
+    df_recent.set_index('timestamp', inplace=True)
+
+    # Get offset relative to full df
+    first_visible_idx = df[df['timestamp'] >= start_day].index.min()
+    offset = df.index.get_loc(first_visible_idx)
+
+    # Actually count unique days for verification
+    actual_days = df_recent.index.normalize().nunique()
+
+    print_log(f"[load_recent_15m_candles] Loaded {len(df_recent)} rows covering {actual_days} days, offset = {offset}")
+
+    return df_recent, offset
 
 def setup_global_chart(tk_root, tk_canvas, indent_lvl=0):
     global root, canvas
@@ -126,7 +142,7 @@ def read_log_to_df(log_file_path, indent_lvl=0):
         print_log(f"{indent(indent_lvl)}[RLTD] Error reading log file: {e}")
         return pd.DataFrame()
 
-def update_plot(canvas, df, symbol, timescale_type, indent_lvl=0):
+def update_plot(canvas, df, symbol, timescale_type, indent_lvl=0, off_set=None):
     # Ensure the DataFrame index is a DatetimeIndex
     if not isinstance(df.index, pd.DatetimeIndex):
         df['timestamp'] = pd.to_datetime(df['timestamp'])
@@ -149,17 +165,15 @@ def update_plot(canvas, df, symbol, timescale_type, indent_lvl=0):
     ax.set_ylim(y_min, y_max)  # Set the y-axis limits
 
     # <<<<<<<<< ZONES/LEVELS >>>>>>>>>>
-    # Calculate visible X range for 15-min chart
-    if timescale_type == "15-min":
-        df = df.copy()
-        df = df.sort_index()
-        df_window_start = df.index[0]
-        df_window_end = df.index[-1]
-        visible_start_idx = df.index.get_loc(df_window_start)
-        visible_end_idx = df.index.get_loc(df_window_end)
-    
     all_objects = safe_read_json(OBJECTS_PATH, default=[])
+
     for obj in all_objects:
+        # Check each object is in range for faster processing
+        if ('top' in obj and obj['top'] < y_min) or ('bottom' in obj and obj['bottom'] > y_max):
+            continue
+        elif 'y' in obj and not (y_min < obj['y'] < y_max): # For Levels
+            continue
+
         color = {
             'support': 'green',
             'support floor': 'green',
@@ -171,32 +185,47 @@ def update_plot(canvas, df, symbol, timescale_type, indent_lvl=0):
         # ZONES
         if 'top' in obj and 'bottom' in obj:
             height = obj['top'] - obj['bottom']
-            zone_left = obj.get("left", 0)
+            if off_set:
+                local_left = obj['left'] - off_set
 
-            if timescale_type == "2-min":
-                rect = Rectangle(
-                    (0, obj['bottom']), len(df), height,
-                    edgecolor=color, facecolor=color, alpha=0.15, zorder=2
-                )
-                ax.add_patch(rect)
+                # Fully right of window: skip, OR, If the entire right edge of the zone is still left of the chart’s left edge, then skip it.
+                if (local_left > len(df)) or (local_left + len(df) <= 0):
+                    continue
 
-            elif timescale_type == "15-min":
-                # Only show zones within view window
-                if visible_start_idx <= zone_left <= visible_end_idx:
-                    local_left = zone_left - visible_start_idx
-                    rect = Rectangle(
-                        (local_left, obj['bottom']), 
-                        visible_end_idx - visible_start_idx,
-                        height,
-                        edgecolor=color, facecolor=color, alpha=0.15, zorder=2
-                    )
-                    ax.add_patch(rect)
+                # If left of window: snap to 0 and force full width
+                if local_left < 0:
+                    local_left = 0
+                
+                # Default span: all candles
+                width = len(df)
+
+                # But clip right edge if needed
+                right_edge = local_left + width
+                if right_edge > len(df):
+                    width = len(df) - local_left
+            else:
+                local_left = 0
+                width = len(df)
+            
+            #print_log(f"{indent(indent_lvl)}[DISPLAY ZONES] left: {obj['left']}, offset: {off_set}, local_left: {local_left}, width: {width}")
+            
+            rect = Rectangle( # MAKE ZONE
+                (local_left, obj['bottom']), width, height,
+                edgecolor=color, facecolor=color, alpha=0.15, zorder=2
+            )
+            ax.add_patch(rect) # DRAW ZONE
 
         # LEVELS
         elif 'y' in obj:
-            level_x_start = 0
-            level_x_end = len(df) if timescale_type == "2-min" else visible_end_idx - visible_start_idx
-            ax.hlines(obj['y'], xmin=level_x_start, xmax=level_x_end, colors=color, linestyles='dashed', linewidth=1, zorder=1)
+            if off_set:
+                level_x_start = obj['left'] - off_set
+                if level_x_start < 0:
+                    level_x_start = 0  # clip to left edge
+            else:
+                level_x_start = 0
+            level_x_end = len(df)
+            #print_log(f"{indent(indent_lvl)}[DISPLAY LVLS] left:{obj['left']}, offset: {off_set}, start: {level_x_start}, end: {level_x_end}")
+            ax.hlines(obj['y'], xmin=level_x_start, xmax=level_x_end, colors=color, linestyles='dashed', linewidth=1, zorder=1) # DRAW LEVEL
 
     if timescale_type == "2-min":
         # <<<<<<<<< MARKERS >>>>>>>>>>
@@ -261,18 +290,18 @@ def update_plot(canvas, df, symbol, timescale_type, indent_lvl=0):
 
 def refresh_15_min_candle_stick_data(indent_lvl=0):
     """Updates global df_15_min and triggers a plot update."""
-    global df_15_min
-    df_15_min = load_recent_15m_candles()
+    global df_15_min, global_offset_15m
+    df_15_min, global_offset_15m = load_recent_15m_candles()
     update_15_min(indent_lvl=indent_lvl)
 
 def update_15_min(print_statements=False, indent_lvl=0):
-    global canvas, root
+    global canvas, root, global_offset_15m
     if print_statements:
         print_log(f"{indent(indent_lvl)}[update_15_min] function called")
     if root and df_15_min is not None:
         try:
             # Post the update task to the Tkinter main loop
-            root.after(0, lambda: update_plot(canvas, df_15_min, read_config("SYMBOL"), "15-min", indent_lvl))
+            root.after(0, lambda: update_plot(canvas, df_15_min, read_config("SYMBOL"), "15-min", indent_lvl, global_offset_15m))
         except Exception as e:
             print_log(f"{indent(indent_lvl)}[update_15_min] Error updating 15-min chart: {e}")
     else:
@@ -291,9 +320,11 @@ def update_2_min(print_statements=False, indent_lvl=0):
     else:
         print_log(f"{indent(indent_lvl)}[update_2_min] GUI or data not initialized.")
 
-def plot_candles_and_boxes(symbol, indent_lvl=0):
-    global df_15_min, should_close, button_2_min
-    df_15_min = load_recent_15m_candles()
+def plot_candles_and_boxes(indent_lvl=0):
+    global df_15_min, should_close, button_2_min, global_offset_15m
+    df_15_min, global_offset_15m = load_recent_15m_candles()
+
+    symbol = read_config("SYMBOL")
 
     # Create the main Tkinter window
     root = tk.Tk()
@@ -308,11 +339,11 @@ def plot_candles_and_boxes(symbol, indent_lvl=0):
     #print(f"    [plot_candles_and_boxes] Setting Global Variables for 'chart_visualization.py'")
     setup_global_chart(root, canvas, indent_lvl)
     # Initial plot with 15-minute data
-    update_plot(canvas, df_15_min, symbol, "15-min", indent_lvl+1)
+    update_plot(canvas, df_15_min, symbol, "15-min", indent_lvl+1, global_offset_15m)
 
     # Button to switch to 15-min data
     button_15_min = tk.Button(root, text="15 min", 
-                              command=lambda: update_plot(canvas, df_15_min, symbol, "15-min", indent_lvl+1))
+                              command=lambda: update_plot(canvas, df_15_min, symbol, "15-min", indent_lvl+1, global_offset_15m))
     button_15_min.pack(side=tk.LEFT)
 
     # Button to switch to 2-min data
@@ -333,6 +364,11 @@ def plot_candles_and_boxes(symbol, indent_lvl=0):
     tk.mainloop()
 
 def initiate_shutdown():
-    global should_close
+    global should_close, global_offset_15m, df_15_min, df_2_min
     should_close = True
+    global_offset_15m = None
+    df_15_min = None
+    df_2_min = None
 
+if __name__ == "__main__":
+    plot_candles_and_boxes()

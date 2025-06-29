@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 STORAGE_DIR = BASE_DIR / "storage"
 CANDLES_CSV = STORAGE_DIR / "SPY_15_minute_candles.csv"
 DISPLAY_PATH = STORAGE_DIR / "objects" / "objects.json"
-WINDOW_DAYS = 20
+WINDOW_DAYS = 5
 
 color_map = {
     'resistance': 'red',

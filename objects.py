@@ -567,11 +567,10 @@ def process_end_of_day_15m_candles():
 
     today_zone_objects = build_zones(new_levels, info["structures"], day_range, info["starter_zone_data"])
 
-    # Merge and write all to disk
-    final_objects = all_lvl_objects + all_zone_objects + today_zone_objects
-    safe_write_json(OBJECTS_PATH, final_objects)
+    # Display every from timeline file, too display file
+    display_json_update("all")
 
-    print_log(f"[ZONE+LEVEL WRITE] {len(final_objects)} objects saved to objects.json")
+    print_log(f"[NEW HISTORICAL DATA] objects saved timeline.json now sent to objects.json")
 
 def candle_zone_handler(candle, boxes):
     candle_zone_type = None
