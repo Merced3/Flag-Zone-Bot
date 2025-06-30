@@ -379,9 +379,12 @@ async def get_certain_candle_data(api_key, symbol, interval, timescale, start_da
 
             start_time = df['timestamp'].iloc[0].strftime('%H:%M:%S')
             end_time = df['timestamp'].iloc[-1].strftime('%H:%M:%S')
-            df.rename(columns={'v': 'volume', 'o': 'open', 'c': 'close', 'h': 'high', 'l': 'low', 't': 'timestamp'}, inplace=True)
-            df.to_csv(output_path, index=False)
-            print_log(f"{indent(indent_lvl)}[GCCD] Data saved: {output_path}; Candles from '{start_time}' to '{end_time}'")
+            df.rename(columns={'v': 'volume', 'o': 'open', 'c': 'close', 'h': 'high', 'l': 'low'}, inplace=True)
+            if output_path:
+                df.to_csv(output_path, index=False)
+                print_log(f"{indent(indent_lvl)}[GCCD] Data saved: {output_path}; Candles from '{start_time}' to '{end_time}'")
+            else:
+                print_log(f"{indent(indent_lvl)}[GCCD] Data received; Candles from '{start_time}' to '{end_time}'.")  
             return df
         else:
             print_log(f"{indent(indent_lvl)}[GCCD] No 'results' key found in the API response.")

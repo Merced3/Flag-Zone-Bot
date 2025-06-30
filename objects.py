@@ -1,8 +1,10 @@
 # objects.py
 import pandas as pd
 from shared_state import print_log, safe_read_json, safe_write_json
-from pathlib import Path
-from utils.log_utils import read_log_to_df, clear_symbol_log
+from data_acquisition import get_dates, get_certain_candle_data
+import cred
+import asyncio
+from utils.log_utils import read_log_to_df
 from utils.json_utils import read_config
 from paths import OBJECTS_PATH, TIMELINE_PATH, CANDLE_LOGS, SPY_15_MINUTE_CANDLES_PATH
 
@@ -527,6 +529,7 @@ def process_end_of_day_15m_candles():
         print_log("[INFO] 15M log was empty — skipping.")
         return
 
+    # Clean & sort timestamps
     df_log["timestamp"] = pd.to_datetime(df_log["timestamp"].astype(str).str.slice(0, 19))
     df_log.sort_values("timestamp", inplace=True)
     df_log.set_index("timestamp", inplace=True)
@@ -572,6 +575,85 @@ def process_end_of_day_15m_candles():
 
     print_log(f"[NEW HISTORICAL DATA] objects saved timeline.json now sent to objects.json")
 
+async def pull_and_replace_15m():
+    """
+    RUN 15 after market closed, because of current polygon subscription plan.
+
+    The purpose of this is to run after 15 mins of market close so that, you the manual user
+    can fix whatever days data incase, wifi or power goes out, its for when the live 15 min 
+    data might be incorrect and we need some better accuracy. this is so that you remember.
+    """
+    start, end = get_dates(1, False, '2025-06-27') #  go back to this (1, True) after were done finishing the timeline/object upload
+    df = await get_certain_candle_data(
+        cred.POLYGON_API_KEY,
+        read_config('SYMBOL'),
+        15, "minute",
+        start, end,
+        None,  # Don't save to anything
+        market_type="MARKET",
+        indent_lvl=0
+    )
+
+    if df is None or df.empty:
+        print_log("[pull_and_replace_15m] No data returned.")
+        return
+
+    # ✅ Only keep OCHL + the GOOD timestamp
+    df['timestamp'] = df['timestamp'].dt.strftime("%Y-%m-%d %H:%M:%S")
+    df = df[['timestamp', 'open', 'close', 'high', 'low']]
+    df.sort_values("timestamp", inplace=True)
+    df.set_index("timestamp", inplace=True)
+
+    # ✅ Convert index BACK to datetime for proper merging
+    df.index = pd.to_datetime(df.index)
+
+    print_log(f"\n[Fallback] Cleaned Polygon 15M:\n{df}\n")
+    
+    # ✅ Load existing main CSV if it exists
+    if SPY_15_MINUTE_CANDLES_PATH.exists():
+        df_storage = pd.read_csv(SPY_15_MINUTE_CANDLES_PATH, parse_dates=["timestamp"])
+        df_storage.set_index("timestamp", inplace=True)
+
+        df_storage.index = pd.to_datetime(df_storage.index)
+    else:
+        df_storage = pd.DataFrame(columns=df.columns)
+
+    # ✅ Remove any rows for this day from the old data (clean replacement!)
+    current_day = df.index[0].normalize()
+    #df_storage = df_storage[~df_storage.index.strftime('%Y-%m-%d').eq(current_day)] # Removed this b/c im not trying to filter out anymore, this is taking to long, im trying to just get WHOLE correct data, for now, i need to get this done so i can go to bed.
+    
+    # ✅ Merge clean replacement
+    combined_df = pd.concat([df_storage, df]).sort_index()
+    combined_df.to_csv(SPY_15_MINUTE_CANDLES_PATH)
+    print_log(f"[pull_and_replace_15m] Main CSV updated with Polygon fallback.")
+
+    # ✅ Now re-run the **zone/level logic**
+    day_data = df
+    day_range = day_data["high"].max() - day_data["low"].min()
+    global_offset = len(df_storage)
+    
+    # Prep old objects
+    all_zone_objects, all_lvl_objects = get_objects()
+
+    # Run zone/level logic
+    info = read_day_candles_and_distribute(day_data, current_day, global_offset)
+    new_levels = get_levels(info["high_pos"], info["low_pos"])
+    print_log(f"\n[{current_day.date()} (id, lvl)] {new_levels[0]['type']}: ({new_levels[0]['id']}, {new_levels[0]['y']}) | {new_levels[1]['type']}: ({new_levels[1]['id']}, {new_levels[1]['y']})")
+    get_structures(info["structures"], False)
+
+    # Validate and filter old objects
+    zone_objs_to_remove, lvl_objs_to_remove = validate_intraday_zones_lvls(all_zone_objects, all_lvl_objects, new_levels)
+    if zone_objs_to_remove:
+        all_zone_objects = [z for z in all_zone_objects if z["id"] not in {r["id"] for r in zone_objs_to_remove}]
+    if lvl_objs_to_remove:
+        all_lvl_objects = [l for l in all_lvl_objects if l["id"] not in {r["id"] for r in lvl_objs_to_remove}]
+
+    today_zone_objects = build_zones(new_levels, info["structures"], day_range, info["starter_zone_data"])
+
+    # ✅ Finally: push it all to the display file
+    display_json_update("all")
+    print_log(f"[pull_and_replace_15m] Timeline + objects updated.")
+    
 def candle_zone_handler(candle, boxes):
     candle_zone_type = None
     is_in_zone = False
@@ -630,6 +712,7 @@ def candle_zone_handler(candle, boxes):
 
 if __name__ == "__main__":
     print("These functions below are just tests")
+    #asyncio.run(pull_and_replace_15m())
     #clean_csv_timestamps()
     #update_timeline_with_objects(True)
     #process_end_of_day_15m_candles()
