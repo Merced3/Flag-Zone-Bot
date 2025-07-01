@@ -51,7 +51,7 @@ async def execute_trading_strategy():
     create_state(indent_lvl, "bear", None)
     create_state(indent_lvl, "bull", None)
 
-    MARKET_OPEN_TIME = get_market_open_time()  # Get today's market open time
+    MARKET_OPEN_TIME = get_market_open_time()  # THIS NEEDS TO BE CHANGED TO SOMETHING SMARTER AND NOT STATIC, LIKE IT IS CURRENTLY
     market_open_plus_15 = MARKET_OPEN_TIME + timedelta(minutes=15)
     market_open_plus_15 = market_open_plus_15.time()
 

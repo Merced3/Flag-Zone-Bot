@@ -13,7 +13,7 @@ import time
 from utils.json_utils import read_config
 from utils.data_utils import load_from_csv
 from shared_state import indent, print_log, safe_read_json
-from paths import CANDLE_LOGS, MARKERS_PATH, EMAS_PATH, LINE_DATA_PATH, OBJECTS_PATH, STORAGE_DIR, SPY_15_MINUTE_CANDLES_PATH
+from paths import pretty_path, CANDLE_LOGS, MARKERS_PATH, EMAS_PATH, LINE_DATA_PATH, OBJECTS_PATH, STORAGE_DIR, SPY_15_MINUTE_CANDLES_PATH
 
 should_close = False # Signal for closing window, `root.quit()` and `root.destroy()`
 root = None
@@ -111,7 +111,7 @@ def read_log_to_df(log_file_path, indent_lvl=0):
     # If the file does not exist, create an empty file
     if not log_file_path.exists():
         log_file_path.touch()
-        print_log(f"{indent(indent_lvl)}[RLTD] Created new log file: {log_file_path}")
+        print_log(f"{indent(indent_lvl)}[RLTD] Created new log file: `{pretty_path(log_file_path)}`")
         return pd.DataFrame()
     # Read the log file and return a DataFrame
     try:
@@ -207,8 +207,6 @@ def update_plot(canvas, df, symbol, timescale_type, indent_lvl=0, off_set=None):
                 local_left = 0
                 width = len(df)
             
-            #print_log(f"{indent(indent_lvl)}[DISPLAY ZONES] left: {obj['left']}, offset: {off_set}, local_left: {local_left}, width: {width}")
-            
             rect = Rectangle( # MAKE ZONE
                 (local_left, obj['bottom']), width, height,
                 edgecolor=color, facecolor=color, alpha=0.15, zorder=2
@@ -224,7 +222,6 @@ def update_plot(canvas, df, symbol, timescale_type, indent_lvl=0, off_set=None):
             else:
                 level_x_start = 0
             level_x_end = len(df)
-            #print_log(f"{indent(indent_lvl)}[DISPLAY LVLS] left:{obj['left']}, offset: {off_set}, start: {level_x_start}, end: {level_x_end}")
             ax.hlines(obj['y'], xmin=level_x_start, xmax=level_x_end, colors=color, linestyles='dashed', linewidth=1, zorder=1) # DRAW LEVEL
 
     if timescale_type == "2-min":
@@ -236,9 +233,9 @@ def update_plot(canvas, df, symbol, timescale_type, indent_lvl=0, off_set=None):
                 for marker in markers:
                     ax.scatter(marker['x'], marker['y'], **marker['style'])
             else:
-                print_log(f"{indent(indent_lvl)}[UP] {MARKERS_PATH} file is empty.")
+                print_log(f"{indent(indent_lvl)}[UP] `{pretty_path(MARKERS_PATH)}` file is empty.")
         except FileNotFoundError:
-            print_log(f"{indent(indent_lvl)}[UP] No {MARKERS_PATH} file found.")
+            print_log(f"{indent(indent_lvl)}[UP] No `{pretty_path(MARKERS_PATH)}` file found.")
 
         # <<<<<<<<< EMAs >>>>>>>>>>
         ema_plotted = False
@@ -260,7 +257,7 @@ def update_plot(canvas, df, symbol, timescale_type, indent_lvl=0, off_set=None):
                 ax.plot([], [], ' ', label="Waiting for EMAs...")
                 ax.legend(loc='upper left')
         else:
-            print_log(f"{indent(indent_lvl)}[UP] EMA data file is empty or invalid. Skipping EMA plot.")
+            print_log(f"{indent(indent_lvl)}[UP] `{pretty_path(EMAS_PATH)}` data file is empty or invalid. Skipping EMA plot.")
             # Optionally, plot a dummy line to show a waiting message
             ax.plot([], [], ' ', label="Waiting for EMAs...")
             ax.legend(loc='upper left')
@@ -281,7 +278,7 @@ def update_plot(canvas, df, symbol, timescale_type, indent_lvl=0, off_set=None):
                     color = 'blue' if flag['type'] == 'bull' else 'black'
                     ax.plot([p1['x'], p2['x']], [p1['y'], p2['y']], color=color, linewidth=1, linestyle=linestyle)
         else:
-            print_log(f"{indent(indent_lvl)}[UP] {LINE_DATA_PATH} file is empty or invalid.")
+            print_log(f"{indent(indent_lvl)}[UP] `{pretty_path(LINE_DATA_PATH)}` file is empty or invalid.")
 
     # Redraw the canvas
     canvas.draw()

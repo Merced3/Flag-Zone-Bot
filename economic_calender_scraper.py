@@ -13,7 +13,7 @@ from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
 from error_handler import error_log_and_discord_message
 from shared_state import print_log
-from paths import WEEK_ECOM_CALENDER_PATH
+from paths import pretty_path, WEEK_ECOM_CALENDER_PATH
 
 # WebDriver options
 options = webdriver.ChromeOptions()
@@ -332,7 +332,7 @@ async def get_economic_calendar_data():
         with open(WEEK_ECOM_CALENDER_PATH, 'w') as f:
             json.dump(final_data, f, indent=4)
 
-        print_log(f"    [GECD] ✅ Data extraction completed! Total Dates: {len(data.keys())}, File Saved: {WEEK_ECOM_CALENDER_PATH}")
+        print_log(f"    [GECD] ✅ Data extraction completed! Total Dates: {len(data.keys())}, File Saved: `{pretty_path(WEEK_ECOM_CALENDER_PATH)}`")
 
     except Exception as e:
         await error_log_and_discord_message(e, "economic_calender_scraper", "get_economic_calendar_data")
@@ -350,7 +350,7 @@ def check_order_time_to_event_time(time_threshold=20, sim_active=False):
         return True
     # Ensure the JSON file exists
     if not os.path.exists(WEEK_ECOM_CALENDER_PATH):
-        raise FileNotFoundError(f"{WEEK_ECOM_CALENDER_PATH} does not exist")
+        raise FileNotFoundError(f"`{pretty_path(WEEK_ECOM_CALENDER_PATH)}` does not exist")
 
     # Read the JSON data
     with open(WEEK_ECOM_CALENDER_PATH, 'r') as file:
@@ -388,7 +388,7 @@ def check_order_time_to_event_time(time_threshold=20, sim_active=False):
 def setup_economic_news_message():
     # Ensure the JSON file exists
     if not os.path.exists(WEEK_ECOM_CALENDER_PATH):
-        raise FileNotFoundError(f"{WEEK_ECOM_CALENDER_PATH} does not exist")
+        raise FileNotFoundError(f"`{pretty_path(WEEK_ECOM_CALENDER_PATH)}` does not exist")
 
     # Read the JSON data
     with open(WEEK_ECOM_CALENDER_PATH, 'r') as file:

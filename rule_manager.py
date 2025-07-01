@@ -5,7 +5,7 @@ from datetime import datetime
 from buy_option import buy_option_cp
 from utils.order_utils import get_tp_value, log_order_details
 from utils.json_utils import read_config, add_candle_type_to_json, load_json_df
-from paths import EMAS_PATH
+from paths import pretty_path, EMAS_PATH
 
 STRATEGY_NAME = "FLAG/ZONE STRAT"
 
@@ -60,7 +60,7 @@ def get_last_emas(indent_lvl, print_statements=True):
     EMAs = load_json_df(EMAS_PATH)
     if EMAs.empty:
         if print_statements:
-            print_log(f"{indent(indent_lvl)}[GET-EMAs] ERROR: data is unavailable.")
+            print_log(f"{indent(indent_lvl)}[GET-EMAs] ERROR: data `{pretty_path(EMAS_PATH)}` is unavailable.")
         return None
     last_EMA = EMAs.iloc[-1]
     emas = last_EMA.to_dict()

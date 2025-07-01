@@ -1,7 +1,7 @@
 # utils/log_utils.py
 import json
 from shared_state import print_log
-from paths import LOGS_DIR, STORAGE_DIR, TERMINAL_LOG, ORDER_LOG_PATH, SPY_15_MINUTE_CANDLES_PATH, MARKERS_PATH, EMAS_PATH, MESSAGE_IDS_PATH, LINE_DATA_PATH, ORDER_CANDLE_TYPE_PATH, PRIORITY_CANDLES_PATH
+from paths import pretty_path, LOGS_DIR, STORAGE_DIR, TERMINAL_LOG, ORDER_LOG_PATH, SPY_15_MINUTE_CANDLES_PATH, MARKERS_PATH, EMAS_PATH, MESSAGE_IDS_PATH, LINE_DATA_PATH, ORDER_CANDLE_TYPE_PATH, PRIORITY_CANDLES_PATH
 from utils.json_utils import reset_json, read_config
 import pandas as pd
 import os
@@ -31,7 +31,7 @@ def clear_log(symbol=None, timeframe=None, terminal_log=None):
         with open(log_file_path, 'r') as file:
             return file.read()
     except FileNotFoundError:
-        print_log(f"File {log_file_path} not found.")
+        print_log(f"File `{pretty_path(log_file_path)}` not found.")
         return ""
 
 def write_log_data_as_string(data, symbol, timeframe):
@@ -102,9 +102,9 @@ def clear_temp_logs_and_order_files():
     for file_path in files_to_delete:
         try:
             os.remove(file_path)
-            print_log(f"[RESET] Deleted file: {file_path.name}")
+            print_log(f"[RESET] Deleted file: `{pretty_path(file_path)}`")
         except Exception as e:
-            print_log(f"An error occurred while deleting {file_path}: {e}")
+            print_log(f"An error occurred while deleting `{pretty_path(file_path)}`: {e}")
 
     # 4. Still clear symbol and terminal logs
     clear_symbol_log(read_config('SYMBOL'), "2M")

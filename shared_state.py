@@ -1,6 +1,6 @@
 # shared_state.py
 from pathlib import Path
-from paths import TERMINAL_LOG, LOGS_DIR  # and any others you may need later
+from paths import pretty_path, TERMINAL_LOG, LOGS_DIR  # and any others you may need later
 import asyncio
 import json
 import time
@@ -36,14 +36,12 @@ def print_log(message: str):
 def indent(level=1):
     """
     Returns a string with `level` indentation of 4 spaces.
-    
-    Args:
-        level (int): Number of indentation levels (each level = 4 spaces).
-        
-    Returns:
-        str: Indentation string.
     """
-    if level==0 or level==None:
+    try:
+        level = int(level) if level is not None else 0
+    except ValueError:
+        level = 0
+    if level <= 0:
         return ""
     return " " * (4 * level)
 
@@ -97,17 +95,17 @@ def safe_read_json(file_path, retries=5, delay=0.1, default=None, indent_lvl=Non
 
                 return data  # Return the data as is if the type matches
         except FileNotFoundError:
-            print_log(f"{indent(indent_lvl)}[SAFE READ] File not found: {file_path}")
+            print_log(f"{indent(indent_lvl)}[SAFE READ] File not found: `{pretty_path(file_path)}`")
             return default
         except json.JSONDecodeError:
-            print_log(f"{indent(indent_lvl)}[SAFE READ] Invalid JSON in {file_path}, retrying... (Attempt {attempt + 1}/{retries}). From '{location}'")
+            print_log(f"{indent(indent_lvl)}[SAFE READ] Invalid JSON in `{pretty_path(file_path)}`, retrying... (Attempt {attempt + 1}/{retries}). From '{location}'")
             if attempt < retries - 1:
                 time.sleep(delay)
             else:
                 print_log(f"{indent(indent_lvl)}[SAFE READ] Failed to parse JSON after {retries} attempts. From '{location}'")
                 return default
         except PermissionError:
-            print_log(f"{indent(indent_lvl)}[SAFE READ] Permission denied: {file_path}, retrying... (Attempt {attempt + 1}/{retries}) From '{location}'")
+            print_log(f"{indent(indent_lvl)}[SAFE READ] Permission denied: `{pretty_path(file_path)}`, retrying... (Attempt {attempt + 1}/{retries}) From '{location}'")
             if attempt < retries - 1:
                 time.sleep(delay)
             else:
@@ -148,7 +146,7 @@ def safe_write_json(file_path, content, retries=5, delay=0.1, indent_lvl=None):
             return True  # Successfully written
 
         except PermissionError:
-            print_log(f"{indent(indent_lvl)}[SAFE WRITE] Permission denied: {file_path}, retrying... (Attempt {attempt + 1}/{retries})")
+            print_log(f"{indent(indent_lvl)}[SAFE WRITE] Permission denied: `{pretty_path(file_path)}`, retrying... (Attempt {attempt + 1}/{retries})")
             if attempt < retries - 1:
                 time.sleep(delay)
             else:
@@ -164,5 +162,3 @@ def safe_write_json(file_path, content, retries=5, delay=0.1, indent_lvl=None):
                 return False
 
     return False  # Fallback return in case of failure
-
-

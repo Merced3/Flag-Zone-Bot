@@ -5,7 +5,8 @@ import requests
 from print_discord_messages import print_discord, get_message_content, edit_discord_message
 import aiohttp
 from data_acquisition import read_config, get_current_price # this if for shared state get price, more efficient
-from error_handler import error_log_and_discord_message, print_log
+from error_handler import error_log_and_discord_message
+from shared_state import print_log
 from utils.order_utils import build_active_order, calculate_quantity, get_strikes_to_consider
 import json
 import sys

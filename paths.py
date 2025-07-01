@@ -43,3 +43,10 @@ STATES_DIR = BASE / 'states'
 # PHOTOS
 SPY_15M_CHART_PATH = STORAGE_DIR / 'SPY_15-min_chart.png'
 SPY_2M_CHART_PATH = STORAGE_DIR / 'SPY_2-min_chart.png'
+
+def pretty_path(path: Path, short: bool = True):
+    from paths import BASE
+    try:
+        return path.relative_to(BASE) if not short else path.name
+    except ValueError:
+        return path.name

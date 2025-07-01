@@ -6,7 +6,7 @@ from pathlib import Path
 from shared_state import indent, print_log, safe_read_json, safe_write_json
 from utils.json_utils import read_config
 from utils.data_utils import check_valid_points
-from paths import LINE_DATA_PATH, STATES_DIR
+from paths import pretty_path, LINE_DATA_PATH, STATES_DIR
 
 # ----------------------
 # ⚙️ Configuration
@@ -387,7 +387,7 @@ def manage_states(indent_lvl, print_satements=True):
             else:
                 os.remove(state_file)
             if print_satements:
-                print_log(f"{indent(indent_lvl)}[MSF] Removed duplicate state: {state_file}")
+                print_log(f"{indent(indent_lvl)}[MSF] Removed duplicate state: `{pretty_path(state_file)}`")
         else:
             seen_start_points[start_point] = state_file
 
@@ -427,7 +427,7 @@ def update_state(state_file_path, flag_names, flag_type, start_point, slope, int
     else:
         correctly_saved = safe_write_json(state_file_path, state, indent_lvl=indent_lvl)
         if not correctly_saved:
-            print_log(f"{indent(indent_lvl)}[US] Failed to save State: {state_file_path}")
+            print_log(f"{indent(indent_lvl)}[US] Failed to save State: `{pretty_path(state_file_path)}`")
 
 # ----------------------
 # 📈 Trendline & Slope Calculations
@@ -657,7 +657,7 @@ def add_candle_to_candle_points(flag_type, candle, candle_points):
 def ensure_states_dir_exists(states_dir):
     if not os.path.exists(states_dir) and not USE_DICT_STATE:
         os.makedirs(states_dir)
-        print_log(f"[INIT] Created missing directory: {states_dir}")
+        print_log(f"[INIT] Created missing directory: {pretty_path(states_dir)}")
 
 def clear_all_states(indent_lvl=1):
     """
@@ -669,12 +669,12 @@ def clear_all_states(indent_lvl=1):
         print_log(f"{indent(indent_lvl)}[RESET] In-memory STATE_MEMORY cleared.")
     else:
         if not os.path.exists(STATES_DIR):
-            print_log(f"{indent(indent_lvl)}[RESET] State folder '{STATES_DIR}' does not exist.")
+            print_log(f"{indent(indent_lvl)}[RESET] State folder `{pretty_path(STATES_DIR)}` does not exist.")
             return
         json_files = glob.glob(os.path.join(STATES_DIR, "*.json"))
         for file in json_files:
             try:
                 os.remove(file)
-                print_log(f"{indent(indent_lvl)}[RESET] Deleted state file: {file}")
+                print_log(f"{indent(indent_lvl)}[RESET] Deleted state file: `{pretty_path(file)}`")
             except Exception as e:
-                print_log(f"{indent(indent_lvl)}[RESET ERROR] Could not delete {file}: {e}")
+                print_log(f"{indent(indent_lvl)}[RESET ERROR] Could not delete `{pretty_path(file)}`: {e}")

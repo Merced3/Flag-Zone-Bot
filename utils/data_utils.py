@@ -7,7 +7,7 @@ from shared_state import print_log, indent, safe_read_json
 import pandas_market_calendars as mcal
 from datetime import datetime, timedelta
 from utils.json_utils import read_config, update_ema_json
-from paths import EMAS_PATH, CANDLE_LOGS, LINE_DATA_PATH, MERGED_EMA_PATH
+from paths import pretty_path, EMAS_PATH, CANDLE_LOGS, LINE_DATA_PATH, MERGED_EMA_PATH
 
 def load_from_csv(filename):
     try:
@@ -15,10 +15,10 @@ def load_from_csv(filename):
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         return df
     except FileNotFoundError:
-        print_log(f"File {filename} not found.")
+        print_log(f"File `{pretty_path(filename)}` not found.")
         return None
     except Exception as e:
-        print_log(f"An error occurred while loading {filename}: {e}")
+        print_log(f"An error occurred while loading `{pretty_path(filename)}`: {e}")
         return None
 
 def save_to_csv(df, filename):
@@ -130,7 +130,7 @@ def get_latest_ema_values(ema_type):
 
     # Check if the file is empty before reading
     if os.stat(EMAS_PATH).st_size == 0:
-        print_log(f"    [GLEV] EMAs.json is empty.")
+        print_log(f"    [GLEV] `{pretty_path(EMAS_PATH)}` is empty.")
         return None, None
 
     try:
@@ -139,7 +139,7 @@ def get_latest_ema_values(ema_type):
             emas = json.load(file)
 
         if not emas:  # Check if the file is empty or contains no data
-            print_log("    [GLEV] EMAs.json is empty or contains no data.")
+            print_log(f"    [GLEV] `{pretty_path(EMAS_PATH)}` is empty or contains no data.")
             return None, None
         latest_ema = emas[-1][ema_type]
         #print(f"Latest emas: {latest_ema}")

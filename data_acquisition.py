@@ -16,7 +16,7 @@ from shared_state import price_lock, indent, print_log
 from utils.json_utils import read_config
 from utils.data_utils import get_dates
 from utils.file_utils import get_current_candle_index
-from paths import MARKERS_PATH, AFTERMARKET_EMA_PATH, PREMARKET_EMA_PATH, MERGED_EMA_PATH
+from paths import pretty_path, MARKERS_PATH, AFTERMARKET_EMA_PATH, PREMARKET_EMA_PATH, MERGED_EMA_PATH
 
 RETRY_INTERVAL = 1  # Seconds between reconnection attempts
 should_close = False  # Global variable to signal if the WebSocket should close
@@ -332,7 +332,7 @@ async def get_candle_data_and_merge(candle_interval, candle_timescale, am, pm, i
             merged_df[ema_column_name] = merged_df['close'].ewm(span=window, adjust=False).mean()
         
         merged_df.to_csv(MERGED_EMA_PATH, index=False)
-        print_log(f"{indent(indent_lvl)}[GCDAM] Data saved with initial EMA calculation: {MERGED_EMA_PATH}")
+        print_log(f"{indent(indent_lvl)}[GCDAM] Data saved with initial EMA calculation: `{pretty_path(MERGED_EMA_PATH)}`")
         
     else:
         print_log(f"{indent(indent_lvl)}[GCDAM] Aftermarket or premarket data not available. EMA calculation skipped.")
@@ -382,7 +382,7 @@ async def get_certain_candle_data(api_key, symbol, interval, timescale, start_da
             df.rename(columns={'v': 'volume', 'o': 'open', 'c': 'close', 'h': 'high', 'l': 'low'}, inplace=True)
             if output_path:
                 df.to_csv(output_path, index=False)
-                print_log(f"{indent(indent_lvl)}[GCCD] Data saved: {output_path}; Candles from '{start_time}' to '{end_time}'")
+                print_log(f"{indent(indent_lvl)}[GCCD] Data saved: `{pretty_path(output_path)}`; Candles from '{start_time}' to '{end_time}'")
             else:
                 print_log(f"{indent(indent_lvl)}[GCCD] Data received; Candles from '{start_time}' to '{end_time}'.")  
             return df

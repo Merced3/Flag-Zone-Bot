@@ -243,7 +243,7 @@ async def main_loop():
                 if root is None: # For when program is first starting
                     chart_thread = threading.Thread(
                         target=plot_candles_and_boxes, 
-                        args=(read_config('SYMBOL'),),
+                        args=(0,),
                         name="chart_root"
                     )
                     chart_thread.start()

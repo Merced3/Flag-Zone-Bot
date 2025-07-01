@@ -5,7 +5,7 @@ from error_handler import error_log_and_discord_message
 from utils.file_utils import get_current_candle_index
 import pandas as pd
 import os
-from paths import CONFIG_PATH, MESSAGE_IDS_PATH, ORDER_CANDLE_TYPE_PATH, EMAS_PATH, PRIORITY_CANDLES_PATH, LINE_DATA_PATH
+from paths import pretty_path, CONFIG_PATH, MESSAGE_IDS_PATH, ORDER_CANDLE_TYPE_PATH, EMAS_PATH, PRIORITY_CANDLES_PATH, LINE_DATA_PATH
 
 def read_config(key=None):
     """Reads the configuration file and optionally returns a specific key."""
@@ -72,19 +72,19 @@ async def read_ema_json(position):
             latest_ema = emas[position]
             return latest_ema
     except FileNotFoundError:
-        print_log("EMAs.json file not found.")
+        print_log(f"`{pretty_path(EMAS_PATH)}` file not found.")
         return None
     except KeyError:
         print_log(f"EMA type [{position}] not found in the latest entry.")
         return None
     except Exception as e:
-        await error_log_and_discord_message(e, "ema_strategy", "read_last_ema_json")
+        await error_log_and_discord_message(e, "json_utils", "read_ema_position")
         return None
     
 def reset_json(file_path, contents):
     with open(file_path, 'w') as f:
         json.dump(contents, f, indent=4)
-        print_log(f"[RESET] Cleared file: {file_path}")
+        print_log(f"[RESET] Cleared file: `{pretty_path(file_path)}`")
 
 def get_correct_message_ids():
     if os.path.exists(MESSAGE_IDS_PATH):
@@ -102,7 +102,7 @@ def add_candle_type_to_json(candle_type):
         with open(ORDER_CANDLE_TYPE_PATH, 'r') as file:
             candle_types = json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
-        print_log("File not found or is empty. Starting a new list.")
+        print_log(f"File `{pretty_path(ORDER_CANDLE_TYPE_PATH)}` not found or is empty. Starting a new list.")
         candle_types = []
 
     # Append the new candle_type to the list
@@ -117,7 +117,7 @@ def check_order_type_json(candle_type):
         with open(ORDER_CANDLE_TYPE_PATH, 'r') as file:
             candle_types = json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
-        print_log("Error reading the file or file not found. Assuming no orders have been placed.")
+        print_log(f"Error reading file: `{pretty_path(ORDER_CANDLE_TYPE_PATH)}` or file not found. Assuming no orders have been placed.")
         candle_types = []
 
     # Count how many times the given candle_type appears in the list
@@ -132,7 +132,7 @@ def check_order_type_json(candle_type):
 def clear_priority_candles(indent_level):
     with open(PRIORITY_CANDLES_PATH, 'w') as file:
         json.dump([], file, indent=4)
-    print_log(f"{indent(indent_level)}[RESET] {PRIORITY_CANDLES_PATH} = [];")
+    print_log(f"{indent(indent_level)}[RESET] `{pretty_path(PRIORITY_CANDLES_PATH)}` = [];")
 
 async def record_priority_candle(candle, zone_type_candle):
     # Load existing data or initialize an empty list
@@ -168,7 +168,7 @@ def restart_state_json(indent_level, state_file_path):
     
     with open(state_file_path, 'w') as file:
         json.dump(initial_state, file, indent=4)
-    print_log(f"{indent(indent_level)}[RESET] State JSON file has been reset to initial state.")
+    print_log(f"{indent(indent_level)}[RESET] State JSON file: `{pretty_path(state_file_path)}` has been reset to initial state.")
 
 def resolve_flags(indent_level):
     
@@ -176,7 +176,7 @@ def resolve_flags(indent_level):
         with open(LINE_DATA_PATH, 'r') as file:
             line_data = json.load(file)
     else:
-        print_log(f"{indent(indent_level)}[FLAG ERROR] File {LINE_DATA_PATH} not found.")
+        print_log(f"{indent(indent_level)}[FLAG ERROR] File `{pretty_path(LINE_DATA_PATH)}` not found.")
         return
 
     # Iterate through the flags and resolve opposite flags

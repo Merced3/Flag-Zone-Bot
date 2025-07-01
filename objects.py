@@ -6,7 +6,7 @@ import cred
 import asyncio
 from utils.log_utils import read_log_to_df
 from utils.json_utils import read_config
-from paths import OBJECTS_PATH, TIMELINE_PATH, CANDLE_LOGS, SPY_15_MINUTE_CANDLES_PATH
+from paths import pretty_path, OBJECTS_PATH, TIMELINE_PATH, CANDLE_LOGS, SPY_15_MINUTE_CANDLES_PATH
 
 # What zones mean:
 # 🔁 Support = “Too few sellers to push lower”
@@ -419,7 +419,7 @@ def log_object_removal(object_ids_with_reason, reason="removal"):
 def display_json_update(step):
     timeline = safe_read_json(TIMELINE_PATH, default={})
     if not timeline:
-        print_log("[display_update] Timeline is empty.")
+        print_log(f"[display_update] `{pretty_path(TIMELINE_PATH)}` is empty.")
         return
 
     if isinstance(step, str):
@@ -493,7 +493,7 @@ def clean_csv_timestamps():
         df.to_csv(SPY_15_MINUTE_CANDLES_PATH, index=False)
         print_log("[CLEAN] Timestamp strings trimmed to HH:MM:SS precision.")
     except Exception as e:
-        print_log(f"[ERROR] Failed to clean CSV timestamps: {e}")
+        print_log(f"[ERROR] Failed to clean `{pretty_path(SPY_15_MINUTE_CANDLES_PATH)}` CSV timestamps: {e}")
 
 def get_objects():
     """
@@ -573,7 +573,7 @@ def process_end_of_day_15m_candles():
     # Display every from timeline file, too display file
     display_json_update("all")
 
-    print_log(f"[NEW HISTORICAL DATA] objects saved timeline.json now sent to objects.json")
+    print_log(f"[NEW HISTORICAL DATA] objects saved `{pretty_path(TIMELINE_PATH)}` now sent to `{pretty_path(OBJECTS_PATH)}`")
 
 async def pull_and_replace_15m():
     """
@@ -625,7 +625,7 @@ async def pull_and_replace_15m():
     # ✅ Merge clean replacement
     combined_df = pd.concat([df_storage, df]).sort_index()
     combined_df.to_csv(SPY_15_MINUTE_CANDLES_PATH)
-    print_log(f"[pull_and_replace_15m] Main CSV updated with Polygon fallback.")
+    print_log(f"[pull_and_replace_15m] Main CSV `{pretty_path(SPY_15_MINUTE_CANDLES_PATH)}` updated with Polygon fallback.")
 
     # ✅ Now re-run the **zone/level logic**
     day_data = df
@@ -711,7 +711,7 @@ def candle_zone_handler(candle, boxes):
     return candle_zone_type, is_in_zone
 
 if __name__ == "__main__":
-    print("These functions below are just tests")
+    print_log("These functions below are just tests")
     #asyncio.run(pull_and_replace_15m())
     #clean_csv_timestamps()
     #update_timeline_with_objects(True)
