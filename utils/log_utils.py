@@ -79,10 +79,10 @@ def clear_temp_logs_and_order_files():
     files_to_delete = set()
 
     # 1. Delete temp order_log* files and all CSVs in logs/ (except protected)
-    for file_path in LOGS_DIR.glob('*order_log*'):
+    for file_path in STORAGE_DIR.glob('*order_log*'):
         if file_path not in protected_files:
             files_to_delete.add(file_path)
-    for file_path in LOGS_DIR.glob('*.csv'):
+    for file_path in STORAGE_DIR.glob('*.csv'):
         if file_path not in protected_files:
             files_to_delete.add(file_path)
 
@@ -96,7 +96,7 @@ def clear_temp_logs_and_order_files():
         PRIORITY_CANDLES_PATH: []
     }
     for filename, default_value in json_reset_instructions.items():
-        reset_json(str(STORAGE_DIR / filename), default_value)
+        reset_json(filename, default_value)
 
     # 3. Delete all files found in logs/
     for file_path in files_to_delete:

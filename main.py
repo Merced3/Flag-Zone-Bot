@@ -337,7 +337,6 @@ async def shutdown(loop):
     loop.stop()
 
 if __name__ == "__main__":
-
     loop = asyncio.get_event_loop()
     loop.create_task(bot_start(), name="DiscordBotStart")
     loop.create_task(main(), name="MainLoop")
