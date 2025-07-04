@@ -1,0 +1,47 @@
+[setup_global_chart] setting global root and canvas
+Exception in thread chart_root:
+Traceback (most recent call last):
+  File "C:\Users\HNI\AppData\Local\Programs\Python\Python39\lib\threading.py", line 954, in _bootstrap_inner
+    [chart_visualization.py, UCP] Waiting for live candles...
+    self.run()
+  File "C:\Users\HNI\AppData\Local\Programs\Python\Python39\lib\threading.py", line 892, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\chart_visualization.py", line 361, in plot_candles_and_boxes
+The market is about to open. Waiting 591 seconds...
+    tk.mainloop()
+  File "C:\Users\HNI\AppData\Local\Programs\Python\Python39\lib\tkinter\__init__.py", line 603, in mainloop
+    _get_default_root('run the main loop').tk.mainloop(n)
+RuntimeError: Calling Tcl from different apartment
+Exception in thread Thread-22:
+Traceback (most recent call last):
+  File "C:\Users\HNI\AppData\Local\Programs\Python\Python39\lib\threading.py", line 954, in _bootstrap_inner
+    self.run()
+  File "C:\Users\HNI\AppData\Local\Programs\Python\Python39\lib\threading.py", line 892, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\chart_visualization.py", line 82, in update_chart_periodically
+    button_2_min.config(state=tk.DISABLED)
+  File "C:\Users\HNI\AppData\Local\Programs\Python\Python39\lib\tkinter\__init__.py", line 1646, in configure
+    return self._configure('configure', cnf, kw)
+  File "C:\Users\HNI\AppData\Local\Programs\Python\Python39\lib\tkinter\__init__.py", line 1636, in _configure
+    self.tk.call(_flatten((self._w, cmd)) + self._options(cnf))
+RuntimeError: main thread is not in main loop
+Exception in thread Thread-8:
+Traceback (most recent call last):
+  File "C:\Users\HNI\AppData\Local\Programs\Python\Python39\lib\threading.py", line 954, in _bootstrap_inner
+    self.run()
+  File "C:\Users\HNI\AppData\Local\Programs\Python\Python39\lib\threading.py", line 892, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Temporal Lattice Leap Bot\chart_visualization.py", line 82, in update_chart_periodically
+    button_2_min.config(state=tk.DISABLED)
+  File "C:\Users\HNI\AppData\Local\Programs\Python\Python39\lib\tkinter\__init__.py", line 1646, in configure
+    return self._configure('configure', cnf, kw)
+  File "C:\Users\HNI\AppData\Local\Programs\Python\Python39\lib\tkinter\__init__.py", line 1636, in _configure
+    self.tk.call(_flatten((self._w, cmd)) + self._options(cnf))
+RuntimeError: main thread is not in main loop
+
+
+
+
+
+
+IDEA: maybe the websocket can tell you WHEN the market closes, that would be most optimal. instead of our current version of a hard set 8:30am too 3pm

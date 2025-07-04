@@ -111,7 +111,7 @@ def read_log_to_df(log_file_path, indent_lvl=0):
     # If the file does not exist, create an empty file
     if not log_file_path.exists():
         log_file_path.touch()
-        print_log(f"{indent(indent_lvl)}[RLTD] Created new log file: `{pretty_path(log_file_path)}`")
+        print_log(f"{indent(indent_lvl)}[chart_visualization.py, RLTD] Created new log file: `{pretty_path(log_file_path)}`")
         return pd.DataFrame()
     # Read the log file and return a DataFrame
     try:
@@ -127,9 +127,9 @@ def read_log_to_df(log_file_path, indent_lvl=0):
                     if 'timestamp' in json_data:
                         data.append(json_data)
                     else:
-                        print_log(f"{indent(indent_lvl)}[RLTD] Line in log file missing 'timestamp': {line}")
+                        print_log(f"{indent(indent_lvl)}[chart_visualization.py, RLTD] Line in log file missing 'timestamp': {line}")
                 except json.JSONDecodeError as e:
-                    print_log(f"{indent(indent_lvl)}[RLTD] Error decoding line in log file: {line}\nError:\n{e}")
+                    print_log(f"{indent(indent_lvl)}[chart_visualization.py, RLTD] Error decoding line in log file: {line}\nError:\n{e}")
 
             if not data:  # Check if no valid data was found
                 return pd.DataFrame()
@@ -139,7 +139,7 @@ def read_log_to_df(log_file_path, indent_lvl=0):
             df.set_index('timestamp', inplace=True)
             return df
     except Exception as e:
-        print_log(f"{indent(indent_lvl)}[RLTD] Error reading log file: {e}")
+        print_log(f"{indent(indent_lvl)}[chart_visualization.py, RLTD] Error reading log file: {e}")
         return pd.DataFrame()
 
 def update_plot(canvas, df, symbol, timescale_type, indent_lvl=0, off_set=None):
@@ -318,7 +318,7 @@ def update_2_min(print_statements=False, indent_lvl=0):
         print_log(f"{indent(indent_lvl)}[update_2_min] GUI or data not initialized.")
 
 def plot_candles_and_boxes(indent_lvl=0):
-    global df_15_min, should_close, button_2_min, global_offset_15m
+    global df_15_min, should_close, button_2_min, global_offset_15m, root, canvas
     df_15_min, global_offset_15m = load_recent_15m_candles()
 
     symbol = read_config("SYMBOL")
