@@ -1,5 +1,5 @@
 # main.py
-from chart_visualization import root, initiate_shutdown, plot_candles_and_boxes, refresh_15_min_candle_stick_data
+from chart_visualization import get_root, initiate_shutdown, plot_candles_and_boxes, refresh_15_min_candle_stick_data
 from data_acquisition import ws_auto_connect, get_account_balance, active_provider, is_market_open
 from utils.json_utils import read_config, get_correct_message_ids, update_config_value
 from utils.log_utils import write_to_log, clear_temp_logs_and_order_files
@@ -224,6 +224,10 @@ async def main_loop():
     queue = asyncio.Queue()
     already_ran = False
     keep_loop = True
+
+    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(0,), name="chart_root") # I want the chart to start on startup of program.
+    chart_thread.start()
+
     while keep_loop:
         try:
             new_york = pytz.timezone('America/New_York')
@@ -240,14 +244,8 @@ async def main_loop():
                 already_ran = True  # Set this to True to avoid running this block again until the next day
 
                 # Plot the data
-                if root is None: # For when program is first starting
-                    chart_thread = threading.Thread(
-                        target=plot_candles_and_boxes, 
-                        args=(0,),
-                        name="chart_root"
-                    )
-                    chart_thread.start()
-                    await asyncio.sleep(1) # wait for the thread
+                if get_root() is None: # For when program is first starting
+                    print_log("WARNING: Chart root disappeared! This should not happen.")
                 else: # For 24/7+ Run Times
                     refresh_15_min_candle_stick_data()
             

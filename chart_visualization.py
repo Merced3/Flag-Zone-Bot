@@ -23,6 +23,10 @@ df_2_min = None
 button_2_min = None
 global_offset_15m = None
 
+def get_root():
+    global root
+    return root
+
 def load_recent_15m_candles(days=5):
     df = load_from_csv(SPY_15_MINUTE_CANDLES_PATH)
     if df is None or df.empty:
