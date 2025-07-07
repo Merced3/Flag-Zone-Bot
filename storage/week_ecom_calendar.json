@@ -1,20 +1,19 @@
 {
-    "week_timespan": "06-30-25 to 07-06-25",
+    "week_timespan": "07-07-25 to 07-13-25",
     "dates": {
-        "07-01-25": {
+        "07-08-25": {
             "09:00 AM": [
-                "ISM Manufacturing PMI",
-                "JOLTs Job Openings"
+                "Ivey PMI s.a"
             ]
         },
-        "07-03-25": {
+        "07-09-25": {
+            "01:00 PM": [
+                "FOMC Minutes"
+            ]
+        },
+        "07-11-25": {
             "07:30 AM": [
-                "Balance of Trade",
-                "Non Farm Payrolls",
                 "Unemployment Rate"
-            ],
-            "09:00 AM": [
-                "ISM Services PMI"
             ]
         }
     }
