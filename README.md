@@ -18,6 +18,16 @@ This system analyzes the market using:
 
 ---
 
+### Most Recent **2 Minute Chart:**
+
+![2 Minute Chart](storage/SPY_2-min_chart.png)
+
+### Most Recent **15 Minute Chart:**
+
+![2 Minute Chart](storage/SPY_15-min_chart.png)
+
+---
+
 ## Key Concepts
 
 ✅ **Dynamic Zones:**  
