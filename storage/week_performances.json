@@ -778,6 +778,18 @@
         "num_of_negitive_trades": 0,
         "description": "Day 1, today i realised that the first candle stick started 38 seconds atfer it should have started, i think its because of a bug from todays economic data pull, mightve included the time it took to grab that data then calculated the time from start to finish, unacceptable. Day 2, Error occured right at 8:20AM, You can see error in `ERROR.txt` in the git commit for today, the rest of the day was good, resetted values as it shouldve, i didn't solve the error. Day 3, clean run, did as it should have. Day 4, restarted code before todays run, ran perfectly, still haven't solved the error yet. Day 5, so today was WEIRD, cause there were no bull flags, only bear flags, I have no idea what caused it, will look at logs later on, other than that everything ran fine.",
         "important_message_ids": []
+    },
+    {
+        "week_number": 64,
+        "week_start_end_date": "07/14/2025-07/18/2025",
+        "start_ammount": 39174.0,
+        "end_ammount": 39174.0,
+        "total_made": 0.0, 
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "",
+        "important_message_ids": []
     }
 
 ]
