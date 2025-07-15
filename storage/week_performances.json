@@ -788,7 +788,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "",
+        "description": "Day 1, trades are still disabled, today everything went according to plan except for the first candle for both 15 and 2 min, the first candle started 43 seconds after the time it should've started, outragious.",
         "important_message_ids": []
     }
 
