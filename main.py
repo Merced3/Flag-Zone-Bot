@@ -225,9 +225,6 @@ async def main_loop():
     already_ran = False
     keep_loop = True
 
-    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(0,), name="chart_root") # I want the chart to start on startup of program.
-    chart_thread.start()
-
     while keep_loop:
         try:
             new_york = pytz.timezone('America/New_York')
@@ -278,14 +275,22 @@ async def main_loop():
                     already_ran = False
                     keep_loop = False
                 if current_time <= market_open_time:
-                    delta_until_open = (market_open_time - current_time).total_seconds() # Calculate the seconds until the market opens
-                    print_log(f"The market is about to open. Waiting {int(delta_until_open)} seconds...")
-                    await asyncio.sleep(delta_until_open)
+                    await wait_until_market_open(market_open_time, new_york)
                 elif market_close_time <= current_time:
                     print_log("The market is closed...")
                     break
         except Exception as e:
             await error_log_and_discord_message(e, "main", "main")
+
+async def wait_until_market_open(target_time, tz):
+    print_log(f"Waiting for market open at {target_time.strftime('%H:%M:%S')}...")
+    while True:
+        now = datetime.now(tz)
+        delta = abs((now - target_time).total_seconds())
+        if delta <= 1:
+            print_log("✅ Market open hit within 1 second margin. Starting...")
+            break
+        await asyncio.sleep(0.5)
 
 async def process_end_of_day():
     global websocket_connection
@@ -336,6 +341,12 @@ async def shutdown(loop):
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
+
+    # Start chart once at boot — main thread only
+    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(0,), name="chart_root")
+    chart_thread.start()
+
+    # Start bot and main loop
     loop.create_task(bot_start(), name="DiscordBotStart")
     loop.create_task(main(), name="MainLoop")
 
