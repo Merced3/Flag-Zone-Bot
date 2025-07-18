@@ -788,8 +788,8 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, trades are still disabled, today everything went according to plan except for the first candle for both 15 and 2 min, the first candle started 43 seconds after the time it should've started, outragious. Day 2, midnight/early morning fixed the error in the `ERROR.txt` file, plus handled the first candle late start functionality, we will see if that solved the issue in the morning, It worked, But now bull-flags don't populate scene (bear flags do), weird another redundancy to fix. Day 3, the fixes from yestarday already seem to be paying off, the flagging worked today, I have no idea why some days it would and some it wouldn't, but today was pretty volitile but clean data was recorded.",
-        "important_message_ids": []
+        "description": "Day 1, trades are still disabled, today everything went according to plan except for the first candle for both 15 and 2 min, the first candle started 43 seconds after the time it should've started, outragious. Day 2, midnight/early morning fixed the error in the `ERROR.txt` file, plus handled the first candle late start functionality, we will see if that solved the issue in the morning, It worked, But now bull-flags don't populate scene (bear flags do), weird another redundancy to fix. Day 3, the fixes from yestarday already seem to be paying off, the flagging worked today, I have no idea why some days it would and some it wouldn't, but today was pretty volitile but clean data was recorded. Day 4, good data BUT I noticed that the zones for the 15 min chart were off by one candle, what i mean was the lines, they were at the correct levels but the display of them was one off, it doesn't make teh program wrong, just my OCD kicks in, i removed one candle that I thought was the culprit, that didn't work, I added that candle back (ctrl-z), I go into more detial in the message ID.",
+        "important_message_ids": [1395594369167523974]
     }
 
 ]

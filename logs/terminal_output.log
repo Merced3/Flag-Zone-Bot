@@ -1,6 +1,71 @@
-[load_recent_15m_candles] Loaded 132 rows covering 5 days, offset = 33379
+[load_recent_15m_candles] Loaded 132 rows covering 5 days, offset = 33406
 The market is closed...
 [INFO] initial_setup and main_loop completed successfully.
 Waiting until tomorrow's 8:20 AM...
     [chart_visualization.py, RLTD] Created new log file: `SPY_2M.log`
     [chart_visualization.py, UCP] Waiting for live candles...
+Manually interrupted, cleaning up...
+[INFO] Running initial_setup and main_loop at 2025-07-17 20:55:05
+[load_recent_15m_candles] Loaded 131 rows covering 5 days, offset = 33405
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...
+We have logged in as TradeMaster#8429
+
+[DATA_AQUISITION] 'is_market_open()' DATA: 
+{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'closed', 'nyse': 'closed', 'otc': 'closed'}, 'indicesGroups': {'s_and_p': 'closed', 'societe_generale': 'closed', 'msci': 'closed', 'ftse_russell': 'closed', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'closed', 'nasdaq': 'closed', 'dow_jones': 'closed'}, 'market': 'closed', 'serverTime': '2025-07-17T20:55:10-04:00'}
+
+Markets are closed today: 07/17/2025 - Thursday
+[INFO] initial_setup and main_loop completed successfully.
+Waiting until tomorrow's 8:20 AM...
+Manually interrupted, cleaning up...
+[INFO] Running initial_setup and main_loop at 2025-07-17 20:56:23
+[load_recent_15m_candles] Loaded 131 rows covering 5 days, offset = 33405
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...
+We have logged in as TradeMaster#8429
+
+[DATA_AQUISITION] 'is_market_open()' DATA: 
+{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'closed', 'nyse': 'closed', 'otc': 'closed'}, 'indicesGroups': {'s_and_p': 'closed', 'societe_generale': 'closed', 'msci': 'closed', 'ftse_russell': 'closed', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'closed', 'nasdaq': 'closed', 'dow_jones': 'closed'}, 'market': 'closed', 'serverTime': '2025-07-17T20:56:27-04:00'}
+
+Markets are closed today: 07/17/2025 - Thursday
+[INFO] initial_setup and main_loop completed successfully.
+Waiting until tomorrow's 8:20 AM...
+Manually interrupted, cleaning up...
+[INFO] Running initial_setup and main_loop at 2025-07-17 20:56:54
+[load_recent_15m_candles] Loaded 132 rows covering 5 days, offset = 33406
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...
+We have logged in as TradeMaster#8429
+
+[DATA_AQUISITION] 'is_market_open()' DATA: 
+{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'closed', 'nyse': 'closed', 'otc': 'closed'}, 'indicesGroups': {'s_and_p': 'closed', 'societe_generale': 'closed', 'msci': 'closed', 'ftse_russell': 'closed', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'closed', 'nasdaq': 'closed', 'dow_jones': 'closed'}, 'market': 'closed', 'serverTime': '2025-07-17T20:56:58-04:00'}
+
+Markets are closed today: 07/17/2025 - Thursday
+[INFO] initial_setup and main_loop completed successfully.
+Waiting until tomorrow's 8:20 AM...
+Manually interrupted, cleaning up...
+[INFO] Running initial_setup and main_loop at 2025-07-17 21:48:52
+[load_recent_15m_candles] Loaded 131 rows covering 5 days, offset = 33405
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...
+We have logged in as TradeMaster#8429
+
+[DATA_AQUISITION] 'is_market_open()' DATA: 
+{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'closed', 'nyse': 'closed', 'otc': 'closed'}, 'indicesGroups': {'s_and_p': 'closed', 'societe_generale': 'closed', 'msci': 'closed', 'ftse_russell': 'closed', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'closed', 'nasdaq': 'closed', 'dow_jones': 'closed'}, 'market': 'closed', 'serverTime': '2025-07-17T21:48:56-04:00'}
+
+Markets are closed today: 07/17/2025 - Thursday
+[INFO] initial_setup and main_loop completed successfully.
+Waiting until tomorrow's 8:20 AM...
+Manually interrupted, cleaning up...
+[INFO] Running initial_setup and main_loop at 2025-07-17 22:06:30
+[load_recent_15m_candles] Loaded 130 rows covering 5 days, offset = 33405
+[setup_global_chart] setting global root and canvas
+    [chart_visualization.py, UCP] Waiting for live candles...
+We have logged in as TradeMaster#8429
+
+[DATA_AQUISITION] 'is_market_open()' DATA: 
+{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'closed', 'nyse': 'closed', 'otc': 'closed'}, 'indicesGroups': {'s_and_p': 'closed', 'societe_generale': 'closed', 'msci': 'closed', 'ftse_russell': 'closed', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'closed', 'nasdaq': 'closed', 'dow_jones': 'closed'}, 'market': 'closed', 'serverTime': '2025-07-17T22:06:34-04:00'}
+
+Markets are closed today: 07/17/2025 - Thursday
+[INFO] initial_setup and main_loop completed successfully.
+Waiting until tomorrow's 8:20 AM...
