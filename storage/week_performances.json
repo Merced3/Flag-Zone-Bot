@@ -800,7 +800,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, The first candle was recorded twice again, this is a weird error that i need to solve.",
+        "description": "Day 1, The first candle was recorded twice again, this is a weird error that i need to solve. Day 2, perfect data gathered, the first candle did not repeat like the day before.",
         "important_message_ids": []
     }
 
