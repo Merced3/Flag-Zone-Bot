@@ -800,7 +800,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, The first candle was recorded twice again, this is a weird error that i need to solve. Day 2, perfect data gathered, the first candle did not repeat like the day before. Day 3, nothing wrong with any of the data collection, everything seemed fine. Day 4, Good data collection, the first candle was reliable, no errors, no issues.",
+        "description": "Day 1, The first candle was recorded twice again, this is a weird error that i need to solve. Day 2, perfect data gathered, the first candle did not repeat like the day before. Day 3, nothing wrong with any of the data collection, everything seemed fine. Day 4, Good data collection, the first candle was reliable, no errors, no issues. Day 5, the first candle repeated again, i need to fix this error but im working on other software currently, so this will be fixed later on, because of the first candle the bull flags seem to not form for some reason, other than that the data collection was good.",
         "important_message_ids": []
     }
 
