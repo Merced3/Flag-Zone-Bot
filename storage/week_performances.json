@@ -812,7 +812,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, data collection was good, we didn't have that first candle issue. Day 2, first candle issue came up again, no bull flags were showing up, other than that data collection was good. Day 3, data collection was good no errors. Day 4, Data collection was alright But first candle issue came again AND bull flags were not showing.",
+        "description": "Day 1, data collection was good, we didn't have that first candle issue. Day 2, first candle issue came up again, no bull flags were showing up, other than that data collection was good. Day 3, data collection was good no errors. Day 4, Data collection was alright But first candle issue came again AND bull flags were not showing. Day 5, first candle issue again, bull flags were non existent, Good data collection other than that.",
         "important_message_ids": []
     }
 
