@@ -218,69 +218,53 @@ async def main():
             print_log(f"[ERROR] Exception in main loop: {e}")
             await asyncio.sleep(10)  # Avoid tight loops in case of errors
 
-async def main_loop():
+async def main_loop(): # I want to test this on tomorrow's run
     global websocket_connection
 
+    new_york = pytz.timezone('America/New_York')
     queue = asyncio.Queue()
-    already_ran = False
-    keep_loop = True
 
-    while keep_loop:
+    current_time = datetime.now(new_york)
+    market_open_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("09:30:00", "%H:%M:%S").time()))
+    market_close_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("16:00:00", "%H:%M:%S").time()))
+
+    # ⏳ WAIT until market open FIRST
+    if current_time < market_open_time:
+        await wait_until_market_open(market_open_time, new_york)
+
+    # ✅ INIT after waiting
+    initialize_csv_order_log()
+    await ensure_economic_calendar_data()
+    refresh_15_min_candle_stick_data()
+
+    # 🚀 BEGIN main loop
+    while datetime.now(new_york) <= market_close_time:
         try:
-            new_york = pytz.timezone('America/New_York')
             current_time = datetime.now(new_york)
-            market_open_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("09:30:00", "%H:%M:%S").time()))
-            market_close_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("16:00:00", "%H:%M:%S").time()))
-            
-            # Ensure the order log is initialized before using it
-            initialize_csv_order_log()
-            
-            # Before market opens
-            if ((current_time < market_open_time) or (current_time < market_close_time)) and not already_ran:
-                await ensure_economic_calendar_data()
-                already_ran = True  # Set this to True to avoid running this block again until the next day
 
-                # Plot the data
-                if get_root() is None: # For when program is first starting
-                    print_log("WARNING: Chart root disappeared! This should not happen.")
-                else: # For 24/7+ Run Times
-                    refresh_15_min_candle_stick_data()
-            
-            # Market is Open
-            if market_open_time <= current_time <= market_close_time:
-                if websocket_connection is None:  # Start WebSocket connection
-                    data_acquisition.should_close = False # Signal its okay to open Websocket
-        
-                    # Start the WebSocket connection for the active provider
-                    asyncio.create_task(ws_auto_connect(queue, active_provider, read_config('SYMBOL')), name="WebsocketConnection")  # Start in the background
-                    websocket_connection = True
+            if websocket_connection is None:
+                data_acquisition.should_close = False
+                asyncio.create_task(ws_auto_connect(queue, active_provider, read_config('SYMBOL')), name="WebsocketConnection")
+                websocket_connection = True
 
-                    # Get Account Balance and Send to Discord
-                    start_of_day_account_balance = await get_account_balance(read_config('REAL_MONEY_ACTIVATED')) if read_config('REAL_MONEY_ACTIVATED') else read_config('START_OF_DAY_BALANCE')
-                    f_s_account_balance = "{:,.2f}".format(start_of_day_account_balance)
-                    await print_discord(f"Market is Open! Account BP: ${f_s_account_balance}")
+                start_of_day_account_balance = await get_account_balance(read_config('REAL_MONEY_ACTIVATED')) if read_config('REAL_MONEY_ACTIVATED') else read_config('START_OF_DAY_BALANCE')
+                f_s_account_balance = "{:,.2f}".format(start_of_day_account_balance)
+                await print_discord(f"Market is Open! Account BP: ${f_s_account_balance}")
+                await send_file_discord(SPY_15M_CHART_PATH)
+                await print_discord(setup_economic_news_message())
 
-                    # Send 2-min chart picture to Discord
-                    await send_file_discord(SPY_15M_CHART_PATH)
+            task1 = asyncio.create_task(process_data(queue), name="ProcessDataTask")
+            task2 = asyncio.create_task(execute_trading_strategy(), name="TradingStrategyTask")
+            await asyncio.gather(task1, task2)
 
-                    await print_discord(setup_economic_news_message())
-                task1 = asyncio.create_task(process_data(queue), name="ProcessDataTask")
-                task2 = asyncio.create_task(execute_trading_strategy(), name="TradingStrategyTask")
-                await asyncio.gather(task1, task2)
-            else: # Market is closed
-                if websocket_connection is not None:
-                    data_acquisition.should_close = True  # Signal to close WebSocket
-                    await process_end_of_day()
-                    refresh_15_min_candle_stick_data()
-                    already_ran = False
-                    keep_loop = False
-                if current_time <= market_open_time:
-                    await wait_until_market_open(market_open_time, new_york)
-                elif market_close_time <= current_time:
-                    print_log("The market is closed...")
-                    break
         except Exception as e:
-            await error_log_and_discord_message(e, "main", "main")
+            await error_log_and_discord_message(e, "main", "main_loop")
+
+    # 📉 Market closed
+    data_acquisition.should_close = True
+    await process_end_of_day()
+    refresh_15_min_candle_stick_data()
+    websocket_connection = None
 
 async def wait_until_market_open(target_time, tz):
     print_log(f"Waiting for market open at {target_time.strftime('%H:%M:%S')}...")

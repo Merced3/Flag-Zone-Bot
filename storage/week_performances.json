@@ -814,6 +814,18 @@
         "num_of_negitive_trades": 0,
         "description": "Day 1, data collection was good, we didn't have that first candle issue. Day 2, first candle issue came up again, no bull flags were showing up, other than that data collection was good. Day 3, data collection was good no errors. Day 4, Data collection was alright But first candle issue came again AND bull flags were not showing. Day 5, first candle issue again, bull flags were non existent, Good data collection other than that.",
         "important_message_ids": []
+    },
+    {
+        "week_number": 67,
+        "week_start_end_date": "08/04/2025-08/08/2025",
+        "start_ammount": 39174.0,
+        "end_ammount": 39174.0,
+        "total_made": 0.0, 
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "Day 1, the first candle was finally FIXED, lets hope this is a permanent fix, also I changed the `main_loop` function to be less of a control freak and micromanage everything, I tested it mid day, I should've been more patient because that lead to the reseting of EMA json and other csv candle EMA calculation values that I did not take into account so EMA values for today were correct but because of this they no longer are, if you want more details about today reference the discord channel message '1401984279331864718'.",
+        "important_message_ids": [1401984279331864718]
     }
 
 ]
