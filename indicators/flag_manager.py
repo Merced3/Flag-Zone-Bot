@@ -1,3 +1,4 @@
+# indicators/flag_manager.py
 import glob
 import os
 import math

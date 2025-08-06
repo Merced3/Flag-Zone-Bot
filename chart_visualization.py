@@ -13,7 +13,7 @@ import time
 from utils.json_utils import read_config
 from utils.data_utils import load_from_csv
 from shared_state import indent, print_log, safe_read_json
-from paths import pretty_path, CANDLE_LOGS, MARKERS_PATH, EMAS_PATH, LINE_DATA_PATH, OBJECTS_PATH, STORAGE_DIR, SPY_15_MINUTE_CANDLES_PATH
+from paths import pretty_path, CANDLE_LOGS, MARKERS_PATH, LINE_DATA_PATH, OBJECTS_PATH, STORAGE_DIR, SPY_15_MINUTE_CANDLES_PATH
 
 should_close = False # Signal for closing window, `root.quit()` and `root.destroy()`
 root = None

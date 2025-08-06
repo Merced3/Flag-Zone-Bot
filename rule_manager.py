@@ -4,8 +4,8 @@ from economic_calender_scraper import check_order_time_to_event_time
 from datetime import datetime
 from buy_option import buy_option_cp
 from utils.order_utils import get_tp_value, log_order_details
-from utils.json_utils import read_config, add_candle_type_to_json, load_json_df
-from paths import pretty_path, EMAS_PATH
+from utils.json_utils import read_config, add_candle_type_to_json
+from utils.ema_utils import get_last_emas
 
 STRATEGY_NAME = "FLAG/ZONE STRAT"
 
@@ -14,7 +14,7 @@ async def handle_rules_and_order(indent_lvl, candle, candle_zone_type, zones, co
         print_log(f"{indent(indent_lvl)}[HRAO] Handle Rules And Order: {completed_flags}")
 
     # Above 200 ema, calls; below, puts
-    last_emas = get_last_emas(indent_lvl+1, print_statements)
+    last_emas = get_last_emas("2M", indent_lvl+1, print_statements)
     action = "call" if candle['close'] > last_emas['200'] else "put"
     
     # Check if trade time is aligned with economic events
@@ -55,15 +55,3 @@ async def handle_rules_and_order(indent_lvl, candle, candle_zone_type, zones, co
             print_log(f"{indent(indent_lvl)}[HRAO ORDER FAIL] Buy Signal ({action.upper()}), ZONE = {candle_zone_type}")
         return [False, error_message]
     return [True, action, quantity, entry_bid_price, strike_price]
-
-def get_last_emas(indent_lvl, print_statements=True):
-    EMAs = load_json_df(EMAS_PATH)
-    if EMAs.empty:
-        if print_statements:
-            print_log(f"{indent(indent_lvl)}[GET-EMAs] ERROR: data `{pretty_path(EMAS_PATH)}` is unavailable.")
-        return None
-    last_EMA = EMAs.iloc[-1]
-    emas = last_EMA.to_dict()
-    if print_statements:
-        print_log(f"{indent(indent_lvl)}[GET-EMAs] x: {emas['x']}, 13: {emas['13']:.2f}, 48: {emas['48']:.2f}, 200: {emas['200']:.2f}")
-    return emas

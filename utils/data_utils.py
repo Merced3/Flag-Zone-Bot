@@ -1,13 +1,10 @@
 # utils/data_utils.py, DataFrame loading/saving
 import pandas as pd
-import os
-import json
 import math
 from shared_state import print_log, indent, safe_read_json
 import pandas_market_calendars as mcal
 from datetime import datetime, timedelta
-from utils.json_utils import read_config, update_ema_json
-from paths import pretty_path, EMAS_PATH, CANDLE_LOGS, LINE_DATA_PATH, MERGED_EMA_PATH
+from paths import pretty_path, LINE_DATA_PATH
 
 def load_from_csv(filename):
     try:
@@ -87,105 +84,6 @@ def get_dates(num_of_days, use_todays_date=False, use_specific_start_date=None):
     end_date_str = end_date.strftime('%Y-%m-%d')
 
     return start_date_str, end_date_str
-
-async def calculate_save_EMAs(candle, X_value):
-    """
-    Process a single candle: Adds it to CSV, Recalculate EMAs, Saves EMAs to JSON file.
-    """
-    required_columns = ['timestamp', 'open', 'high', 'low', 'close']
-
-    # Load or init
-    try:
-        df = pd.read_csv(MERGED_EMA_PATH)
-        df = df[required_columns] if not df.empty else pd.DataFrame(columns=required_columns)
-    except FileNotFoundError:
-        df = pd.DataFrame(columns=required_columns)
-
-    # Fix candle
-    candle_df = pd.DataFrame([candle])
-    for col in required_columns:
-        if col not in candle_df.columns:
-            candle_df[col] = pd.Timestamp.now().isoformat() if col == 'timestamp' else 0.0
-
-    candle_df = candle_df[required_columns]  # Ensure correct column order
-
-    # Concat only if valid
-    if not candle_df.empty:
-        df = pd.concat([df, candle_df], ignore_index=True)
-    df.to_csv(MERGED_EMA_PATH, mode='w', header=True, index=False)
-
-    # EMAs
-    current_ema_values = {}
-    for window, _ in read_config('EMAS'):  # window, color
-        ema_col = f"EMA_{window}"
-        df[ema_col] = df['close'].ewm(span=window, adjust=False).mean()
-        current_ema_values[str(window)] = df[ema_col].iloc[-1]
-
-    current_ema_values['x'] = X_value
-    update_ema_json(EMAS_PATH, current_ema_values)
-
-def get_latest_ema_values(ema_type):
-    # ema_type must be a string, Ex: "13" or "48", "200" ect...
-    ema_type = str(ema_type)
-
-    # Check if the file is empty before reading
-    if os.stat(EMAS_PATH).st_size == 0:
-        print_log(f"    [GLEV] `{pretty_path(EMAS_PATH)}` is empty.")
-        return None, None
-
-    try:
-        # Read the EMA data from the JSON file
-        with open(EMAS_PATH, "r") as file:
-            emas = json.load(file)
-
-        if not emas:  # Check if the file is empty or contains no data
-            print_log(f"    [GLEV] `{pretty_path(EMAS_PATH)}` is empty or contains no data.")
-            return None, None
-        latest_ema = emas[-1][ema_type]
-        #print(f"Latest emas: {latest_ema}")
-        index_ema = emas[-1]['x']
-
-        return latest_ema, index_ema
-    except (FileNotFoundError, KeyError, json.JSONDecodeError) as e:
-        print_log(f"    [GLEV] EMA error: {e}")
-        return None, None
-
-def is_ema_broke(ema_type, timeframe, cp):
-    # Get EMA Data
-    latest_ema, index_ema = get_latest_ema_values(ema_type)
-    if latest_ema is None or index_ema is None:
-        return False
-    
-    # Get Candle Data
-    filepath = CANDLE_LOGS.get(timeframe)
-    try:
-        with open(filepath, "r") as file:
-            lines = file.readlines()
-            index_candle = len(lines) - 1
-            latest_candle = json.loads(lines[-1])
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print_log(f"Log file error: {e}")
-        return False
-
-    if index_candle == index_ema:
-        open_price = latest_candle["open"]
-        close_price = latest_candle["close"]
-
-        # Check conditions based on option type
-        if open_price and close_price:
-            if cp == 'call' and latest_ema > close_price:
-                print_log(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of call. [CLOSE]: {close_price}; [Last EMA]: {latest_ema}; [OPEN]: {open_price}")
-                return True
-            elif cp == 'put' and latest_ema < close_price:
-                print_log(f"        [EMA BROKE] {ema_type}ema Hit, Sell rest of put. [OPEN]: {open_price}; [EMA {ema_type}]: {latest_ema}; [CLOSE] {close_price}")
-                return True
-        else:
-            print_log(f"    [IEB {ema_type} EMA] unable to get open and close price... Candle OC: {open_price}, {close_price}")
-    else:
-        # Print the indices to show they don't match and wait before trying again
-        print_log(f"    [IEB {ema_type} EMA]\n        index_candle: {index_candle}; Length Lines: {len(lines)}\n        index_ema: {index_ema}; latest ema: {latest_ema}; Indices do not match...")
-    
-    return False
          
 def check_valid_points(indent_lvl, line_name, line_type, print_statements=True):
     default_structure = {

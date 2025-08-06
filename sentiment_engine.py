@@ -1,5 +1,5 @@
 # sentiment_engine.py; use specific indicators in a ranking/weighted system to...
-from utils.json_utils import load_json_df
+from utils.ema_utils import get_last_emas
 from shared_state import indent, print_log
 
 # ----------------------
@@ -74,18 +74,6 @@ def get_current_sentiment(candle, zones, tp_lines, log_indent, print_statements=
 # ----------------------
 # 🛠️ Utility & Helper Functions
 # ----------------------
-
-def get_last_emas(indent_lvl, print_statements=True):
-    EMAs = load_json_df('EMAs.json')
-    if EMAs.empty:
-        if print_statements:
-            print_log(f"{indent(indent_lvl)}[GET-EMAs] ERROR: data is unavailable.")
-        return None
-    last_EMA = EMAs.iloc[-1]
-    emas = last_EMA.to_dict()
-    if print_statements:
-        print_log(f"{indent(indent_lvl)}[GET-EMAs] x: {emas['x']}, 13: {emas['13']:.2f}, 48: {emas['48']:.2f}, 200: {emas['200']:.2f}")
-    return emas
 
 def evaluate_ema_crosses(emas, indent_lvl, print_statements=True):
     score = 0

@@ -21,8 +21,12 @@ OBJECTS_PATH = STORAGE_DIR / 'objects' / 'objects.json'
 TIMELINE_PATH = STORAGE_DIR / 'objects' / 'timeline.json'
 CSV_CANDLES_PATH = STORAGE_DIR / 'SPY_15_minute_candles.csv'
 
+# EMA directory + dynamic EMA path retrieval
+EMAS_DIR = STORAGE_DIR / 'emas'
+def get_ema_path(timeframe: str):
+    return EMAS_DIR / f"{timeframe}.json"
+
 # JSONs
-EMAS_PATH = STORAGE_DIR / 'EMAs.json'
 LINE_DATA_PATH = STORAGE_DIR / 'line_data.json'
 MARKERS_PATH = STORAGE_DIR / 'markers.json'
 MESSAGE_IDS_PATH = STORAGE_DIR / 'message_ids.json'
@@ -36,6 +40,9 @@ SPY_15_MINUTE_CANDLES_PATH = STORAGE_DIR / 'SPY_15_minute_candles.csv'
 AFTERMARKET_EMA_PATH = STORAGE_DIR / f"SPY_2_minute_AFTERMARKET.csv"
 PREMARKET_EMA_PATH = STORAGE_DIR / f"SPY_2_minute_PREMARKET.csv"
 MERGED_EMA_PATH = STORAGE_DIR / f"SPY_MERGED.csv"
+
+def get_merged_ema_csv_path(timeframe: str):
+    return STORAGE_DIR / f"merged_ema_{timeframe}.csv"
 
 # STATES
 STATES_DIR = BASE / 'states'

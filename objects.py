@@ -3,7 +3,6 @@ import pandas as pd
 from shared_state import print_log, safe_read_json, safe_write_json
 from data_acquisition import get_dates, get_certain_candle_data
 import cred
-import asyncio
 from utils.log_utils import read_log_to_df
 from utils.json_utils import read_config
 from paths import pretty_path, OBJECTS_PATH, TIMELINE_PATH, CANDLE_LOGS, SPY_15_MINUTE_CANDLES_PATH

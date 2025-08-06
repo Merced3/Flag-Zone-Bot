@@ -5,11 +5,12 @@ from utils.json_utils import read_config, get_correct_message_ids, update_config
 from utils.log_utils import write_to_log, clear_temp_logs_and_order_files
 from utils.order_utils import initialize_csv_order_log
 from utils.time_utils import generate_candlestick_times, add_seconds_to_time
+from indicators.ema_manager import update_ema
 from shared_state import price_lock, print_log
 import shared_state
 import threading
-from flag_manager import clear_all_states
-from tll_trading_strategy import execute_trading_strategy
+from indicators.flag_manager import clear_all_states
+from strategies.trading_strategy import execute_trading_strategy
 from economic_calender_scraper import ensure_economic_calendar_data, setup_economic_news_message
 from print_discord_messages import bot, print_discord, send_file_discord, calculate_day_performance
 from error_handler import error_log_and_discord_message
@@ -21,7 +22,7 @@ from objects import process_end_of_day_15m_candles
 import cred
 import json
 import pytz
-from paths import SPY_15M_CHART_PATH, SPY_2M_CHART_PATH, TERMINAL_LOG, EMAS_PATH, MARKERS_PATH, CANDLE_LOGS
+from paths import SPY_15M_CHART_PATH, SPY_2M_CHART_PATH, TERMINAL_LOG, MARKERS_PATH, CANDLE_LOGS
 
 async def bot_start():
     await bot.start(cred.DISCORD_TOKEN)
@@ -138,6 +139,8 @@ async def process_data(queue):
                         current_candle["timestamp"] = start_times[timeframe].isoformat()
                         write_to_log(current_candle, read_config('SYMBOL'), timeframe)
                         
+                        await update_ema(current_candle, timeframe) # Here is where I made the change to update the EMA after writing the candle log
+
                         # Reset the current candle and start time
                         current_candles[timeframe] = {
                             "open": None,
@@ -218,7 +221,7 @@ async def main():
             print_log(f"[ERROR] Exception in main loop: {e}")
             await asyncio.sleep(10)  # Avoid tight loops in case of errors
 
-async def main_loop(): # I want to test this on tomorrow's run
+async def main_loop():
     global websocket_connection
 
     new_york = pytz.timezone('America/New_York')
@@ -297,7 +300,7 @@ async def process_end_of_day():
     await send_file_discord(SPY_2M_CHART_PATH)
     await send_file_discord(CANDLE_LOGS.get("2M")) #Send file
     await send_file_discord(MARKERS_PATH)
-    await send_file_discord(EMAS_PATH)
+    #await send_file_discord(EMAS_PATH)
     await send_file_discord(TERMINAL_LOG)
     process_end_of_day_15m_candles()
 

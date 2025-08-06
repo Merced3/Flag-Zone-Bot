@@ -11,7 +11,7 @@ from submit_order import submit_option_order, get_order_status
 from error_handler import error_log_and_discord_message, print_log
 from data_acquisition import add_markers, get_current_candle_index, get_current_price
 from utils.json_utils import read_config
-from utils.data_utils import is_ema_broke, get_latest_ema_values
+from utils.ema_utils import is_ema_broke, get_latest_ema_values
 from utils.order_utils import update_order_details, calculate_bid_percentage
 from shared_state import latest_sentiment_score
 import time

@@ -1,7 +1,7 @@
 # utils/log_utils.py
 import json
 from shared_state import print_log
-from paths import pretty_path, LOGS_DIR, STORAGE_DIR, TERMINAL_LOG, ORDER_LOG_PATH, SPY_15_MINUTE_CANDLES_PATH, MARKERS_PATH, EMAS_PATH, MESSAGE_IDS_PATH, LINE_DATA_PATH, ORDER_CANDLE_TYPE_PATH, PRIORITY_CANDLES_PATH
+from paths import pretty_path, LOGS_DIR, STORAGE_DIR, TERMINAL_LOG, ORDER_LOG_PATH, SPY_15_MINUTE_CANDLES_PATH, MARKERS_PATH, MESSAGE_IDS_PATH, LINE_DATA_PATH, ORDER_CANDLE_TYPE_PATH, PRIORITY_CANDLES_PATH
 from utils.json_utils import reset_json, read_config
 import pandas as pd
 import os
@@ -89,7 +89,6 @@ def clear_temp_logs_and_order_files():
     # 2. Clean all relevant JSON state files in storage/
     json_reset_instructions = {
         MARKERS_PATH: [],
-        EMAS_PATH: [],
         MESSAGE_IDS_PATH: {},
         LINE_DATA_PATH: {},
         ORDER_CANDLE_TYPE_PATH: [],
@@ -108,6 +107,7 @@ def clear_temp_logs_and_order_files():
 
     # 4. Still clear symbol and terminal logs
     clear_symbol_log(read_config('SYMBOL'), "2M")
+    clear_symbol_log(read_config('SYMBOL'), "5M")
     clear_symbol_log(read_config('SYMBOL'), "15M")
     clear_terminal_log()
 

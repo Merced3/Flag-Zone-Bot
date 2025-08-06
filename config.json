@@ -4,6 +4,7 @@
     "SYMBOL": "SPY",
     "TIMEFRAMES": [
         "2M",
+        "5M",
         "15M"
     ],
     "ACCOUNT_ORDER_PERCENTAGE": 0.01,

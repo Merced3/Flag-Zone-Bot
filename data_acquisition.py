@@ -16,7 +16,7 @@ from shared_state import price_lock, indent, print_log
 from utils.json_utils import read_config
 from utils.data_utils import get_dates
 from utils.file_utils import get_current_candle_index
-from paths import pretty_path, MARKERS_PATH, AFTERMARKET_EMA_PATH, PREMARKET_EMA_PATH, MERGED_EMA_PATH
+from paths import pretty_path, get_merged_ema_csv_path, MARKERS_PATH
 
 RETRY_INTERVAL = 1  # Seconds between reconnection attempts
 should_close = False  # Global variable to signal if the WebSocket should close
@@ -297,45 +297,71 @@ async def add_markers(event_type, x=None, y=None, percentage=None):
     
     update_2_min()
 
-async def get_candle_data_and_merge(candle_interval, candle_timescale, am, pm, indent_lvl):
-    PD_AM, CD_PM = None, None
-    
-    # Load Aftermarket and Premarket Data
-    start_date, end_date = get_dates(1, False)
-    PD_AM = await get_certain_candle_data(
-        cred.POLYGON_API_KEY, 
-        read_config('SYMBOL'), 
-        candle_interval, candle_timescale, 
-        start_date, end_date, 
-        AFTERMARKET_EMA_PATH,
-        am, indent_lvl+1
+async def get_candle_data_and_merge(candle_interval, candle_timescale, am_label, pm_label, indent_lvl, timeframe):
+    max_ema_window = max([window for window, _ in read_config("EMAS")])
+    combined_df = pd.DataFrame()
+    day_offset = 1
+    indent_pad = indent(indent_lvl)
+
+    print_log(f"{indent_pad}[GCDAM] Trying to gather at least {max_ema_window} candles for {timeframe}...")
+
+    # Fetch premarket of current day first
+    start_date, end_date = get_dates(0, True)
+    pre_df = await get_certain_candle_data(
+        cred.POLYGON_API_KEY,
+        read_config('SYMBOL'),
+        candle_interval,
+        candle_timescale,
+        start_date,
+        end_date,
+        None,
+        "PREMARKET",
+        indent_lvl+1
     )
-    
-    start_date, end_date = get_dates(1, True)
-    CD_PM = await get_certain_candle_data(
-        cred.POLYGON_API_KEY, 
-        read_config('SYMBOL'), 
-        candle_interval, candle_timescale, 
-        start_date, end_date, 
-        PREMARKET_EMA_PATH,
-        pm, indent_lvl+1
-    )
-    
-    # Combine data if both are present
-    if PD_AM is not None and CD_PM is not None:
-        merged_df = pd.concat([PD_AM, CD_PM], ignore_index=True)
-        
-        # Calculate EMAs and save to CSV
-        for ema_config in read_config('EMAS'):
-            window, color = ema_config
-            ema_column_name = f"EMA_{window}"
-            merged_df[ema_column_name] = merged_df['close'].ewm(span=window, adjust=False).mean()
-        
-        merged_df.to_csv(MERGED_EMA_PATH, index=False)
-        print_log(f"{indent(indent_lvl)}[GCDAM] Data saved with initial EMA calculation: `{pretty_path(MERGED_EMA_PATH)}`")
-        
-    else:
-        print_log(f"{indent(indent_lvl)}[GCDAM] Aftermarket or premarket data not available. EMA calculation skipped.")
+    if pre_df is not None:
+        combined_df = pd.concat([combined_df, pre_df], ignore_index=True)
+
+    # If that's not enough, keep pulling full day candles
+    while len(combined_df) < max_ema_window:
+        day_offset += 1
+        start_date, end_date = get_dates(day_offset, True)
+
+        full_df = await get_certain_candle_data(
+            cred.POLYGON_API_KEY,
+            read_config('SYMBOL'),
+            candle_interval,
+            candle_timescale,
+            start_date,
+            end_date,
+            None,
+            "ALL",
+            indent_lvl+1
+        )
+        if full_df is not None:
+            combined_df = pd.concat([full_df, combined_df], ignore_index=True)  # prepend older candles
+
+        print_log(f"{indent_pad}→ Total gathered: {len(combined_df)} candles after offset {day_offset}")
+
+        if day_offset > 10:
+            print_log(f"{indent_pad}[WARN] Reached 10-day limit. Still short of {max_ema_window} candles.")
+            break
+
+    # Final check
+    if len(combined_df) < max_ema_window:
+        print_log(f"{indent_pad}[ERROR] Only collected {len(combined_df)} candles. EMA calculation skipped.")
+        return None
+
+    # Calculate EMAs
+    for window, _ in read_config('EMAS'):
+        col = f"EMA_{window}"
+        combined_df[col] = combined_df['close'].ewm(span=window, adjust=False).mean()
+
+    # Save
+    output_path = get_merged_ema_csv_path(timeframe)
+    combined_df.to_csv(output_path, index=False)
+    print_log(f"{indent_pad}[GCDAM] ✅ Data saved with EMAs: `{pretty_path(output_path)}`")
+
+    return combined_df
 
 async def get_certain_candle_data(api_key, symbol, interval, timescale, start_date, end_date, output_path, market_type='ALL', indent_lvl=1):
     """

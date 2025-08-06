@@ -1,11 +1,10 @@
 # utils/json_utils.py, Load/save/validate JSON, config helpers
 import json
 from shared_state import indent, print_log
-from error_handler import error_log_and_discord_message
 from utils.file_utils import get_current_candle_index
 import pandas as pd
 import os
-from paths import pretty_path, CONFIG_PATH, MESSAGE_IDS_PATH, ORDER_CANDLE_TYPE_PATH, EMAS_PATH, PRIORITY_CANDLES_PATH, LINE_DATA_PATH
+from paths import pretty_path, CONFIG_PATH, MESSAGE_IDS_PATH, ORDER_CANDLE_TYPE_PATH, PRIORITY_CANDLES_PATH, LINE_DATA_PATH
 
 def read_config(key=None):
     """Reads the configuration file and optionally returns a specific key."""
@@ -15,7 +14,6 @@ def read_config(key=None):
         return config  # Return the whole config if no key is provided
     return config.get(key)  # Return the specific key's value or None if key doesn't exist
 
-# I DONT SEE ANYWHERE IN THE PROGRAM WHERE THIS IS USED, SO I DONT KNOW IF IT IS NEEDED
 def load_message_ids():
     if os.path.exists(MESSAGE_IDS_PATH):
         with open(MESSAGE_IDS_PATH, 'r') as f:
@@ -39,47 +37,16 @@ def load_json_df(file_path):
         data = json.load(file)
     return pd.DataFrame(data)
 
-def update_ema_json(json_path, new_ema_values):
-    """Update the EMA JSON file with new EMA values by appending."""
-    try:
-        with open(json_path, 'r') as file:
-            ema_data = json.load(file)
-    except json.JSONDecodeError:
-        ema_data = []  # Initialize as empty list if file is corrupt or empty
-
-    # Append new EMA values
-    ema_data.append(new_ema_values)
-
-    # Write the updated list back to the file
-    with open(json_path, 'w') as file:
-        json.dump(ema_data, file, indent=4)
-
-def initialize_ema_json(json_path):
-    """Ensure the EMA JSON file exists and is valid; initialize if not."""
+def initialize_json(json_path, default_value=[]):
+    """Ensure the JSON file exists and is valid; initialize if not."""
     if not os.path.exists(json_path) or os.stat(json_path).st_size == 0:
         with open(json_path, 'w') as file:
-            json.dump([], file)  # Initialize with an empty list
+            json.dump(default_value, file)  # Initialize with the default value
     try:
         with open(json_path, 'r') as file:
             return json.load(file) if isinstance(json.load(file), list) else []
     except json.JSONDecodeError:
         return []
-
-async def read_ema_json(position):
-    try:
-        with open(EMAS_PATH, "r") as file:
-            emas = json.load(file)
-            latest_ema = emas[position]
-            return latest_ema
-    except FileNotFoundError:
-        print_log(f"`{pretty_path(EMAS_PATH)}` file not found.")
-        return None
-    except KeyError:
-        print_log(f"EMA type [{position}] not found in the latest entry.")
-        return None
-    except Exception as e:
-        await error_log_and_discord_message(e, "json_utils", "read_ema_position")
-        return None
     
 def reset_json(file_path, contents):
     with open(file_path, 'w') as f:
