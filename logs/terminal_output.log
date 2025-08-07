@@ -1,855 +1,115 @@
-[load_recent_15m_candles] Loaded 130 rows covering 5 days, offset = 33742
 [INFO] initial_setup and main_loop completed successfully.
 Waiting until tomorrow's 8:20 AM...
-    [chart_visualization.py, RLTD] Created new log file: `SPY_2M.log`
-    [chart_visualization.py, UCP] Waiting for live candles...
-Manually interrupted, cleaning up...
-Manually interrupted, cleaning up...
-Manually interrupted, cleaning up...
-Manually interrupted, cleaning up...
-Manually interrupted, cleaning up...
-Manually interrupted, cleaning up...
-Manually interrupted, cleaning up...
-Manually interrupted, cleaning up...
-Manually interrupted, cleaning up...
-Manually interrupted, cleaning up...
-Manually interrupted, cleaning up...
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Starting the main trading bot...
-Starting the Discord bot...
-Manually interrupted, cleaning up...
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Starting the main trading bot...
 Manually interrupted, cleaning up...
 Discord bot started.
 Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-Discord bot logged in.
-Manually interrupted, cleaning up...
-Discord bot connected.
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-[INFO] Running initial_setup and main_loop at 2025-08-06 09:20:07
+[INFO] Running initial_setup and main_loop at 2025-08-07 16:04:00
 We have logged in as TradeMaster#8429
 
 [DATA_AQUISITION] 'is_market_open()' DATA: 
-{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': True, 'exchanges': {'nasdaq': 'extended-hours', 'nyse': 'extended-hours', 'otc': 'extended-hours'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'closed', 'ftse_russell': 'closed', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'closed'}, 'market': 'extended-hours', 'serverTime': '2025-08-06T09:20:08-04:00'}
+{'afterHours': True, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'extended-hours', 'nyse': 'extended-hours', 'otc': 'extended-hours'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'closed'}, 'market': 'extended-hours', 'serverTime': '2025-08-07T16:04:03-04:00'}
 
-Waiting for market open at 09:30:00...
-✅ Market open hit within 1 second margin. Starting...
-Starting ws_connect() for tradier...
-[TRADIER] Sent payload: {"symbols": ["SPY"], "sessionid": "1eabba61-72c0-4408-817b-850b547b2d4f", "linebreak": true}, 2025-08-06T08:30:00.228620
-[TRADIER] WebSocket connection established.
-[Hr:Mn:Sc]
-Starting `process_data()`...
-        [GCDAM] Trying to gather at least 200 candles for 2M...
-
-An error occurred in main.py:
-Time: 2025-08-06T08:30:01.594384
-Location: process_data()
-Type: IndexError
-Message: index 0 is out of bounds for axis 0 with size 0
-Traceback:
-Traceback (most recent call last):
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\main.py", line 142, in process_data
-    await update_ema(current_candle, timeframe) # Here is where I made the change to update the EMA after writing the candle log
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\indicators\ema_manager.py", line 81, in update_ema
-    await get_candle_data_and_merge(
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\data_acquisition.py", line 306, in get_candle_data_and_merge
-    start_date, end_date = get_dates(0, True)
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\utils\data_utils.py", line 79, in get_dates
-    start_date = business_days[0]
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\venv\lib\site-packages\pandas\core\indexes\base.py", line 5365, in __getitem__
-    return getitem(key)
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\venv\lib\site-packages\pandas\core\arrays\datetimelike.py", line 376, in __getitem__
-    result = cast("Union[Self, DTScalarOrNaT]", super().__getitem__(key))
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\venv\lib\site-packages\pandas\core\arrays\_mixins.py", line 276, in __getitem__
-    result = self._ndarray[key]
-IndexError: index 0 is out of bounds for axis 0 with size 0
-
-Starting `execute_trading_strategy()`...
-    [CTS] Created 'bear' state: state_1
-    [CTS] Created 'bull' state: state_2
-[ETS] First candle processed: {'open': 629.07, 'high': 629.07, 'low': 629.07, 'close': 629.07, 'timestamp': '2025-08-06T09:30:00.846408-04:00'}
-    [ETS-IF] Num Flags Completed: 0
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-[INFO] Running initial_setup and main_loop at 2025-08-06 12:33:20
+[ERROR] Exception in main loop: [Errno 2] No such file or directory: 'C:\\Users\\HNI\\OneDrive\\Desktop\\Coding\\Trading programs\\Flag-Zone-Bot\\logs\\SPY_2M.log'
+[INFO] Running initial_setup and main_loop at 2025-08-07 16:04:14
 We have logged in as TradeMaster#8429
 
 [DATA_AQUISITION] 'is_market_open()' DATA: 
-{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'open', 'nyse': 'open', 'otc': 'open'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'open'}, 'market': 'open', 'serverTime': '2025-08-06T12:33:24-04:00'}
+{'afterHours': True, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'extended-hours', 'nyse': 'extended-hours', 'otc': 'extended-hours'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'closed'}, 'market': 'extended-hours', 'serverTime': '2025-08-07T16:04:15-04:00'}
 
-Starting ws_connect() for tradier...
-[TRADIER] Sent payload: {"symbols": ["SPY"], "sessionid": "23cb402f-7dd2-4d13-a28a-6dd06ff510fb", "linebreak": true}, 2025-08-06T11:33:24.931804
-[TRADIER] WebSocket connection established.
-[Hr:Mn:Sc]
-Starting `process_data()`...
-Starting `execute_trading_strategy()`...
-    [CTS] Created 'bear' state: state_1
-    [CTS] Created 'bull' state: state_2
-    [EMA CS] Bot started late; force initializing 2M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 2M...
-
-An error occurred in main.py:
-Time: 2025-08-06T11:34:01.256220
-Location: process_data()
-Type: IndexError
-Message: index 0 is out of bounds for axis 0 with size 0
-Traceback:
-Traceback (most recent call last):
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\main.py", line 142, in process_data
-    await update_ema(current_candle, timeframe) # Here is where I made the change to update the EMA after writing the candle log
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\indicators\ema_manager.py", line 66, in update_ema
-    await get_candle_data_and_merge(
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\data_acquisition.py", line 306, in get_candle_data_and_merge
-    start_date, end_date = get_dates(0, True)
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\utils\data_utils.py", line 79, in get_dates
-    start_date = business_days[0]
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\venv\lib\site-packages\pandas\core\indexes\base.py", line 5365, in __getitem__
-    return getitem(key)
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\venv\lib\site-packages\pandas\core\arrays\datetimelike.py", line 376, in __getitem__
-    result = cast("Union[Self, DTScalarOrNaT]", super().__getitem__(key))
-  File "C:\Users\HNI\OneDrive\Desktop\Coding\Trading programs\Flag-Zone-Bot\venv\lib\site-packages\pandas\core\arrays\_mixins.py", line 276, in __getitem__
-    result = self._ndarray[key]
-IndexError: index 0 is out of bounds for axis 0 with size 0
-
-[ETS] First candle processed: {'open': 632.325, 'high': 632.34, 'low': 632.27, 'close': 632.31, 'timestamp': '2025-08-06T12:33:25.310227-04:00'}
-    [ETS-IF] Num Flags Completed: 0
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-[INFO] Running initial_setup and main_loop at 2025-08-06 12:39:31
+[ERROR] Exception in main loop: [Errno 2] No such file or directory: 'C:\\Users\\HNI\\OneDrive\\Desktop\\Coding\\Trading programs\\Flag-Zone-Bot\\logs\\SPY_2M.log'
+[INFO] Running initial_setup and main_loop at 2025-08-07 16:04:25
 We have logged in as TradeMaster#8429
 
 [DATA_AQUISITION] 'is_market_open()' DATA: 
-{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'open', 'nyse': 'open', 'otc': 'open'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'open'}, 'market': 'open', 'serverTime': '2025-08-06T12:39:35-04:00'}
+{'afterHours': True, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'extended-hours', 'nyse': 'extended-hours', 'otc': 'extended-hours'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'closed'}, 'market': 'extended-hours', 'serverTime': '2025-08-07T16:04:26-04:00'}
 
-Starting ws_connect() for tradier...
-[TRADIER] Sent payload: {"symbols": ["SPY"], "sessionid": "d5660f98-7e1b-46ff-a90b-e366eb1a1dcf", "linebreak": true}, 2025-08-06T11:39:35.584098
-[TRADIER] WebSocket connection established.
-[Hr:Mn:Sc]
-Starting `process_data()`...
-Starting `execute_trading_strategy()`...
-    [CTS] Created 'bear' state: state_1
-    [CTS] Created 'bull' state: state_2
-[ETS] First candle processed: {'open': 632.325, 'high': 632.34, 'low': 632.27, 'close': 632.31, 'timestamp': '2025-08-06T12:33:25.310227-04:00'}
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Bot started late; force initializing 2M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 2M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '12:24:00'.
-        → Total gathered: 879 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_2M.csv`
-[RESET] Cleared file: `2M.json`
-[11:40:02] Candle count for 2M: 2
-    [EMA CS] Bot started late; force initializing 5M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 5M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '12:25:00'.
-        → Total gathered: 361 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_5M.csv`
-[RESET] Cleared file: `5M.json`
-[11:40:03] Candle count for 5M: 2
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[11:42:00] Candle count for 2M: 3
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[11:44:00] Candle count for 2M: 4
-    [ETS-IF] Num Flags Completed: 1
-    [EMA CS] Updated live EMA for 5M.
-[11:45:00] Candle count for 5M: 3
-    [EMA CS] Bot started late; force initializing 15M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 15M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '12:30:00'.
-        → Total gathered: 122 candles after offset 2
-            [GCCD] Data received; Candles from '04:00:00' to '12:30:00'.
-        → Total gathered: 285 candles after offset 3
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_15M.csv`
-[RESET] Cleared file: `15M.json`
-[11:45:02] Candle count for 15M: 2
-    [EMA CS] Updated live EMA for 2M.
-[11:46:00] Candle count for 2M: 5
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[11:48:00] Candle count for 2M: 6
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[11:50:00] Candle count for 2M: 7
-    [EMA CS] Updated live EMA for 5M.
-[11:50:00] Candle count for 5M: 4
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[11:52:00] Candle count for 2M: 8
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[11:54:00] Candle count for 2M: 9
-    [ETS-IF] Num Flags Completed: 1
-    [EMA CS] Updated live EMA for 5M.
-[11:55:00] Candle count for 5M: 5
-    [EMA CS] Updated live EMA for 2M.
-[11:56:00] Candle count for 2M: 10
-    [ETS-IF] Num Flags Completed: 1
-    [EMA CS] Updated live EMA for 2M.
-[11:58:00] Candle count for 2M: 11
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[12:00:00] Candle count for 2M: 12
-    [EMA CS] Updated live EMA for 5M.
-[12:00:00] Candle count for 5M: 6
-    [EMA CS] Updated live EMA for 15M.
-[12:00:00] Candle count for 15M: 3
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[12:02:00] Candle count for 2M: 13
-    [ETS-IF] Num Flags Completed: 2
-    [EMA CS] Updated live EMA for 2M.
-[12:04:00] Candle count for 2M: 14
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 5M.
-[12:05:00] Candle count for 5M: 7
-    [EMA CS] Updated live EMA for 2M.
-[12:06:00] Candle count for 2M: 15
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[12:08:00] Candle count for 2M: 16
-    [ETS-IF] Num Flags Completed: 2
-    [EMA CS] Updated live EMA for 2M.
-[12:10:00] Candle count for 2M: 17
-    [EMA CS] Updated live EMA for 5M.
-[12:10:00] Candle count for 5M: 8
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[12:12:00] Candle count for 2M: 18
-    [ETS-IF] Num Flags Completed: 1
-    [EMA CS] Updated live EMA for 2M.
-[12:14:00] Candle count for 2M: 19
-    [ETS-IF] Num Flags Completed: 2
-    [EMA CS] Updated live EMA for 5M.
-[12:15:00] Candle count for 5M: 9
-    [EMA CS] Updated live EMA for 15M.
-[12:15:00] Candle count for 15M: 4
-    [EMA CS] Updated live EMA for 2M.
-[12:16:00] Candle count for 2M: 20
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[12:18:00] Candle count for 2M: 21
-    [ETS-IF] Num Flags Completed: 1
-    [EMA CS] Updated live EMA for 2M.
-[12:20:00] Candle count for 2M: 22
-    [EMA CS] Updated live EMA for 5M.
-[12:20:00] Candle count for 5M: 10
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[12:22:00] Candle count for 2M: 23
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[12:24:00] Candle count for 2M: 24
-    [ETS-IF] Num Flags Completed: 1
-    [EMA CS] Updated live EMA for 5M.
-[12:25:00] Candle count for 5M: 11
-    [EMA CS] Updated live EMA for 2M.
-[12:26:00] Candle count for 2M: 25
-    [ETS-IF] Num Flags Completed: 0
-    [EMA CS] Updated live EMA for 2M.
-[12:28:00] Candle count for 2M: 26
-    [ETS-IF] Num Flags Completed: 4
-    [EMA CS] Updated live EMA for 2M.
-[12:30:00] Candle count for 2M: 27
-    [EMA CS] Updated live EMA for 5M.
-[12:30:00] Candle count for 5M: 12
-    [EMA CS] Updated live EMA for 15M.
-[12:30:00] Candle count for 15M: 5
-    [ETS-IF] Num Flags Completed: 0
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-[INFO] Running initial_setup and main_loop at 2025-08-06 13:30:52
+[ERROR] Exception in main loop: [Errno 2] No such file or directory: 'C:\\Users\\HNI\\OneDrive\\Desktop\\Coding\\Trading programs\\Flag-Zone-Bot\\logs\\SPY_2M.log'
+[INFO] Running initial_setup and main_loop at 2025-08-07 16:04:36
 We have logged in as TradeMaster#8429
 
 [DATA_AQUISITION] 'is_market_open()' DATA: 
-{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'open', 'nyse': 'open', 'otc': 'open'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'open'}, 'market': 'open', 'serverTime': '2025-08-06T13:30:56-04:00'}
+{'afterHours': True, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'extended-hours', 'nyse': 'extended-hours', 'otc': 'extended-hours'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'closed'}, 'market': 'extended-hours', 'serverTime': '2025-08-07T16:04:37-04:00'}
 
-Starting ws_connect() for tradier...
-Starting `process_data()`...
-Starting `execute_trading_strategy()`...
-    [CTS] Created 'bear' state: state_1
-    [CTS] Created 'bull' state: state_2
-[TRADIER] Sent payload: {"symbols": ["SPY"], "sessionid": "01a98447-e729-4f19-a0d6-eadd8ee7c7b4", "linebreak": true}, 2025-08-06T12:30:57.621808
-[TRADIER] WebSocket connection established.
-[Hr:Mn:Sc]
-[ETS] First candle processed: {'open': 632.26, 'high': 632.359, 'low': 632.22, 'close': 632.2973, 'timestamp': '2025-08-06T13:28:00.194606-04:00'}
-    [ETS-IF] Num Flags Completed: 0
-[12:32:00] Candle count for 2M: 1
-    [EMA CS] Bot started late; force initializing 2M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 2M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '13:16:00'.
-        → Total gathered: 905 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_2M.csv`
-[RESET] Cleared file: `2M.json`
-    [ETS-IF] Num Flags Completed: 0
-[12:34:00] Candle count for 2M: 2
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[12:35:00] Candle count for 5M: 1
-    [EMA CS] Bot started late; force initializing 5M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 5M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '13:20:00'.
-        → Total gathered: 372 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_5M.csv`
-[RESET] Cleared file: `5M.json`
-[12:36:00] Candle count for 2M: 3
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[12:38:00] Candle count for 2M: 4
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[12:40:00] Candle count for 2M: 5
-    [EMA CS] Updated live EMA for 2M.
-[12:40:00] Candle count for 5M: 2
-    [EMA CS] Updated live EMA for 5M.
-    [ETS-IF] Num Flags Completed: 1
-[12:42:00] Candle count for 2M: 6
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[12:44:00] Candle count for 2M: 7
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[12:45:00] Candle count for 5M: 3
-    [EMA CS] Updated live EMA for 5M.
-[12:45:00] Candle count for 15M: 1
-    [EMA CS] Bot started late; force initializing 15M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 15M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '13:30:00'.
-        → Total gathered: 126 candles after offset 2
-            [GCCD] Data received; Candles from '04:00:00' to '13:30:00'.
-        → Total gathered: 293 candles after offset 3
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_15M.csv`
-[RESET] Cleared file: `15M.json`
-[12:46:00] Candle count for 2M: 8
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 2
-[12:48:00] Candle count for 2M: 9
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[12:50:00] Candle count for 2M: 10
-    [EMA CS] Updated live EMA for 2M.
-[12:50:00] Candle count for 5M: 4
-    [EMA CS] Updated live EMA for 5M.
-    [ETS-IF] Num Flags Completed: 0
-[12:52:00] Candle count for 2M: 11
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[12:54:00] Candle count for 2M: 12
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[12:55:00] Candle count for 5M: 5
-    [EMA CS] Updated live EMA for 5M.
-[12:56:00] Candle count for 2M: 13
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[12:58:00] Candle count for 2M: 14
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[13:00:00] Candle count for 2M: 15
-    [EMA CS] Updated live EMA for 2M.
-[13:00:00] Candle count for 5M: 6
-    [EMA CS] Updated live EMA for 5M.
-[13:00:00] Candle count for 15M: 2
-    [EMA CS] Updated live EMA for 15M.
-    [ETS-IF] Num Flags Completed: 1
-[13:02:00] Candle count for 2M: 16
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-[INFO] Running initial_setup and main_loop at 2025-08-06 14:06:50
+[ERROR] Exception in main loop: [Errno 2] No such file or directory: 'C:\\Users\\HNI\\OneDrive\\Desktop\\Coding\\Trading programs\\Flag-Zone-Bot\\logs\\SPY_2M.log'
+[INFO] Running initial_setup and main_loop at 2025-08-07 16:04:47
 We have logged in as TradeMaster#8429
 
 [DATA_AQUISITION] 'is_market_open()' DATA: 
-{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'open', 'nyse': 'open', 'otc': 'open'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'open'}, 'market': 'open', 'serverTime': '2025-08-06T14:06:54-04:00'}
+{'afterHours': True, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'extended-hours', 'nyse': 'extended-hours', 'otc': 'extended-hours'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'closed'}, 'market': 'extended-hours', 'serverTime': '2025-08-07T16:04:47-04:00'}
 
-Starting ws_connect() for tradier...
-Starting `process_data()`...
-Starting `execute_trading_strategy()`...
-    [CTS] Created 'bear' state: state_1
-    [CTS] Created 'bull' state: state_2
-[TRADIER] Sent payload: {"symbols": ["SPY"], "sessionid": "0364e750-0a37-4291-9a35-87402076a69c", "linebreak": true}, 2025-08-06T13:06:55.154803
-[TRADIER] WebSocket connection established.
-[Hr:Mn:Sc]
-[ETS] First candle processed: {'open': 632.245, 'high': 632.51, 'low': 632.1799, 'close': 632.43, 'timestamp': '2025-08-06T14:00:00.296539-04:00'}
-    [ETS-IF] Num Flags Completed: 0
-[13:08:00] Candle count for 2M: 1
-    [EMA CS] Bot started late; force initializing 2M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 2M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '13:52:00'.
-        → Total gathered: 923 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_2M.csv`
-[RESET] Cleared file: `2M.json`
-    [ETS-IF] Num Flags Completed: 0
-[13:10:00] Candle count for 2M: 2
-    [EMA CS] Updated live EMA for 2M.
-[13:10:00] Candle count for 5M: 1
-    [EMA CS] Bot started late; force initializing 5M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 5M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '13:55:00'.
-        → Total gathered: 379 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_5M.csv`
-[RESET] Cleared file: `5M.json`
-    [ETS-IF] Num Flags Completed: 0
-[13:12:00] Candle count for 2M: 3
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[13:14:00] Candle count for 2M: 4
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[13:15:00] Candle count for 5M: 2
-    [EMA CS] Updated live EMA for 5M.
-[13:15:00] Candle count for 15M: 1
-    [EMA CS] Bot started late; force initializing 15M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 15M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '14:00:00'.
-        → Total gathered: 128 candles after offset 2
-            [GCCD] Data received; Candles from '04:00:00' to '14:00:00'.
-        → Total gathered: 297 candles after offset 3
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_15M.csv`
-[RESET] Cleared file: `15M.json`
-[13:16:00] Candle count for 2M: 5
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 2
-[13:18:00] Candle count for 2M: 6
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[13:20:00] Candle count for 2M: 7
-    [EMA CS] Updated live EMA for 2M.
-[13:20:00] Candle count for 5M: 3
-    [EMA CS] Updated live EMA for 5M.
-    [ETS-IF] Num Flags Completed: 2
-[13:22:00] Candle count for 2M: 8
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[13:24:00] Candle count for 2M: 9
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[13:25:00] Candle count for 5M: 4
-    [EMA CS] Updated live EMA for 5M.
-[13:26:00] Candle count for 2M: 10
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[13:28:00] Candle count for 2M: 11
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[13:30:00] Candle count for 2M: 12
-    [EMA CS] Updated live EMA for 2M.
-[13:30:00] Candle count for 5M: 5
-    [EMA CS] Updated live EMA for 5M.
-[13:30:00] Candle count for 15M: 2
-    [EMA CS] Updated live EMA for 15M.
-    [ETS-IF] Num Flags Completed: 0
-[13:32:00] Candle count for 2M: 13
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[13:34:00] Candle count for 2M: 14
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[13:35:00] Candle count for 5M: 6
-    [EMA CS] Updated live EMA for 5M.
-[13:36:00] Candle count for 2M: 15
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
+[ERROR] Exception in main loop: [Errno 2] No such file or directory: 'C:\\Users\\HNI\\OneDrive\\Desktop\\Coding\\Trading programs\\Flag-Zone-Bot\\logs\\SPY_2M.log'
 Manually interrupted, cleaning up...
 Discord bot started.
 Starting the main trading bot...
-[INFO] Running initial_setup and main_loop at 2025-08-06 14:37:28
+[INFO] Running initial_setup and main_loop at 2025-08-07 16:05:36
 We have logged in as TradeMaster#8429
 
 [DATA_AQUISITION] 'is_market_open()' DATA: 
-{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'open', 'nyse': 'open', 'otc': 'open'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'open'}, 'market': 'open', 'serverTime': '2025-08-06T14:37:33-04:00'}
+{'afterHours': True, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'extended-hours', 'nyse': 'extended-hours', 'otc': 'extended-hours'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'closed'}, 'market': 'extended-hours', 'serverTime': '2025-08-07T16:05:39-04:00'}
 
-Starting ws_connect() for tradier...
-[TRADIER] Sent payload: {"symbols": ["SPY"], "sessionid": "ce0d478b-1acd-417a-94c2-41aff80c2143", "linebreak": true}, 2025-08-06T13:37:33.159085
-[TRADIER] WebSocket connection established.
-[Hr:Mn:Sc]
-Starting `process_data()`...
-Starting `execute_trading_strategy()`...
-    [CTS] Created 'bear' state: state_1
-    [CTS] Created 'bull' state: state_2
-[ETS] First candle processed: {'open': 633.07, 'high': 633.1155, 'low': 633.0, 'close': 633.07, 'timestamp': '2025-08-06T14:34:00.440176-04:00'}
-    [ETS-IF] Num Flags Completed: 0
-[13:38:00] Candle count for 2M: 1
-    [EMA CS] Bot started late; force initializing 2M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 2M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '14:22:00'.
-        → Total gathered: 938 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_2M.csv`
-[RESET] Cleared file: `2M.json`
-    [ETS-IF] Num Flags Completed: 0
-[13:40:00] Candle count for 2M: 2
-    [EMA CS] Updated live EMA for 2M.
-[13:40:00] Candle count for 5M: 1
-    [EMA CS] Bot started late; force initializing 5M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 5M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '14:25:00'.
-        → Total gathered: 385 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_5M.csv`
-[RESET] Cleared file: `5M.json`
-    [ETS-IF] Num Flags Completed: 0
-[13:42:00] Candle count for 2M: 3
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[13:44:00] Candle count for 2M: 4
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[13:45:00] Candle count for 5M: 2
-    [EMA CS] Updated live EMA for 5M.
-[13:45:00] Candle count for 15M: 1
-    [EMA CS] Bot started late; force initializing 15M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 15M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '14:30:00'.
-        → Total gathered: 130 candles after offset 2
-            [GCCD] Data received; Candles from '04:00:00' to '14:30:00'.
-        → Total gathered: 301 candles after offset 3
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_15M.csv`
-[RESET] Cleared file: `15M.json`
-[13:46:00] Candle count for 2M: 5
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[13:48:00] Candle count for 2M: 6
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[13:50:00] Candle count for 2M: 7
-    [EMA CS] Updated live EMA for 2M.
-[13:50:00] Candle count for 5M: 3
-    [EMA CS] Updated live EMA for 5M.
-    [ETS-IF] Num Flags Completed: 0
-[13:52:00] Candle count for 2M: 8
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[13:54:00] Candle count for 2M: 9
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 2
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-[INFO] Running initial_setup and main_loop at 2025-08-06 14:55:05
-We have logged in as TradeMaster#8429
-
-[DATA_AQUISITION] 'is_market_open()' DATA: 
-{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'open', 'nyse': 'open', 'otc': 'open'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'open'}, 'market': 'open', 'serverTime': '2025-08-06T14:55:10-04:00'}
-
-Starting ws_connect() for tradier...
-Starting `process_data()`...
-Starting `execute_trading_strategy()`...
-    [CTS] Created 'bear' state: state_1
-    [CTS] Created 'bull' state: state_2
-[TRADIER] Sent payload: {"symbols": ["SPY"], "sessionid": "f0c58a72-eb90-4f4e-95d6-4e87870599ed", "linebreak": true}, 2025-08-06T13:55:10.531095
-[TRADIER] WebSocket connection established.
-[Hr:Mn:Sc]
-[ETS] First candle processed: {'open': 632.81, 'high': 633.005, 'low': 632.79, 'close': 632.93, 'timestamp': '2025-08-06T14:52:00.303935-04:00'}
-    [ETS-IF] Num Flags Completed: 0
-[13:56:00] Candle count for 2M: 1
-    [EMA CS] Bot started late; force initializing 2M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 2M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '14:40:00'.
-        → Total gathered: 947 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_2M.csv`
-[RESET] Cleared file: `2M.json`
-    [ETS-IF] Num Flags Completed: 0
-[13:58:00] Candle count for 2M: 2
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[14:00:00] Candle count for 2M: 3
-    [EMA CS] Updated live EMA for 2M.
-[14:00:00] Candle count for 5M: 1
-    [EMA CS] Bot started late; force initializing 5M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 5M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '14:45:00'.
-        → Total gathered: 389 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_5M.csv`
-[RESET] Cleared file: `5M.json`
-[14:00:01] Candle count for 15M: 1
-    [EMA CS] Bot started late; force initializing 15M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 15M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '14:45:00'.
-        → Total gathered: 131 candles after offset 2
-            [GCCD] Data received; Candles from '04:00:00' to '14:45:00'.
-        → Total gathered: 303 candles after offset 3
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_15M.csv`
-[RESET] Cleared file: `15M.json`
-    [ETS-IF] Num Flags Completed: 0
-[14:02:00] Candle count for 2M: 4
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[14:04:00] Candle count for 2M: 5
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[14:05:00] Candle count for 5M: 2
-    [EMA CS] Updated live EMA for 5M.
-[14:06:00] Candle count for 2M: 6
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[14:08:00] Candle count for 2M: 7
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[14:10:00] Candle count for 2M: 8
-    [EMA CS] Updated live EMA for 2M.
-[14:10:00] Candle count for 5M: 3
-    [EMA CS] Updated live EMA for 5M.
-    [ETS-IF] Num Flags Completed: 0
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-[INFO] Running initial_setup and main_loop at 2025-08-06 15:11:19
-We have logged in as TradeMaster#8429
-
-[DATA_AQUISITION] 'is_market_open()' DATA: 
-{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'open', 'nyse': 'open', 'otc': 'open'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'open'}, 'market': 'open', 'serverTime': '2025-08-06T15:11:23-04:00'}
-
-Starting ws_connect() for tradier...
-[TRADIER] Sent payload: {"symbols": ["SPY"], "sessionid": "66cbda3c-ee9f-48cc-83b9-4ef46eaf6475", "linebreak": true}, 2025-08-06T14:11:23.417466
-[TRADIER] WebSocket connection established.
-[Hr:Mn:Sc]
-Starting `process_data()`...
-Starting `execute_trading_strategy()`...
-    [CTS] Created 'bear' state: state_1
-    [CTS] Created 'bull' state: state_2
-[ETS] First candle processed: {'open': 632.7, 'high': 632.765, 'low': 632.602, 'close': 632.69, 'timestamp': '2025-08-06T15:08:00.306020-04:00'}
-    [ETS-IF] Num Flags Completed: 0
-[14:12:00] Candle count for 2M: 1
-    [EMA CS] Bot started late; force initializing 2M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 2M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '14:56:00'.
-        → Total gathered: 955 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_2M.csv`
-[RESET] Cleared file: `2M.json`
-    [ETS-IF] Num Flags Completed: 0
-[14:14:00] Candle count for 2M: 2
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[14:15:00] Candle count for 5M: 1
-    [EMA CS] Bot started late; force initializing 5M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 5M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '15:00:00'.
-        → Total gathered: 392 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_5M.csv`
-[RESET] Cleared file: `5M.json`
-[14:15:01] Candle count for 15M: 1
-    [EMA CS] Bot started late; force initializing 15M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 15M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '15:00:00'.
-        → Total gathered: 132 candles after offset 2
-            [GCCD] Data received; Candles from '04:00:00' to '15:00:00'.
-        → Total gathered: 305 candles after offset 3
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_15M.csv`
-[RESET] Cleared file: `15M.json`
-[14:16:00] Candle count for 2M: 3
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[14:18:00] Candle count for 2M: 4
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[14:20:00] Candle count for 2M: 5
-    [EMA CS] Updated live EMA for 2M.
-[14:20:00] Candle count for 5M: 2
-    [EMA CS] Updated live EMA for 5M.
-    [ETS-IF] Num Flags Completed: 0
-[14:22:00] Candle count for 2M: 6
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[14:24:00] Candle count for 2M: 7
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[14:25:00] Candle count for 5M: 3
-    [EMA CS] Updated live EMA for 5M.
-[14:26:00] Candle count for 2M: 8
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-[INFO] Running initial_setup and main_loop at 2025-08-06 15:26:36
-We have logged in as TradeMaster#8429
-
-[DATA_AQUISITION] 'is_market_open()' DATA: 
-{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'open', 'nyse': 'open', 'otc': 'open'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'open'}, 'market': 'open', 'serverTime': '2025-08-06T15:26:41-04:00'}
-
-Starting ws_connect() for tradier...
-Starting `process_data()`...
-Starting `execute_trading_strategy()`...
-    [CTS] Created 'bear' state: state_1
-    [CTS] Created 'bull' state: state_2
-[TRADIER] Sent payload: {"symbols": ["SPY"], "sessionid": "2d7a5b92-cce9-4aab-b3aa-9882bbbe589a", "linebreak": true}, 2025-08-06T14:26:41.218944
-[TRADIER] WebSocket connection established.
-[Hr:Mn:Sc]
-[ETS] First candle processed: {'open': 633.035, 'high': 633.1, 'low': 633.0, 'close': 633.065, 'timestamp': '2025-08-06T15:24:00.414291-04:00'}
-    [ETS-IF] Num Flags Completed: 0
-[14:28:00] Candle count for 2M: 1
-    [EMA CS] Bot started late; force initializing 2M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 2M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '15:12:00'.
-        → Total gathered: 963 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_2M.csv`
-[RESET] Cleared file: `2M.json`
-    [ETS-IF] Num Flags Completed: 0
-[14:30:00] Candle count for 2M: 2
-    [EMA CS] Updated live EMA for 2M.
-[14:30:00] Candle count for 5M: 1
-    [EMA CS] Bot started late; force initializing 5M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 5M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '15:15:00'.
-        → Total gathered: 395 candles after offset 2
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_5M.csv`
-[RESET] Cleared file: `5M.json`
-[14:30:01] Candle count for 15M: 1
-    [EMA CS] Bot started late; force initializing 15M EMAs...
-        [GCDAM] Trying to gather at least 200 candles for 15M...
-            [GCCD] Data received; Candles from '04:00:00' to '09:30:00'.
-            [GCCD] Data received; Candles from '04:00:00' to '15:15:00'.
-        → Total gathered: 133 candles after offset 2
-            [GCCD] Data received; Candles from '04:00:00' to '15:15:00'.
-        → Total gathered: 307 candles after offset 3
-        [GCDAM] ✅ Data saved with EMAs: `merged_ema_15M.csv`
-[RESET] Cleared file: `15M.json`
-    [ETS-IF] Num Flags Completed: 0
-[14:32:00] Candle count for 2M: 3
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[14:34:00] Candle count for 2M: 4
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[14:35:00] Candle count for 5M: 2
-    [EMA CS] Updated live EMA for 5M.
-[14:36:00] Candle count for 2M: 5
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[14:38:00] Candle count for 2M: 6
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[14:40:00] Candle count for 2M: 7
-    [EMA CS] Updated live EMA for 2M.
-[14:40:00] Candle count for 5M: 3
-    [EMA CS] Updated live EMA for 5M.
-    [ETS-IF] Num Flags Completed: 1
-[14:42:00] Candle count for 2M: 8
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
-[14:44:00] Candle count for 2M: 9
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[14:45:00] Candle count for 5M: 4
-    [EMA CS] Updated live EMA for 5M.
-[14:45:00] Candle count for 15M: 2
-    [EMA CS] Updated live EMA for 15M.
-[14:46:00] Candle count for 2M: 10
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 0
-[14:48:00] Candle count for 2M: 11
-    [EMA CS] Updated live EMA for 2M.
-    [ETS-IF] Num Flags Completed: 1
+[ERROR] Exception in main loop: [Errno 2] No such file or directory: 'C:\\Users\\HNI\\OneDrive\\Desktop\\Coding\\Trading programs\\Flag-Zone-Bot\\logs\\SPY_2M.log'
 Manually interrupted, cleaning up...
 Discord bot started.
 These functions below are just tests
-[pull_and_replace_15m] Fetching 15M candles from 2025-08-06 to 2025-08-06...
 [GCCD] Data received; Candles from '09:30:00' to '15:45:00'.
 
 [Fallback] Cleaned Polygon 15M:
                          open     close      high       low
 timestamp                                                  
-2025-08-06 09:30:00  629.0500  629.0650  629.4500  628.2700
-2025-08-06 09:45:00  629.0350  628.9300  629.9800  628.4700
-2025-08-06 10:00:00  628.9200  629.4500  630.6100  628.8200
-2025-08-06 10:15:00  629.4600  628.7950  629.7800  628.1300
-2025-08-06 10:30:00  628.7950  630.0800  630.2400  628.3800
-2025-08-06 10:45:00  630.1000  630.8850  631.0100  629.8550
-2025-08-06 11:00:00  630.8800  630.9200  631.0000  630.4100
-2025-08-06 11:15:00  630.9299  631.9270  632.0500  630.8700
-2025-08-06 11:30:00  631.9100  632.0799  632.4181  631.1600
-2025-08-06 11:45:00  632.0800  632.6600  632.9104  632.0400
-2025-08-06 12:00:00  632.6700  632.4901  632.8500  632.3800
-2025-08-06 12:15:00  632.5000  632.3700  632.7600  632.1800
-2025-08-06 12:30:00  632.3899  632.0745  632.9799  632.0600
-2025-08-06 12:45:00  632.0800  632.2500  632.4900  631.8500
-2025-08-06 13:00:00  632.2401  632.1500  632.6300  632.0400
-2025-08-06 13:15:00  632.1300  632.2900  632.3600  631.9400
-2025-08-06 13:30:00  632.3100  632.5400  632.7000  632.1600
-2025-08-06 13:45:00  632.5417  632.2300  632.5950  632.0000
-2025-08-06 14:00:00  632.2350  632.7772  633.1100  632.1799
-2025-08-06 14:15:00  632.7811  632.9200  633.0500  632.6100
-2025-08-06 14:30:00  632.9200  632.8287  633.1900  632.6500
-2025-08-06 14:45:00  632.8400  632.6200  633.0050  632.4900
-2025-08-06 15:00:00  632.6200  632.7250  632.9150  632.5600
-2025-08-06 15:15:00  632.7300  633.0200  633.1600  632.6900
-2025-08-06 15:30:00  633.0100  632.9550  633.4400  632.9100
-2025-08-06 15:45:00  632.9500  632.6700  633.0100  632.3900
+2025-08-07 09:30:00  636.2400  636.2000  636.9800  635.7000
+2025-08-07 09:45:00  636.2000  636.4800  636.5500  635.2999
+2025-08-07 10:00:00  636.4900  634.6850  636.8200  634.3400
+2025-08-07 10:15:00  634.6800  633.8200  634.7450  633.1200
+2025-08-07 10:30:00  633.8100  633.9965  634.0300  633.2600
+2025-08-07 10:45:00  633.9900  632.7200  634.2350  632.3900
+2025-08-07 11:00:00  632.7300  632.1851  633.1400  632.0901
+2025-08-07 11:15:00  632.1700  631.9699  633.0550  631.7600
+2025-08-07 11:30:00  631.9700  631.7950  632.4400  631.6100
+2025-08-07 11:45:00  631.7800  631.8946  632.2900  631.3500
+2025-08-07 12:00:00  631.8600  632.2300  632.3500  631.1316
+2025-08-07 12:15:00  632.2300  632.2450  632.6000  631.9750
+2025-08-07 12:30:00  632.2500  630.5607  632.6100  630.4700
+2025-08-07 12:45:00  630.5500  631.2400  632.0500  630.0700
+2025-08-07 13:00:00  631.2400  630.6100  631.8700  630.3700
+2025-08-07 13:15:00  630.6016  630.0300  631.0950  630.0000
+2025-08-07 13:30:00  630.0000  630.4700  630.6300  629.6900
+2025-08-07 13:45:00  630.4500  630.7400  631.0800  630.2600
+2025-08-07 14:00:00  630.7400  629.8800  631.0399  629.5600
+2025-08-07 14:15:00  629.8900  629.9200  630.0000  629.1100
+2025-08-07 14:30:00  629.9200  629.5900  630.3400  629.4600
+2025-08-07 14:45:00  629.5800  630.5107  630.8700  629.5200
+2025-08-07 15:00:00  630.5213  630.2350  630.7900  630.1700
+2025-08-07 15:15:00  630.2100  630.2700  630.5050  630.0100
+2025-08-07 15:30:00  630.2800  631.2845  631.3100  630.2600
+2025-08-07 15:45:00  631.2800  631.0500  631.5600  630.8700
 
 [pull_and_replace_15m] Main CSV `SPY_15_minute_candles.csv` updated with Polygon fallback.
 
-[2025-08-06 (id, lvl)] resistance: (05225, 633.44) | support: (05226, 628.13)
-[VIZL] Starting with 91 zones and 120 levels
-[RESISTANCE ZONE BOTTOM] Structural Mode: (33882, 632.67) | Size: 0.145
-[   SUPPORT ZONE TOP   ] Body-Based Mode: [33873, 629.035] (SVF) Size: 0.743
-[display_update] Step set to 3847. 213 objects displayed.
+[2025-08-07 (id, lvl)] resistance: (05229, 636.98) | support: (05230, 629.11)
+[VIZL] Starting with 92 zones and 121 levels
+[RESISTANCE ZONE BOTTOM] Body-Based Mode: [33898, 636.2] (SVF) Size: 0.601
+[   SUPPORT ZONE TOP   ] Body-Based Mode: [33917, 629.92] (SVF) Size: 0.060
+[display_update] Step set to 3850. 215 objects displayed.
 [pull_and_replace_15m] Timeline + objects updated.
 Starting the main trading bot...
+[INFO] Running initial_setup and main_loop at 2025-08-07 16:32:19
+We have logged in as TradeMaster#8429
+
+[DATA_AQUISITION] 'is_market_open()' DATA: 
+{'afterHours': True, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'extended-hours', 'nyse': 'extended-hours', 'otc': 'extended-hours'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'closed'}, 'market': 'extended-hours', 'serverTime': '2025-08-07T16:32:24-04:00'}
+
+[INFO] Market already closed. Skipping main_loop and EOD.
+[INFO] initial_setup and main_loop completed successfully.
+Waiting until tomorrow's 8:20 AM...
 Manually interrupted, cleaning up...
 Discord bot started.
 Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
-Manually interrupted, cleaning up...
-Discord bot started.
-Starting the main trading bot...
+[INFO] Running initial_setup and main_loop at 2025-08-07 17:14:07
+We have logged in as TradeMaster#8429
+
+[DATA_AQUISITION] 'is_market_open()' DATA: 
+{'afterHours': True, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'extended-hours', 'nyse': 'extended-hours', 'otc': 'closed'}, 'indicesGroups': {'s_and_p': 'open', 'societe_generale': 'open', 'msci': 'open', 'ftse_russell': 'open', 'mstar': 'open', 'mstarc': 'open', 'cccy': 'open', 'cgi': 'open', 'nasdaq': 'open', 'dow_jones': 'closed'}, 'market': 'extended-hours', 'serverTime': '2025-08-07T17:14:11-04:00'}
+
+[INFO] Market already closed. Skipping main_loop and EOD.
+[INFO] initial_setup and main_loop completed successfully.
+Waiting until tomorrow's 8:20 AM...

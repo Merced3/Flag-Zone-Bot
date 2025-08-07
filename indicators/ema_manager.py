@@ -20,7 +20,7 @@ def initialize_timeframe_state(timeframe):
     if timeframe not in ema_state:
         ema_state[timeframe] = {
             "candle_list": [],
-            "has_calculated": False
+            "has_calculated": False # TODO: False
         }
 
 def get_market_open_plus_15():

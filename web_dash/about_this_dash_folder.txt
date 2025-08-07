@@ -18,11 +18,13 @@ File layout:
 Flag-Zone-Bot/
 ├── web_dash/
 │   ├── __init__.py
-│   ├── dash_app.py         # Entry point: hosts all 4 charts
+│   ├── dash_app.py
+│   ├── chart_updater.py
+│   ├── ws_server.py
 │   ├── charts/
-│   │   ├── live_chart.py   # Logic to read and update live data
-│   │   └── zones_chart.py  # Static 15M zone chart from plot_candles.py
-│   └── assets/             # (Optional) Custom CSS or JS
+│   │   ├── live_chart.py
+│   │   └── zones_chart.py
+│   ├── assets/
 ```
 
 Integrating with 'main.py':
@@ -31,7 +33,11 @@ import subprocess
 subprocess.Popen(["python", "web_dash/dash_app.py"])
 ```
 
-What I need to install:
+Install:
 ```
 pip install dash plotly
+pip install "uvicorn[standard]"
+pip install fastapi
+pip install "fastapi[all]"
+pip install dash-extensions
 ```

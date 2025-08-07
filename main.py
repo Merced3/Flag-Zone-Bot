@@ -237,6 +237,11 @@ async def main_loop():
     market_open_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("09:30:00", "%H:%M:%S").time()))
     market_close_time = new_york.localize(datetime.combine(current_time.date(), datetime.strptime("16:00:00", "%H:%M:%S").time()))
 
+    # 🔒 If already past close, do nothing (avoid spamming EOD on dev restarts)
+    if current_time >= market_close_time:
+        print_log("[INFO] Market already closed. Skipping main_loop and EOD.")
+        return
+
     # ⏳ WAIT until market open FIRST
     if current_time < market_open_time:
         await wait_until_market_open(market_open_time, new_york)
@@ -245,8 +250,11 @@ async def main_loop():
     initialize_csv_order_log()
     await ensure_economic_calendar_data()
 
-    # 🚀 BEGIN main loop
-    while datetime.now(new_york) <= market_close_time:
+    # Track whether we actually ran trading work (so we only run EOD once)
+    did_run_intraday = False
+
+    # 🚀 BEGIN main loop (strictly before close)
+    while datetime.now(new_york) <= market_close_time: # note: '<' not '<='
         try:
             current_time = datetime.now(new_york)
 
@@ -258,9 +266,10 @@ async def main_loop():
                 start_of_day_account_balance = await get_account_balance(read_config('REAL_MONEY_ACTIVATED')) if read_config('REAL_MONEY_ACTIVATED') else read_config('START_OF_DAY_BALANCE')
                 f_s_account_balance = "{:,.2f}".format(start_of_day_account_balance)
                 await print_discord(f"Market is Open! Account BP: ${f_s_account_balance}")
-            #   await send_file_discord(SPY_15M_CHART_PATH)
+                #await send_file_discord(SPY_15M_CHART_PATH)
                 await print_discord(setup_economic_news_message())
 
+            did_run_intraday = True
             task1 = asyncio.create_task(process_data(queue), name="ProcessDataTask")
             task2 = asyncio.create_task(execute_trading_strategy(), name="TradingStrategyTask")
             await asyncio.gather(task1, task2)
@@ -270,8 +279,13 @@ async def main_loop():
 
     # 📉 Market closed
     data_acquisition.should_close = True
-    await process_end_of_day()
     websocket_connection = None
+
+    # Only run EOD if we actually did intraday work this session
+    if did_run_intraday:
+        await process_end_of_day()
+    else:
+        print_log("[INFO] Session ended without intraday work; skipping EOD.")
 
 async def wait_until_market_open(target_time, tz):
     print_log(f"Waiting for market open at {target_time.strftime('%H:%M:%S')}...")
@@ -284,9 +298,6 @@ async def wait_until_market_open(target_time, tz):
         await asyncio.sleep(0.5)
 
 async def process_end_of_day():
-    global websocket_connection
-    websocket_connection = None
-
     # 1. Get balances and calculate P/L
     rma = read_config('REAL_MONEY_ACTIVATED')
     start_of_day_account_balance = await get_account_balance(rma) if rma else read_config('START_OF_DAY_BALANCE')
@@ -333,7 +344,8 @@ if __name__ == "__main__":
     print_log("Starting the main trading bot...")
     loop = asyncio.get_event_loop()
 
-    subprocess.Popen(["python", "web_dash/dash_app.py"])
+    #subprocess.Popen(["python", "web_dash/dash_app.py"])
+    subprocess.Popen(["uvicorn", "web_dash.ws_server:app"])
     
     # Start bot and main loop
     loop.create_task(bot_start(), name="DiscordBotStart")

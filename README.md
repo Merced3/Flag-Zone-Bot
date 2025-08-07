@@ -132,6 +132,7 @@ Flag-Zone-Bot/
 ├── web_dash/
 │   ├── __init__.py
 │   ├── dash_app.py
+│   ├── chart_updater.py
 │   ├── charts/
 │   │   ├── live_chart.py
 │   │   └── zones_chart.py
