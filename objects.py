@@ -3,6 +3,7 @@ import pandas as pd
 from shared_state import print_log, safe_read_json, safe_write_json
 from data_acquisition import get_dates, get_certain_candle_data
 import cred
+import asyncio
 from utils.log_utils import read_log_to_df
 from utils.json_utils import read_config
 from paths import pretty_path, OBJECTS_PATH, TIMELINE_PATH, CANDLE_LOGS, SPY_15_MINUTE_CANDLES_PATH
@@ -582,7 +583,7 @@ async def pull_and_replace_15m():
     can fix whatever days data incase, wifi or power goes out, its for when the live 15 min 
     data might be incorrect and we need some better accuracy. this is so that you remember.
     """
-    start, end = get_dates(1, False, '2025-06-27') #  go back to this (1, True) after were done finishing the timeline/object upload
+    start, end = get_dates(1, True) #  go back to this (1, True) after were done finishing the timeline/object upload
     df = await get_certain_candle_data(
         cred.POLYGON_API_KEY,
         read_config('SYMBOL'),
@@ -711,7 +712,7 @@ def candle_zone_handler(candle, boxes):
 
 if __name__ == "__main__":
     print_log("These functions below are just tests")
-    #asyncio.run(pull_and_replace_15m())
+    asyncio.run(pull_and_replace_15m())
     #clean_csv_timestamps()
     #update_timeline_with_objects(True)
     #process_end_of_day_15m_candles()

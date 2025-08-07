@@ -47,9 +47,11 @@ async def update_ema(candle: dict, timeframe: str):
     ema_path = get_ema_path(timeframe)
     initialize_json(ema_path, [])
 
+    indent_pad = indent(indent_lvl)
+
     if current_time >= market_open_plus_15:
         if not state["has_calculated"] and state["candle_list"]:
-            print_log(f"{indent(indent_lvl)}[EMA CS] Finalizing EMAs after first 15 minutes for {timeframe}...")
+            print_log(f"{indent_pad}[EMA CS] Finalizing EMAs after first 15 minutes for {timeframe}...")
             await get_candle_data_and_merge(
                 candle_interval, candle_timescale, "AFTERMARKET", "PREMARKET", indent_lvl+1, timeframe
             )
@@ -59,10 +61,10 @@ async def update_ema(candle: dict, timeframe: str):
             for i, c in enumerate(sorted_candles):
                 await calculate_save_EMAs(c, i, timeframe)
             state["has_calculated"] = True
-            print_log(f"{indent(indent_lvl)}[EMA CS] Final EMA list calculated for {timeframe}.")
-        
+            print_log(f"{indent_pad}[EMA CS] Final EMA list calculated for {timeframe}.")
+
         elif not state["has_calculated"] and not state["candle_list"]:
-            print_log(f"{indent(indent_lvl)}[EMA CS] Bot started late; force initializing {timeframe} EMAs...")
+            print_log(f"{indent_pad}[EMA CS] Bot started late; force initializing {timeframe} EMAs...")
             await get_candle_data_and_merge(
                 candle_interval, candle_timescale, "AFTERMARKET", "PREMARKET", indent_lvl+1, timeframe
             )
@@ -70,9 +72,9 @@ async def update_ema(candle: dict, timeframe: str):
             state["has_calculated"] = True
         
         elif state["has_calculated"]:
-            await calculate_save_EMAs(candle, get_current_candle_index(), timeframe)
-            print_log(f"{indent(indent_lvl)}[EMA CS] Updated live EMA for {timeframe}.")
-    
+            await calculate_save_EMAs(candle, get_current_candle_index(timeframe), timeframe)
+            print_log(f"{indent_pad}[EMA CS] Updated live EMA for {timeframe}.")
+
     else:
         state["candle_list"].append(candle)
         for path in [AFTERMARKET_EMA_PATH, PREMARKET_EMA_PATH, MERGED_EMA_PATH]:
@@ -85,4 +87,4 @@ async def update_ema(candle: dict, timeframe: str):
         sorted_candles = sorted(state["candle_list"], key=lambda c: c["timestamp"])
         for i, c in enumerate(sorted_candles):
             await calculate_save_EMAs(c, i, timeframe)
-        print_log(f"{indent(indent_lvl)}[EMA CS] Temp EMA calculated for {timeframe} ({len(state['candle_list'])} candles).")
+        print_log(f"{indent_pad}[EMA CS] Temp EMA calculated for {timeframe} ({len(state['candle_list'])} candles).")

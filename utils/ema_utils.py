@@ -137,3 +137,11 @@ def get_last_emas(timeframe, indent_lvl=1, print_statements=True):
     if print_statements:
         print_log(f"{indent(indent_lvl)}[GET-EMAs] x: {emas['x']}, 13: {emas['13']:.2f}, 48: {emas['48']:.2f}, 200: {emas['200']:.2f}")
     return emas
+
+def load_ema_json(path):
+    try:
+        data = safe_read_json(path, default=[])
+        return data if isinstance(data, list) and data else None
+    except:
+        return None
+    

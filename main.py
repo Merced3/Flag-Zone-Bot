@@ -1,5 +1,4 @@
 # main.py
-from chart_visualization import get_root, initiate_shutdown, plot_candles_and_boxes, refresh_15_min_candle_stick_data
 from data_acquisition import ws_auto_connect, get_account_balance, active_provider, is_market_open
 from utils.json_utils import read_config, get_correct_message_ids, update_config_value
 from utils.log_utils import write_to_log, clear_temp_logs_and_order_files
@@ -8,7 +7,6 @@ from utils.time_utils import generate_candlestick_times, add_seconds_to_time
 from indicators.ema_manager import update_ema
 from shared_state import price_lock, print_log
 import shared_state
-import threading
 from indicators.flag_manager import clear_all_states
 from strategies.trading_strategy import execute_trading_strategy
 from economic_calender_scraper import ensure_economic_calendar_data, setup_economic_news_message
@@ -19,13 +17,16 @@ import data_acquisition
 import asyncio
 from datetime import datetime, timedelta
 from objects import process_end_of_day_15m_candles
+from web_dash.chart_updater import update_chart
 import cred
 import json
 import pytz
-from paths import SPY_15M_CHART_PATH, SPY_2M_CHART_PATH, TERMINAL_LOG, MARKERS_PATH, CANDLE_LOGS
+from paths import TERMINAL_LOG, CANDLE_LOGS
+import subprocess
 
 async def bot_start():
     await bot.start(cred.DISCORD_TOKEN)
+    print_log("Discord bot started.")
 
 websocket_connection = None  # Initialize websocket_connection at the top level
 
@@ -73,7 +74,7 @@ async def process_data(queue):
     market_open_time = datetime.now(new_york_tz).replace(hour=9, minute=30, second=0, microsecond=0)
     market_close_time = datetime.now(new_york_tz).replace(hour=16, minute=0, second=0, microsecond=0)
     
-    timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(market_open_time, market_close_time, timedelta(seconds=CANDLE_DURATION[tf]))] for tf in read_config('TIMEFRAMES')}
+    timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(market_open_time, market_close_time, timedelta(seconds=CANDLE_DURATION[tf]), True)] for tf in read_config('TIMEFRAMES')}
     buffer_timestamps = {tf: [add_seconds_to_time(t, read_config('CANDLE_BUFFER')) for t in timestamps[tf]] for tf in timestamps}
     
     try:
@@ -89,7 +90,7 @@ async def process_data(queue):
                 market_close_time = now.replace(hour=16, minute=0, second=0, microsecond=0)
 
                 # Recalculate timestamps for the new day
-                timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(market_open_time, market_close_time, timedelta(seconds=CANDLE_DURATION[tf]))] for tf in read_config('TIMEFRAMES')}
+                timestamps = {tf: [t.strftime('%H:%M:%S') for t in generate_candlestick_times(market_open_time, market_close_time, timedelta(seconds=CANDLE_DURATION[tf]), True)] for tf in read_config('TIMEFRAMES')}
                 buffer_timestamps = {tf: [add_seconds_to_time(t, read_config('CANDLE_BUFFER')) for t in timestamps[tf]] for tf in timestamps}
 
                 # Reset the candles for the new day
@@ -139,8 +140,17 @@ async def process_data(queue):
                         current_candle["timestamp"] = start_times[timeframe].isoformat()
                         write_to_log(current_candle, read_config('SYMBOL'), timeframe)
                         
-                        await update_ema(current_candle, timeframe) # Here is where I made the change to update the EMA after writing the candle log
+                        # ✅ LOG THE CANDLE COUNT BEFORE EMA UPDATES
+                        f_current_time = datetime.now().strftime("%H:%M:%S")
+                        candle_counts[timeframe] += 1
+                        print_log(f"[{f_current_time}] Candle count for {timeframe}: {candle_counts[timeframe]}")  # Not +1 here
 
+                        # 🔁 NOW update EMA
+                        await update_ema(current_candle, timeframe)
+
+                        # 🔁 NOW update Chart
+                        update_chart(timeframe, chart_type="live")
+                        
                         # Reset the current candle and start time
                         current_candles[timeframe] = {
                             "open": None,
@@ -148,11 +158,7 @@ async def process_data(queue):
                             "low": None,
                             "close": None
                         }
-                        
-                        f_current_time = datetime.now().strftime("%H:%M:%S")
-                        candle_counts[timeframe] += 1
-                        print_log(f"[{f_current_time}] Candle count for {timeframe}: {candle_counts[timeframe]+1}")
-                        
+
                         # Remove the timestamp to avoid duplication
                         if f_now in timestamps[timeframe]:
                             timestamps[timeframe].remove(f_now)
@@ -238,7 +244,6 @@ async def main_loop():
     # ✅ INIT after waiting
     initialize_csv_order_log()
     await ensure_economic_calendar_data()
-    refresh_15_min_candle_stick_data()
 
     # 🚀 BEGIN main loop
     while datetime.now(new_york) <= market_close_time:
@@ -253,7 +258,7 @@ async def main_loop():
                 start_of_day_account_balance = await get_account_balance(read_config('REAL_MONEY_ACTIVATED')) if read_config('REAL_MONEY_ACTIVATED') else read_config('START_OF_DAY_BALANCE')
                 f_s_account_balance = "{:,.2f}".format(start_of_day_account_balance)
                 await print_discord(f"Market is Open! Account BP: ${f_s_account_balance}")
-                await send_file_discord(SPY_15M_CHART_PATH)
+            #   await send_file_discord(SPY_15M_CHART_PATH)
                 await print_discord(setup_economic_news_message())
 
             task1 = asyncio.create_task(process_data(queue), name="ProcessDataTask")
@@ -266,7 +271,6 @@ async def main_loop():
     # 📉 Market closed
     data_acquisition.should_close = True
     await process_end_of_day()
-    refresh_15_min_candle_stick_data()
     websocket_connection = None
 
 async def wait_until_market_open(target_time, tz):
@@ -297,9 +301,9 @@ async def process_end_of_day():
     await print_discord(output_message)
 
     # 3. Send relevant files/logs to Discord
-    await send_file_discord(SPY_2M_CHART_PATH)
+#   await send_file_discord(SPY_2M_CHART_PATH)
     await send_file_discord(CANDLE_LOGS.get("2M")) #Send file
-    await send_file_discord(MARKERS_PATH)
+#   await send_file_discord(MARKERS_PATH)
     #await send_file_discord(EMAS_PATH)
     await send_file_discord(TERMINAL_LOG)
     process_end_of_day_15m_candles()
@@ -311,6 +315,7 @@ async def process_end_of_day():
     clear_all_states()
     clear_temp_logs_and_order_files()
     reset_profit_loss_orders_list()
+    update_chart("15M", chart_type="zones")
 
 async def shutdown(loop):
     """Shutdown tasks and the Discord bot."""
@@ -322,17 +327,14 @@ async def shutdown(loop):
         task.cancel()
     await asyncio.gather(*tasks, return_exceptions=True)
 
-    initiate_shutdown()
-
     loop.stop()
 
 if __name__ == "__main__":
+    print_log("Starting the main trading bot...")
     loop = asyncio.get_event_loop()
 
-    # Start chart once at boot — main thread only
-    chart_thread = threading.Thread(target=plot_candles_and_boxes, args=(0,), name="chart_root")
-    chart_thread.start()
-
+    subprocess.Popen(["python", "web_dash/dash_app.py"])
+    
     # Start bot and main loop
     loop.create_task(bot_start(), name="DiscordBotStart")
     loop.create_task(main(), name="MainLoop")

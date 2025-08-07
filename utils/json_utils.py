@@ -101,7 +101,7 @@ def clear_priority_candles(indent_level):
         json.dump([], file, indent=4)
     print_log(f"{indent(indent_level)}[RESET] `{pretty_path(PRIORITY_CANDLES_PATH)}` = [];")
 
-async def record_priority_candle(candle, zone_type_candle):
+async def record_priority_candle(candle, zone_type_candle, timeframe):
     # Load existing data or initialize an empty list
     try:
         with open(PRIORITY_CANDLES_PATH, 'r') as file:
@@ -109,7 +109,7 @@ async def record_priority_candle(candle, zone_type_candle):
     except (FileNotFoundError, json.JSONDecodeError):
         candles_data = []
 
-    current_candle_index = get_current_candle_index()
+    current_candle_index = get_current_candle_index(timeframe)
 
     # Append the new candle data along with its type
     candle_with_type = candle.copy()

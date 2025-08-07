@@ -10,7 +10,6 @@ import json
 import pytz
 import time
 from datetime import datetime
-from chart_visualization import update_2_min
 from error_handler import error_log_and_discord_message
 from shared_state import price_lock, indent, print_log
 from utils.json_utils import read_config
@@ -251,9 +250,9 @@ async def get_current_price() -> float:
         print_log(f"[ERROR] Error fetching current price: {e}")
         return 0.0
 
-async def add_markers(event_type, x=None, y=None, percentage=None):
+async def add_markers(event_type, x=None, y=None, percentage=None, tf="2M"):
     
-    x_coord = get_current_candle_index() if x is None else x
+    x_coord = get_current_candle_index(tf) if x is None else x
     y_coord = y if y else await get_current_price()
     print_log(f"    [MARKER] {x_coord}, {y_coord}, {event_type}")
 
@@ -294,8 +293,6 @@ async def add_markers(event_type, x=None, y=None, percentage=None):
     markers.append(marker)
     with open(MARKERS_PATH, 'w') as f:
         json.dump(markers, f, indent=4)
-    
-    update_2_min()
 
 async def get_candle_data_and_merge(candle_interval, candle_timescale, am_label, pm_label, indent_lvl, timeframe):
     max_ema_window = max([window for window, _ in read_config("EMAS")])
@@ -306,7 +303,7 @@ async def get_candle_data_and_merge(candle_interval, candle_timescale, am_label,
     print_log(f"{indent_pad}[GCDAM] Trying to gather at least {max_ema_window} candles for {timeframe}...")
 
     # Fetch premarket of current day first
-    start_date, end_date = get_dates(0, True)
+    start_date, end_date = get_dates(1, True)
     pre_df = await get_certain_candle_data(
         cred.POLYGON_API_KEY,
         read_config('SYMBOL'),

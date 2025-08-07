@@ -1,5 +1,4 @@
 # strategies/trading_strategy.py
-from chart_visualization import update_2_min
 import asyncio
 from datetime import datetime, timedelta, time
 from order_handler import get_profit_loss_orders_list, sell_rest_of_active_order
@@ -81,14 +80,14 @@ async def execute_trading_strategy():
                     #print_log(f"{indent(indent_lvl)}[ETS-CZH] Zone setup: {candle_zone_type}")
                         
                     # Data allocation
-                    await record_priority_candle(candle, "None") # Add candle into `priority_candles.json` to store certian vales into
+                    await record_priority_candle(candle, "None", "2M") # Add candle into `priority_candles.json` to store certian vales into
                     last_candle = load_json_df(PRIORITY_CANDLES_PATH).iloc[-1].to_dict()
                         
                     # Flag handling
                     flags_completed = await identify_flag(last_candle, indent_lvl=indent_lvl+1, print_satements=False)
                     print_log(f"{indent(indent_lvl)}[ETS-IF] Num Flags Completed: {len(flags_completed)}")
                     # Len simpler in logs, if need be for more trackable situations just delete the 'len()'
-                    update_2_min(indent_lvl=indent_lvl)
+                    #update_2_min(indent_lvl=indent_lvl)
 
                     #current_candle_score = get_current_sentiment(candle, zones, tpls, indent_lvl+1, False)
                     #print_log(f"{indent(indent_lvl)}[ETS-GCS] Sentiment Score: {current_candle_score}")
@@ -104,7 +103,7 @@ async def execute_trading_strategy():
                         #else:
                             #order_status_message = f"Order Blocked, {handling_detials[1]}"
                         #print_log(f"{indent(indent_lvl)}[ETS-HRAO] {order_status_message}")
-                    update_2_min()
+                    #update_2_min()
                 else:
                     await asyncio.sleep(1)  # Wait for new candle data
 
@@ -115,5 +114,5 @@ def print_log_candle(candle):
     timestamp_str = candle["timestamp"]
     timestamp_dt = datetime.fromisoformat(timestamp_str)
     formatted_time = timestamp_dt.strftime("%H:%M:%S")
-    num = get_current_candle_index()
+    num = get_current_candle_index(timeframe="2M")
     print_log(f"[{formatted_time}] {num} OHLC: {candle['open']}, {candle['high']}, {candle['low']}, {candle['close']}")

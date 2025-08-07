@@ -86,11 +86,18 @@ Flag-Zone-Bot/
 │   └── workflows/
 │       └── python-ci.yml
 ├── __pycache__/
+├── indicators/
+│   ├── ema_manager.py
+│   └── flag_manager.py
 ├── logs/
 │   ├── SPY_2M.log
 │   └── terminal_output.log
 ├── states/
 ├── storage/
+│   ├── emas/
+│   │   ├── 2M.json
+│   │   ├── 5M.json
+│   │   └── 15M.json
 │   ├── objects/
 │   │   ├── objects.json
 │   │   └── timeline.json
@@ -107,32 +114,37 @@ Flag-Zone-Bot/
 │   ├── priority_candles.json
 │   ├── week_ecom_calendar.json
 │   └── week_performances.json
-├── tests/
-│   ├── test_chart_root.py
-│   └── test_smoke.py
+├── strategies/
+│   └── trading_strategy.py
 ├── tools/
 │   ├── generate_structure.py
 │   └── plot_candles.py
 ├── utils/
 │   ├── __pycache__/
 │   ├── data_utils.py
+│   ├── ema_utils.py
 │   ├── file_utils.py
 │   ├── json_utils.py
 │   ├── log_utils.py
 │   ├── order_utils.py
 │   └── time_utils.py
 ├── venv/ # Make this
+├── web_dash/
+│   ├── __init__.py
+│   ├── dash_app.py
+│   ├── charts/
+│   │   ├── live_chart.py
+│   │   └── zones_chart.py
+│   └── assets/
 ├── .gitignore
 ├── ERRORs.tct
-├── README.md
+├── README.md # This File
 ├── buy_option.py
-├── chart_visualization.py
 ├── config.json
 ├── cred.py
 ├── data_acquisition.py
 ├── economic_calender_scraper.py
 ├── error_handler.py
-├── flag_manager.py
 ├── main.py
 ├── objects.py
 ├── order_handler.py
@@ -142,8 +154,7 @@ Flag-Zone-Bot/
 ├── rule_manager.py
 ├── sentiment_engine.py
 ├── shared_state.py
-├── submit_order.py
-└── tll_trading_strategy.py
+└── submit_order.py
 ```
 
 ---

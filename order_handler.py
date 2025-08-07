@@ -301,7 +301,7 @@ async def check_stop_loss(current_bid_price, buy_entry_price, position_type, las
         SL_string, SL_number = STOP_LOSS
         if isinstance(SL_string, str) and "EMA" in SL_string and isinstance(SL_number, (int, float)):
             ema_value = SL_string.split(' ')[-1]
-            current_candle_index = get_current_candle_index()
+            current_candle_index = get_current_candle_index("2M")
             current_ema_val, current_index_ema = get_latest_ema_values(ema_value)
                 
             # Check if the current candle and ema is different since last checked
@@ -692,4 +692,3 @@ def safe_write_to_file(path, data, max_retries=5, retry_delay=0.25):
             print_log(f"    [ORDER DETIALS] Permission denied on attempt {attempt+1}: {e}")
             time.sleep(retry_delay)
     return False  # Failed to write after retries
-

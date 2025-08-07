@@ -1,4 +1,4 @@
-#print_discord_messages.py
+# print_discord_messages.py
 from error_handler import error_log_and_discord_message, print_log
 from utils.order_utils import to_float
 import re
@@ -8,7 +8,6 @@ import cred
 import discord
 from discord.ext import commands
 from discord.ui import View, Button
-import inspect
 
 intents = discord.Intents.all()
 intents.message_content = True
