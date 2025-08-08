@@ -88,10 +88,8 @@ Flag-Zone-Bot/
 ├── __pycache__/
 ├── docs/
 │   ├── adr/
-│   │   └── 2M.json
-│   ├── architecture_notes.md
-│   ├── docs_explanation.md
-│   └── ERRORs.txt
+│   │   └── 0001-separate-frontend-from-backend.md
+│   └── TOC.md
 ├── indicators/
 │   ├── ema_manager.py
 │   └── flag_manager.py
