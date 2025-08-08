@@ -86,6 +86,12 @@ Flag-Zone-Bot/
 │   └── workflows/
 │       └── python-ci.yml
 ├── __pycache__/
+├── docs/
+│   ├── adr/
+│   │   └── 2M.json
+│   ├── architecture_notes.md
+│   ├── docs_explanation.md
+│   └── ERRORs.txt
 ├── indicators/
 │   ├── ema_manager.py
 │   └── flag_manager.py
@@ -133,6 +139,7 @@ Flag-Zone-Bot/
 │   ├── __init__.py
 │   ├── dash_app.py
 │   ├── chart_updater.py
+│   ├── ws_server.py
 │   ├── charts/
 │   │   ├── live_chart.py
 │   │   └── zones_chart.py
