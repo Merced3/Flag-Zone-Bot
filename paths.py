@@ -48,8 +48,11 @@ def get_merged_ema_csv_path(timeframe: str):
 STATES_DIR = BASE / 'states'
 
 # PHOTOS
-SPY_15M_CHART_PATH = STORAGE_DIR / 'SPY_15-min_chart.png'
-SPY_2M_CHART_PATH = STORAGE_DIR / 'SPY_2-min_chart.png'
+SPY_2M_CHART_PATH = STORAGE_DIR / 'SPY_2M_chart.png'
+SPY_5M_CHART_PATH = STORAGE_DIR / 'SPY_5M_chart.png'
+SPY_15M_CHART_PATH = STORAGE_DIR / 'SPY_15M_chart.png'
+SPY_15M_ZONE_CHART_PATH = STORAGE_DIR / 'SPY_15M-zone_chart.png'
+
 
 def pretty_path(path: Path, short: bool = True):
     from paths import BASE

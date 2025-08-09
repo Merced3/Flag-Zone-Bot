@@ -1,10 +1,11 @@
 # utils/json_utils.py, Load/save/validate JSON, config helpers
+from pathlib import Path
 import json
-from shared_state import indent, print_log
+from shared_state import indent, print_log, safe_write_json
 from utils.file_utils import get_current_candle_index
 import pandas as pd
 import os
-from paths import pretty_path, CONFIG_PATH, MESSAGE_IDS_PATH, ORDER_CANDLE_TYPE_PATH, PRIORITY_CANDLES_PATH, LINE_DATA_PATH
+from paths import pretty_path, get_ema_path, CONFIG_PATH, MARKERS_PATH, MESSAGE_IDS_PATH, ORDER_CANDLE_TYPE_PATH, PRIORITY_CANDLES_PATH, LINE_DATA_PATH
 
 def read_config(key=None):
     """Reads the configuration file and optionally returns a specific key."""
@@ -184,3 +185,42 @@ def save_message_ids(order_id, message_id):
     # Write updated data back to file
     with open(MESSAGE_IDS_PATH, 'w') as f:
         json.dump(existing_data, f, indent=4)
+
+def EOD_reset_all_jsons():
+    """
+    Reset all JSON state at EOD, including EMA files for configured timeframes.
+    Uses explicit schemas for each file and logs per-file success/failure.
+    """
+
+    # Timeframes that actually have EMAs in your UI; filter from config to avoid hardcoding
+    tf_with_emas = [tf for tf in read_config("TIMEFRAMES") if tf in {"2M", "5M", "15M"}]
+
+    resets: dict[Path, object] = {
+        MARKERS_PATH: [],                                         # list of marker dicts
+        MESSAGE_IDS_PATH: {},                                     # message id mapping
+        LINE_DATA_PATH: {"active_flags": [], "completed_flags": []},  # <-- keep schema
+        ORDER_CANDLE_TYPE_PATH: [],                               # list/queue
+        PRIORITY_CANDLES_PATH: [],                                # list
+        **{Path(get_ema_path(tf)): [] for tf in tf_with_emas},    # all EMA files → empty list
+    }
+
+    failures = []
+
+    # Do deterministic order (nice for logs)
+    for path in sorted(resets.keys(), key=lambda x: str(x)):
+        default_value = resets[path]
+        try:
+            ok = safe_write_json(path, default_value, indent_lvl=1)
+            if ok:
+                print_log(f" [EOD] Reset: {path} → {type(default_value).__name__} ({len(default_value) if hasattr(default_value,'__len__') else 'n/a'})")
+            else:
+                failures.append((path, "`safe_write_json()` returned False"))
+        except Exception as e:
+            failures.append((path, str(e)))
+
+    if failures:
+        print_log(" [EOD] ⚠️ Some resets failed:")
+        for path, err in failures:
+            print_log(f"   - {path}: {err}")
+    else:
+        print_log(" [EOD] ✅ All JSON state reset successfully.")

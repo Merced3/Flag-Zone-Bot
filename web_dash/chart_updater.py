@@ -3,6 +3,10 @@ from web_dash.charts.live_chart import generate_live_chart
 from web_dash.charts.zones_chart import generate_zones_chart
 import httpx
 
+"""
+This is loaded by main.py - so restart of `main.py` would be necessary.
+"""
+
 def update_chart(timeframe="2M", chart_type="live"):
     """
     Saves a snapshot of a chart based on timeframe and chart type.
@@ -13,8 +17,11 @@ def update_chart(timeframe="2M", chart_type="live"):
     """
     # After saving, notify WebSocket server
     try:
-        # Hit the /trigger endpoint (we’ll make this next)
-        httpx.post(f"http://localhost:8000/trigger-chart-update", json={"timeframe": timeframe})
+        if chart_type == "zones":
+            payload = {"timeframes": ["zones"]}
+        else:
+            payload = {"timeframes": [timeframe]}
+        httpx.post(f"http://localhost:8000/trigger-chart-update", json=payload)
     except Exception as e:
         print(f"[update_chart] Failed to notify WebSocket clients: {e}")
 
@@ -23,7 +30,7 @@ def update_chart(timeframe="2M", chart_type="live"):
         output_path = f"storage/SPY_{timeframe}_chart.png"
     elif chart_type == "zones":
         fig = generate_zones_chart().figure
-        output_path = f"storage/SPY_15-min_chart.png"
+        output_path = f"storage/SPY_{timeframe}-zone_chart.png"
     else:
         raise ValueError(f"[update_chart] Invalid chart_type: {chart_type}")
 

@@ -21,7 +21,7 @@ from web_dash.chart_updater import update_chart
 import cred
 import json
 import pytz
-from paths import TERMINAL_LOG, CANDLE_LOGS
+from paths import TERMINAL_LOG, CANDLE_LOGS, SPY_15M_ZONE_CHART_PATH, SPY_2M_CHART_PATH, SPY_5M_CHART_PATH, SPY_15M_CHART_PATH, get_ema_path
 import subprocess
 
 async def bot_start():
@@ -266,7 +266,7 @@ async def main_loop():
                 start_of_day_account_balance = await get_account_balance(read_config('REAL_MONEY_ACTIVATED')) if read_config('REAL_MONEY_ACTIVATED') else read_config('START_OF_DAY_BALANCE')
                 f_s_account_balance = "{:,.2f}".format(start_of_day_account_balance)
                 await print_discord(f"Market is Open! Account BP: ${f_s_account_balance}")
-                #await send_file_discord(SPY_15M_CHART_PATH)
+                await send_file_discord(SPY_15M_ZONE_CHART_PATH)
                 await print_discord(setup_economic_news_message())
 
             did_run_intraday = True
@@ -311,11 +311,23 @@ async def process_end_of_day():
     output_message = await calculate_day_performance(message_ids_dict, start_of_day_account_balance, end_of_day_account_balance)
     await print_discord(output_message)
 
-    # 3. Send relevant files/logs to Discord
-#   await send_file_discord(SPY_2M_CHART_PATH)
-    await send_file_discord(CANDLE_LOGS.get("2M")) #Send file
-#   await send_file_discord(MARKERS_PATH)
-    #await send_file_discord(EMAS_PATH)
+    # 3. Send relevant images + files to Discord
+    today_chart_info = {
+        "2M": SPY_2M_CHART_PATH,
+        "5M": SPY_5M_CHART_PATH,
+        "15M": SPY_15M_CHART_PATH
+    }
+    for tf, chart_path in today_chart_info.items():
+        files = [chart_path, CANDLE_LOGS.get(tf), get_ema_path(tf)]
+        for f in files:
+            if not f:
+                continue
+            try:
+                await send_file_discord(f)
+            except Exception as e:
+                print_log(f"[WARN] Failed to send {tf} file {f}: {e}")
+
+    #await send_file_discord(MARKERS_PATH)
     await send_file_discord(TERMINAL_LOG)
     process_end_of_day_15m_candles()
 

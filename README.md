@@ -4,13 +4,25 @@
 
 ## Overview
 
-**Flag Zone Bot** is my personal algorithmic trading project, built and tested for the SPY ETF for over two years.
+**Flag Zone Bot** is my personal algorithmic trading system for SPY that detects dynamic supply/demand zones and adaptive bull/bear flags across multiple timeframes, executes option orders automatically, and ships real‑time visuals via a Plotly Dash web app. Not financial advice; for educational/personal use only.
+
+## What this bot does
+
+- **Streams live trades**, builds candles (2M/5M/15M …), and maintains the latest price in shared state.
+- **Calculates EMAs** per timeframe and overlays them on live charts.
+- **Finds zones & levels** from 15‑minute history and renders them as bands/lines.
+- **Detects adaptive flags** using slopes (not fixed lines). (See project overview.)
+- **Executes orders and logs to Discord** (order modules not covered here in depth). Overview in README.
+- **Publishes a web dashboard** with:
+  - Zones Chart (15M history)
+  - Live 15M, 5M, 2M charts (candles + EMAs)
+  - Real‑time updates pushed via a FastAPI WebSocket broadcaster.
 
 This system analyzes the market using:
 
 - Dynamic supply & demand **zones**
 - Adaptive **bull & bear flags** detection via slope algebra, not static lines
-- Multiple **timeframes** (15-minute and 2-minute) for a multi-perspective market view
+- Multiple **timeframes** for a multi-perspective market view
 - Real-time **option order execution** with automatic scaling in/out
 - **Discord notifications** for each trading step
 
@@ -18,11 +30,19 @@ This system analyzes the market using:
 
 ---
 
-### Most Recent **2 Minute Chart:**
+### Most Recent Live **2 Minute Chart:**
 
-![2 Minute Chart](storage/SPY_2-min_chart.png)
+![2 Minute Chart](storage/SPY_2m_chart.png)
 
-### Most Recent **15 Minute Chart:**
+### Most Recent Live **5 Minute Chart:**
+
+![2 Minute Chart](storage/SPY_5M_chart.png)
+
+### Most Recent Live **15 Minute Chart:**
+
+![2 Minute Chart](storage/SPY_15M_chart.png)
+
+### Most Recent Zones/Levels **15 Minute Chart:**
 
 ![2 Minute Chart](storage/SPY_15-min_chart.png)
 
@@ -52,9 +72,6 @@ Charts for 15-min and 2-min candles update live, showing the bot’s “vision�
 
 ## CI & Tests
 
-- 🧪 **Integration Tests:**  
-  I maintain a `/tests` directory with integration tests for critical features like the chart’s 24/7 stability.
-
 - ✅ **Automated Checks:**  
   GitHub Actions runs continuous integration (`.github/workflows/python-ci.yml`).
 
@@ -66,6 +83,37 @@ Charts for 15-min and 2-min candles update live, showing the bot’s “vision�
 - Build a better UI for live status.
 - Improve “how it sees” vs. “how it acts” logic split.
 - Test more strategies beyond SPY.
+
+---
+
+## Big-picture architecture
+
+```bash
+             ┌────────────────────────────────────────────────────────┐
+             │                        Backend                         │
+             │                                                        │
+Market Data  │  ws_auto_connect (Tradier/Polygon)  →  process_data    │
+ (Trades) ───┼── streams → build candles → write logs (per timeframe) │
+             │                ↑ latest_price in shared_state          │
+             │                └→ update_ema → update_chart (PNG)      │
+             └────────────────────────────────────────────────────────┘
+                                │               ▲
+                                │ HTTP trigger  │ WebSocket push
+                                ▼               │
+             ┌────────────────────────────────────────────────────────┐
+             │                        Services                        │
+             │  FastAPI (ws_server):                                  │
+             │   - POST /trigger-chart-update → broadcast "chart:TF"  │
+             │   - WS /ws/chart-updates → clients subscribe           │
+             └────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+             ┌────────────────────────────────────────────────────────┐
+             │                         UI (Dash)                      │
+             │  Tabs: Zones (15M history), Live 15M/5M/2M charts      │
+             │  On WS message "chart:TF" → regenerates that figure    │
+             └────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -132,7 +180,7 @@ Flag-Zone-Bot/
 │   ├── log_utils.py
 │   ├── order_utils.py
 │   └── time_utils.py
-├── venv/ # Make this
+├── venv/ # You need to make this
 ├── web_dash/
 │   ├── __init__.py
 │   ├── dash_app.py

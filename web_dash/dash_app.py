@@ -21,17 +21,23 @@ app.layout = html.Div([
 
         dcc.Tab(label="Live 15M Chart", children=[
             WebSocket(id="ws-15m", url="ws://127.0.0.1:8000/ws/chart-updates"),
-            dcc.Graph(id="live-15m-chart", style={"height": "700px"})
+            dcc.Graph(id="live-15m-chart", 
+                      figure=generate_live_chart("15M").figure,
+                      style={"height": "700px"})
         ]),
 
         dcc.Tab(label="Live 5M Chart", children=[
             WebSocket(id="ws-5m", url="ws://127.0.0.1:8000/ws/chart-updates"),
-            dcc.Graph(id="live-5m-chart", style={"height": "700px"})
+            dcc.Graph(id="live-5m-chart", 
+                      figure=generate_live_chart("5M").figure,
+                      style={"height": "700px"})
         ]),
 
         dcc.Tab(label="Live 2M Chart", children=[
             WebSocket(id="ws-2m", url="ws://127.0.0.1:8000/ws/chart-updates"),
-            dcc.Graph(id="live-2m-chart", style={"height": "700px"})
+            dcc.Graph(id="live-2m-chart", 
+                      figure=generate_live_chart("2M").figure,
+                      style={"height": "700px"})
         ]),
     ])
 ])

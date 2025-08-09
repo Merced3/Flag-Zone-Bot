@@ -1,8 +1,8 @@
 # utils/log_utils.py
 import json
 from shared_state import print_log
-from paths import pretty_path, LOGS_DIR, STORAGE_DIR, TERMINAL_LOG, ORDER_LOG_PATH, SPY_15_MINUTE_CANDLES_PATH, MARKERS_PATH, MESSAGE_IDS_PATH, LINE_DATA_PATH, ORDER_CANDLE_TYPE_PATH, PRIORITY_CANDLES_PATH
-from utils.json_utils import reset_json, read_config
+from paths import pretty_path, LOGS_DIR, STORAGE_DIR, TERMINAL_LOG, ORDER_LOG_PATH, SPY_15_MINUTE_CANDLES_PATH
+from utils.json_utils import read_config, EOD_reset_all_jsons
 import pandas as pd
 import os
 
@@ -25,20 +25,6 @@ def clear_log(symbol=None, timeframe=None, terminal_log=None):
         filepath = LOGS_DIR / terminal_log
     if filepath and filepath.exists():
         filepath.unlink()
-
-"""def read_log_file(log_file_path):
-    try:
-        with open(log_file_path, 'r') as file:
-            return file.read()
-    except FileNotFoundError:
-        print_log(f"File `{pretty_path(log_file_path)}` not found.")
-        return ""
-
-def write_log_data_as_string(data, symbol, timeframe):
-    filepath = LOGS_DIR / f"{symbol}_{timeframe}.log"
-    LOGS_DIR.mkdir(parents=True, exist_ok=True)
-    with filepath.open("a") as file:
-        file.write(data + "\n")"""
 
 def empty_log(filename):
     """
@@ -86,16 +72,8 @@ def clear_temp_logs_and_order_files():
         if file_path not in protected_files:
             files_to_delete.add(file_path)
 
-    # 2. Clean all relevant JSON state files in storage/
-    json_reset_instructions = {
-        MARKERS_PATH: [],
-        MESSAGE_IDS_PATH: {},
-        LINE_DATA_PATH: {},
-        ORDER_CANDLE_TYPE_PATH: [],
-        PRIORITY_CANDLES_PATH: []
-    }
-    for filename, default_value in json_reset_instructions.items():
-        reset_json(filename, default_value)
+    # 2. Clean all relevant JSON state files
+    EOD_reset_all_jsons()
 
     # 3. Delete all files found in logs/
     for file_path in files_to_delete:
@@ -106,9 +84,9 @@ def clear_temp_logs_and_order_files():
             print_log(f"An error occurred while deleting `{pretty_path(file_path)}`: {e}")
 
     # 4. Still clear symbol and terminal logs
-    clear_symbol_log(read_config('SYMBOL'), "2M")
-    clear_symbol_log(read_config('SYMBOL'), "5M")
-    clear_symbol_log(read_config('SYMBOL'), "15M")
+    tfs = ["2M", "5M", "15M"]
+    for tf in tfs:
+        clear_symbol_log(read_config('SYMBOL'), tf)
     clear_terminal_log()
 
 def read_last_n_lines(file_path, n):
