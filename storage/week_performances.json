@@ -836,7 +836,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "",
+        "description": "Day 1, data collection was good, but the fast charting (frontend, `web_dash`) was not, that needs to be handled, Also live 15 min chart EMA is calculating after the first candle, that gap in logic needs to be fixed.",
         "important_message_ids": []
     }
 

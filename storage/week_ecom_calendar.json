@@ -1,22 +1,25 @@
 {
-    "week_timespan": "08-04-25 to 08-10-25",
+    "week_timespan": "08-11-25 to 08-17-25",
     "dates": {
-        "08-05-25": {
+        "08-12-25": {
             "07:30 AM": [
-                "Balance of Trade"
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
+            ]
+        },
+        "08-14-25": {
+            "07:30 AM": [
+                "PPI MoM"
+            ]
+        },
+        "08-15-25": {
+            "07:30 AM": [
+                "Retail Sales MoM"
             ],
             "09:00 AM": [
-                "ISM Services PMI"
-            ]
-        },
-        "08-07-25": {
-            "09:00 AM": [
-                "Ivey PMI s.a"
-            ]
-        },
-        "08-08-25": {
-            "07:30 AM": [
-                "Unemployment Rate"
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }
