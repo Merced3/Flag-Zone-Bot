@@ -28,8 +28,25 @@ def initialize_timeframe_state(timeframe):
 
         ema_state[timeframe] = {
             "candle_list": [],
+            "seen_ts": set(),           # <<< NEW: dedupe guard
             "has_calculated": False # TODO: `False` before market opens, `True` after first 15 mins of market opens
         }
+
+def _append_unique_premarket(state, candle):
+    """
+    Only buffer a candle once (by its timestamp string).
+    Prevents inflated counts when WS resends or code replays a candle.
+    """
+    ts = candle.get("timestamp")
+    # normalize to plain second level for safety
+    ts_key = str(ts)[:19] if ts is not None else None
+    if ts_key and ts_key not in state["seen_ts"]:
+        state["seen_ts"].add(ts_key)
+        state["candle_list"].append(candle)
+
+def _clear_buffer(state):
+    state["candle_list"].clear()
+    state["seen_ts"].clear()
 
 def get_market_open_plus_15():
     now = datetime.now(new_york_tz)
@@ -58,41 +75,43 @@ async def update_ema(candle: dict, timeframe: str):
     indent_pad = indent(indent_lvl)
 
     if current_time >= market_open_plus_15:
-        if not state["has_calculated"] and state["candle_list"]:
+        # --- POST 09:45 ET: ensure we are initialized ONCE, then switch to incremental ---
+        if not state["has_calculated"]:
+            # Cover both "normal" and "started-late" cases with the same bootstrap path.
             print_log(f"{indent_pad}[EMA CS] Finalizing EMAs after first 15 minutes for {timeframe}...")
             await get_candle_data_and_merge(
                 candle_interval, candle_timescale, "AFTERMARKET", "PREMARKET", indent_lvl+1, timeframe
             )
             reset_json(ema_path, [])
-            state["candle_list"].append(candle)
-            sorted_candles = sorted(state["candle_list"], key=lambda c: c["timestamp"])
-            for i, c in enumerate(sorted_candles):
-                await calculate_save_EMAs(c, i, timeframe)
+
+            # Rebuild EMA series deterministically from the buffered candles (if any)
+            if state["candle_list"]:
+                sorted_candles = sorted(state["candle_list"], key=lambda c: c["timestamp"])
+                for i, c in enumerate(sorted_candles):
+                    await calculate_save_EMAs(c, i, timeframe)
+
             state["has_calculated"] = True
+            _clear_buffer(state)  # <<< NEW: drop the pre-open cache so counts can't linger
             print_log(f"{indent_pad}[EMA CS] Final EMA list calculated for {timeframe}.")
-
-        elif not state["has_calculated"] and not state["candle_list"]:
-            print_log(f"{indent_pad}[EMA CS] Bot started late; force initializing {timeframe} EMAs...")
-            await get_candle_data_and_merge(
-                candle_interval, candle_timescale, "AFTERMARKET", "PREMARKET", indent_lvl+1, timeframe
-            )
-            reset_json(ema_path, [])
-            state["has_calculated"] = True
-        
-        elif state["has_calculated"]:
-            await calculate_save_EMAs(candle, get_current_candle_index(timeframe), timeframe)
-            print_log(f"{indent_pad}[EMA CS] Updated live EMA for {timeframe}.")
-
+        # From here on, strictly incremental
+        await calculate_save_EMAs(candle, get_current_candle_index(timeframe), timeframe)
+        print_log(f"{indent_pad}[EMA CS] Updated live EMA for {timeframe}.")
     else:
-        state["candle_list"].append(candle)
+        # --- PRE 09:45 ET: keep a clean, deduped buffer & live temp EMAs for the UI ---
+        _append_unique_premarket(state, candle)  # <<< NEW: dedupe
+        # Clean any old merge artifacts to prevent mixing runs
         for path in [AFTERMARKET_EMA_PATH, PREMARKET_EMA_PATH, MERGED_EMA_PATH]:
             if os.path.exists(path):
                 os.remove(path)
+
         await get_candle_data_and_merge(
             candle_interval, candle_timescale, "AFTERMARKET", "PREMARKET", indent_lvl+1, timeframe
         )
         reset_json(ema_path, [])
+
         sorted_candles = sorted(state["candle_list"], key=lambda c: c["timestamp"])
         for i, c in enumerate(sorted_candles):
             await calculate_save_EMAs(c, i, timeframe)
+
+        # log exact size of the *deduped* buffer so it matches your mental model
         print_log(f"{indent_pad}[EMA CS] Temp EMA calculated for {timeframe} ({len(state['candle_list'])} candles).")
