@@ -19,7 +19,7 @@ async def chart_updates(websocket: WebSocket):
 
     # 👇 Send one “kick” per TF so Dash callbacks render right away
     try:
-        for tf in ["2M", "5M", "15M"]:
+        for tf in ["2M", "5M", "15M", "zones"]:
             await websocket.send_text(f"chart:{tf}")
 
         while True:

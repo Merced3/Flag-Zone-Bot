@@ -4,70 +4,77 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import dash
-from dash import dcc, html
-from dash.dependencies import Input, Output
+from dash import dcc, html, callback, ctx
+from dash.dependencies import Input, Output, MATCH, State
 from dash_extensions import WebSocket
+import dash.exceptions
+
 from charts.live_chart import generate_live_chart
 from charts.zones_chart import generate_zones_chart
-import dash.exceptions
+
+print("[dash_app] using file:", __file__)
 
 app = dash.Dash(__name__, title="SPY Bot Multi-Timeframe Viewer")
 
+def tab_block(tf_label, tf_key):
+    """
+    Builds a tab with its own WebSocket + Graph using pattern-matching IDs.
+    tf_key can be "2M", "5M", "15M", or "zones".
+    """
+    ws_id    = {"type": "ws",    "tf": tf_key}
+    graph_id = {"type": "graph", "tf": tf_key}
+
+    # Initial figure (seed) — light & fast:
+    initial_fig = generate_zones_chart().figure if tf_key == "zones" else generate_live_chart(tf_key).figure
+
+    return dcc.Tab(
+        label=tf_label, value=tf_key,
+        children=[
+            WebSocket(id=ws_id, url="ws://127.0.0.1:8000/ws/chart-updates"),
+            dcc.Loading(children=[
+                dcc.Graph(id=graph_id, figure=initial_fig, style={"height": "700px"})
+            ], type="default")
+        ]
+    )
+
 app.layout = html.Div([
     html.H1("SPY Bot: Multi-Timeframe View", style={"textAlign": "center"}),
-
-    dcc.Tabs([
-        dcc.Tab(label="Zones Chart (15M History)", children=[generate_zones_chart()]),
-
-        dcc.Tab(label="Live 15M Chart", children=[
-            WebSocket(id="ws-15m", url="ws://127.0.0.1:8000/ws/chart-updates"),
-            dcc.Graph(id="live-15m-chart", 
-                      figure=generate_live_chart("15M").figure,
-                      style={"height": "700px"})
-        ]),
-
-        dcc.Tab(label="Live 5M Chart", children=[
-            WebSocket(id="ws-5m", url="ws://127.0.0.1:8000/ws/chart-updates"),
-            dcc.Graph(id="live-5m-chart", 
-                      figure=generate_live_chart("5M").figure,
-                      style={"height": "700px"})
-        ]),
-
-        dcc.Tab(label="Live 2M Chart", children=[
-            WebSocket(id="ws-2m", url="ws://127.0.0.1:8000/ws/chart-updates"),
-            dcc.Graph(id="live-2m-chart", 
-                      figure=generate_live_chart("2M").figure,
-                      style={"height": "700px"})
-        ]),
+    dcc.Tabs(
+        id="mtf-tabs",
+        value="zones",
+        children=[
+        tab_block("Zones Chart (15M History)", "zones"),
+        tab_block("Live 15M Chart", "15M"),
+        tab_block("Live 5M Chart",  "5M"),
+        tab_block("Live 2M Chart",  "2M"),
     ])
 ])
 
-@app.callback(Output("live-2m-chart", "figure"), Input("ws-2m", "message"))
-def refresh_2m(msg):
-    if not msg:
-        raise dash.exceptions.PreventUpdate
-    payload = msg.get("data") if isinstance(msg, dict) else msg
-    if payload != "chart:2M":
-        raise dash.exceptions.PreventUpdate
-    return generate_live_chart("2M").figure
+@callback(
+    Output({"type": "graph", "tf": MATCH}, "figure"),
+    Input({"type": "ws", "tf": MATCH}, "message"),
+    Input("mtf-tabs", "value"),                                     # <— also trigger on tab switch
+    State({"type": "graph", "tf": MATCH}, "id"),                     # <— know which TF this instance owns
+)
+def refresh_any(msg, selected_tab, graph_id):
+    tf_key = graph_id["tf"]
 
-@app.callback(Output("live-5m-chart", "figure"), Input("ws-5m", "message"))
-def refresh_5m(msg):
-    if not msg:
-        raise dash.exceptions.PreventUpdate
-    payload = msg.get("data") if isinstance(msg, dict) else msg
-    if payload != "chart:5M":
-        raise dash.exceptions.PreventUpdate
-    return generate_live_chart("5M").figure
+    # A) WS-driven refresh (payload must match this TF)
+    if msg:
+        payload = msg.get("data") if isinstance(msg, dict) else msg
+        if isinstance(payload, str) and payload == f"chart:{tf_key}":
+            return (generate_zones_chart().figure
+                    if tf_key == "zones"
+                    else generate_live_chart(tf_key).figure)
 
-@app.callback(Output("live-15m-chart", "figure"), Input("ws-15m", "message"))
-def refresh_15m(msg):
-    if not msg:
-        raise dash.exceptions.PreventUpdate
-    payload = msg.get("data") if isinstance(msg, dict) else msg
-    if payload != "chart:15M":
-        raise dash.exceptions.PreventUpdate
-    return generate_live_chart("15M").figure
+    # B) Tab-activation refresh (user clicked into this TF)
+    if selected_tab == tf_key:
+        return (generate_zones_chart().figure
+                if tf_key == "zones"
+                else generate_live_chart(tf_key).figure)
+
+    # Otherwise, do nothing for this graph instance
+    raise dash.exceptions.PreventUpdate
 
 if __name__ == "__main__":
     app.run(debug=False, port=8050)

@@ -77,7 +77,8 @@ def generate_zones_chart():
             tickfont=dict(size=8),
             showgrid=False,
         ),
-        xaxis_rangeslider_visible=False
+        xaxis_rangeslider_visible=False,
+        uirevision="zones"
     )
 
     # Calculate min/max from visible candle prices only (excluding zones)
