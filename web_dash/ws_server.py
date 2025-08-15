@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import JSONResponse
 from typing import List
 import asyncio
@@ -6,56 +6,65 @@ import asyncio
 app = FastAPI()
 
 # Store active WebSocket connections
-clients: List[WebSocket] = []
-
-"""
-This is loaded by `main.py` - so restart of `main.py` would be necessary.
-"""
+# clients: List[WebSocket] = []
+clients = set()
+#clients: set[WebSocket] = set() # top-level
 
 @app.websocket("/ws/chart-updates")
 async def chart_updates(websocket: WebSocket):
     await websocket.accept()
-    clients.append(websocket)
-
-    # 👇 Send one “kick” per TF so Dash callbacks render right away
-    try:
+    clients.add(websocket)
+    try: # Send one “kick” per TF so Dash callbacks render right away
         for tf in ["2M", "5M", "15M", "zones"]:
             await websocket.send_text(f"chart:{tf}")
-
         while True:
             await asyncio.sleep(60*60)  # keepalive
     except WebSocketDisconnect:
-        clients.remove(websocket)
+        clients.discard(websocket)
     except Exception as e:
         print(f"WebSocket error: {e}")
-        if websocket in clients:
-            clients.remove(websocket)
+        clients.discard(websocket)
 
 @app.post("/trigger-chart-update")
 async def trigger_chart_update(data: dict):
-    # Allow a single timeframe string or a list
-    timeframes = data.get("timeframes") or data.get("timeframe") or ["2M"]
-
-    if isinstance(timeframes, str):
-        timeframes = [timeframes]  # normalize to list
-
-    print(f"    [/trigger-chart-update] charts:{timeframes} → {len(clients)} clients")
-    dead_clients = []
-
-    for client in clients:
-        for tf in timeframes:
+    tfs = data.get("timeframes") or data.get("timeframe") or ["2M"]
+    if isinstance(tfs, str):
+        tfs = [tfs]
+    dead = set()
+    for ws in list(clients): # snapshot
+        for tf in tfs:
             try:
-                await client.send_text(f"chart:{tf}")
+                await ws.send_text(f"chart:{tf}")
             except Exception:
-                dead_clients.append(client)
-                break  # stop sending to this client if it's dead
+                dead.add(ws)
+                break
+    for ws in dead:
+        clients.discard(ws)
+    return JSONResponse({"status":"broadcasted","timeframes":tfs,"clients":len(clients)})
 
-    for client in dead_clients:
-        if client in clients:
-            clients.remove(client)
+@app.post("/refresh-chart")
+async def refresh_chart(req: Request):
+    data = await req.json()
+    timeframe  = data.get("timeframe", "2M")
+    chart_type = data.get("chart_type", "live")  # "live" or "zones"
 
-    return JSONResponse({
-        "status": "broadcasted",
-        "timeframes": timeframes,
-        "clients": len(clients)
-    })
+    # 1) Broadcast first so UI updates immediately
+    tfs = ["zones"] if chart_type == "zones" else [timeframe]
+    dead = set()
+    for ws in list(clients):           # snapshot
+        for tf in tfs:
+            try:
+                await ws.send_text(f"chart:{tf}")
+            except Exception:
+                dead.add(ws)
+                break
+    for ws in dead:
+        clients.discard(ws)
+
+    # 2) Save PNG in the background (non-blocking)
+    async def _save():
+        from web_dash.chart_updater import update_chart
+        await asyncio.to_thread(update_chart, timeframe=timeframe, chart_type=chart_type, notify=False)
+    asyncio.create_task(_save())
+
+    return JSONResponse({"status": "saved-and-broadcast", "timeframes": tfs, "clients": len(clients)})

@@ -12,6 +12,9 @@ import dash.exceptions
 from charts.live_chart import generate_live_chart
 from charts.zones_chart import generate_zones_chart
 
+import logging
+logging.getLogger("werkzeug").setLevel(logging.WARNING)
+
 print("[dash_app] using file:", __file__)
 
 app = dash.Dash(__name__, title="SPY Bot Multi-Timeframe Viewer")

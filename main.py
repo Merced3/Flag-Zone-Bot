@@ -17,7 +17,7 @@ import data_acquisition
 import asyncio
 from datetime import datetime, timedelta
 from objects import process_end_of_day_15m_candles
-from web_dash.chart_updater import update_chart
+import httpx
 import cred
 import json
 import pytz
@@ -64,6 +64,17 @@ current_candle = {
 current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
 start_times = {tf: datetime.now() for tf in read_config('TIMEFRAMES')}
 candle_counts = {tf: 0 for tf in read_config('TIMEFRAMES')}
+
+def refresh_chart(timeframe, chart_type="live"):
+    try:
+        # give Kaleido room on cold start
+        httpx.post("http://127.0.0.1:8000/refresh-chart",
+                   json={"timeframe": timeframe, "chart_type": chart_type},
+                   timeout=httpx.Timeout(connect=2.0, read=15.0, write=5.0, pool=5.0))
+    except httpx.ReadTimeout:
+        print_log(f"    [refresh_chart] timed out (render likely completed anyway)")
+    except Exception as e:
+        print_log(f"[refresh_chart] failed: {e}")
 
 async def process_data(queue):
     print_log("Starting `process_data()`...")
@@ -149,7 +160,7 @@ async def process_data(queue):
                         await update_ema(current_candle, timeframe)
 
                         # 🔁 NOW update Chart
-                        update_chart(timeframe, chart_type="live")
+                        refresh_chart(timeframe, chart_type="live")
                         
                         # Reset the current candle and start time
                         current_candles[timeframe] = {
@@ -338,7 +349,7 @@ async def process_end_of_day():
     clear_all_states()
     clear_temp_logs_and_order_files()
     reset_profit_loss_orders_list()
-    update_chart("15M", chart_type="zones")
+    refresh_chart("15M", chart_type="zones")
 
 async def shutdown(loop):
     """Shutdown tasks and the Discord bot."""

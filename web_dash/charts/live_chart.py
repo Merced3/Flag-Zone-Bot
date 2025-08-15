@@ -1,5 +1,6 @@
 # web_dash/charts/live_chart.py
 import pandas as pd
+import pytz
 import plotly.graph_objs as go
 from dash import dcc
 from utils.ema_utils import load_ema_json
@@ -8,14 +9,23 @@ from utils.json_utils import read_config
 from shared_state import safe_read_json
 from collections import deque
 import io
-import os
+import numpy as np
+import warnings
+
+# silence just this pandas deprecation (safe until we remove .to_pydatetime)
+warnings.filterwarnings(
+    "ignore",
+    message="The behavior of DatetimeProperties.to_pydatetime is deprecated",
+    category=FutureWarning,
+)
+
+NY = "America/New_York"
 
 def to_local_naive(ts_series):
     # Convert whatever is in your logs (ISO strings / epoch) → tz-aware UTC
     # → convert to America/New_York → strip tz (tz-naive datetimes for Plotly)
-    ts = pd.to_datetime(ts_series, errors="coerce", utc=True)
-    ts = ts.dt.tz_convert("America/New_York").dt.tz_localize(None)
-    return ts
+    s = pd.to_datetime(ts_series, utc=True, errors="coerce")
+    return s.dt.tz_convert(NY).dt.tz_localize(None)
 
 def _read_last_jsonl(path, n=600):
     """
@@ -37,6 +47,7 @@ def generate_live_chart(timeframe):
         N_MAP = {"2M": 600, "5M": 600, "15M": 600}  # tune as you like
         df_candles = _read_last_jsonl(candle_path, N_MAP.get(timeframe, 600))
         df_candles['timestamp'] = to_local_naive(df_candles['timestamp'])
+        df_candles['timestamp'] = pd.to_datetime(df_candles['timestamp'], errors='coerce')  # <- ensure datetime64[ns]
         df_candles = df_candles.sort_values('timestamp').reset_index(drop=True)
 
         if df_candles.empty or 'timestamp' not in df_candles.columns:
@@ -51,8 +62,6 @@ def generate_live_chart(timeframe):
         )
         return dcc.Graph(figure=empty_fig, style={"height": "700px"})
     
-    # print(f"[generate_live_chart] Loaded {len(df_candles)} candles for {timeframe} timeframe.")
-
     # This is for later, just saving this for whenever we need it
     #flag_data = safe_read_json(LINE_DATA_PATH)
     #marker_data = safe_read_json(MARKERS_PATH)
@@ -75,6 +84,7 @@ def generate_live_chart(timeframe):
         # 2) map EMA x -> candle timestamp
         idx_to_ts = dict(zip(df_candles['global_idx'], df_candles['timestamp']))
         df_emas['timestamp'] = df_emas['x'].map(idx_to_ts)
+        df_emas['timestamp'] = pd.to_datetime(df_emas['timestamp'], errors='coerce')  # <- force datetime64[ns]
 
         # 3) keep only rows that actually land in the visible candle window
         df_emas.dropna(subset=['timestamp'], inplace=True)
@@ -82,9 +92,13 @@ def generate_live_chart(timeframe):
 
     fig = go.Figure()
 
-    # Candlesticks
+    # --- Candlesticks ---
+    candlex = df_candles['timestamp']
+    if hasattr(candlex, "dt"):
+        # Python datetime array (export-safe) without the FutureWarning
+        candlex = np.array(candlex.dt.to_pydatetime(), dtype=object)
     fig.add_trace(go.Candlestick(
-        x=df_candles['timestamp'],
+        x=candlex,
         open=df_candles['open'],
         high=df_candles['high'],
         low=df_candles['low'],
@@ -92,14 +106,16 @@ def generate_live_chart(timeframe):
         name='Price'
     ))
 
-    # Overlay EMAs
-    ema_settings = read_config("EMAS")
+    # --- EMAs ---
     if df_emas is not None:
-        for window, color in ema_settings:
+        emax = df_emas['timestamp']
+        if hasattr(emax, "dt"):
+            emax = np.array(emax.dt.to_pydatetime(), dtype=object)
+        for window, color in read_config("EMAS"):
             col = str(window)
             if col in df_emas.columns:
                 fig.add_trace(go.Scatter(
-                    x=df_emas['timestamp'],
+                    x=emax,
                     y=df_emas[col],
                     mode='lines',
                     name=f'EMA {window}',
