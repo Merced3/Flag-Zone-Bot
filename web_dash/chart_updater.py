@@ -20,18 +20,25 @@ def update_chart(timeframe="2M", chart_type="live", notify=False):
     if chart_type == "zones":
         fig = _as_figure(generate_zones_chart())
         out = Path(f"storage/SPY_{timeframe}-zone_chart.png")  # keep your naming
+
+        # Guardrails for zones (categorical x)
+        fig.update_layout(
+            template=None,
+            uirevision=None,
+            xaxis=dict(type="category"),   # <-- was "date" (wrong for zones)
+        )
     elif chart_type == "live":
         fig = _as_figure(generate_live_chart(timeframe))
         out = Path(f"storage/SPY_{timeframe}_chart.png")
+
+        # Guardrails for live (datetime x)
+        fig.update_layout(
+            template=None,
+            uirevision=None,
+            xaxis=dict(type="date"),
+        )
     else:
         raise ValueError(f"[update_chart] Invalid chart_type: {chart_type}")
-
-    # Guardrails that avoid blank exports on some Windows/Kaleido combos
-    fig.update_layout(
-        template=None,      # no template side-effects
-        uirevision=None,    # ignore any client-side UI state
-        xaxis=dict(type="date"),  # make sure the x-axis is a date axis
-    )
 
     out.parent.mkdir(parents=True, exist_ok=True)
     pio.write_image(fig, str(out), format="png", width=1400, height=700, engine="kaleido")

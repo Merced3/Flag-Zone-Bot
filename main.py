@@ -210,6 +210,10 @@ async def main():
                 if current_time >= target_time and last_run_date != current_date:
                     print_log(f"[INFO] Running initial_setup and main_loop at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
                     
+                    # At 9:20 am setup everything we need before market open, 10 mins should be enough
+                    await ensure_economic_calendar_data()
+                    refresh_chart("15M", chart_type="zones")
+
                     # Run the initial setup
                     await initial_setup()
                     
@@ -259,7 +263,6 @@ async def main_loop():
 
     # ✅ INIT after waiting
     initialize_csv_order_log()
-    await ensure_economic_calendar_data()
 
     # Track whether we actually ran trading work (so we only run EOD once)
     did_run_intraday = False
@@ -349,7 +352,7 @@ async def process_end_of_day():
     clear_all_states()
     clear_temp_logs_and_order_files()
     reset_profit_loss_orders_list()
-    refresh_chart("15M", chart_type="zones")
+
 
 async def shutdown(loop):
     """Shutdown tasks and the Discord bot."""
