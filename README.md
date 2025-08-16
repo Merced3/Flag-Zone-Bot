@@ -36,15 +36,15 @@ This system analyzes the market using:
 
 ### Most Recent Live **5 Minute Chart:**
 
-![2 Minute Chart](storage/SPY_5M_chart.png)
+![5 Minute Chart](storage/SPY_5M_chart.png)
 
 ### Most Recent Live **15 Minute Chart:**
 
-![2 Minute Chart](storage/SPY_15M_chart.png)
+![15 Minute Chart](storage/SPY_15M_chart.png)
 
 ### Most Recent Zones/Levels **15 Minute Chart:**
 
-![2 Minute Chart](storage/SPY_15-min_chart.png)
+![15 Minute Zones Chart](storage/SPY_15M-zone_chart.png)
 
 ---
 
