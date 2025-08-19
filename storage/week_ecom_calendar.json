@@ -1,25 +1,26 @@
 {
-    "week_timespan": "08-11-25 to 08-17-25",
+    "week_timespan": "08-18-25 to 08-24-25",
     "dates": {
-        "08-12-25": {
+        "08-19-25": {
             "07:30 AM": [
-                "Core Inflation Rate MoM",
-                "Core Inflation Rate YoY",
-                "Inflation Rate MoM",
-                "Inflation Rate YoY"
+                "Inflation Rate YoY",
+                "Building Permits Prel",
+                "Housing Starts"
             ]
         },
-        "08-14-25": {
-            "07:30 AM": [
-                "PPI MoM"
+        "08-20-25": {
+            "01:00 PM": [
+                "FOMC Minutes"
             ]
         },
-        "08-15-25": {
-            "07:30 AM": [
-                "Retail Sales MoM"
-            ],
+        "08-21-25": {
             "09:00 AM": [
-                "Michigan Consumer Sentiment Prel"
+                "Existing Home Sales"
+            ]
+        },
+        "08-22-25": {
+            "09:00 AM": [
+                "Fed Chair Powell Speech"
             ]
         }
     }
