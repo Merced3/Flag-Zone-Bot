@@ -848,7 +848,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, data collection was great, I see no issues, the only thing I want to see if this is consitent, all timeframes were great visual-performance wise, but it does need to be improved also with the data collection (candle creation) needs to be more accurate. Day 2, same thing as yestarday, good everything, no problems.",
+        "description": "Day 1, data collection was great, I see no issues, the only thing I want to see if this is consitent, all timeframes were great visual-performance wise, but it does need to be improved also with the data collection (candle creation) needs to be more accurate. Day 2, same thing as yestarday, good everything, no problems. Day 3, we had ema issues again, im going to change the in memory setup to a JSON file setup so i know whats going on in the background, but other than that it was a good run today.",
         "important_message_ids": []
     }
 
