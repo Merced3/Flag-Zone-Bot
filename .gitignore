@@ -5,7 +5,8 @@ old_code_for_feature_use/
 reference/
 __pycache__/
 cred.py
-#web_dash/
+storage/emas/
+storage/markers/
 storage/objects/
 storage/line_data.json
 storage/markers.json
@@ -15,4 +16,3 @@ storage/order_log.csv
 storage/priority_candles.json
 storage/SPY_15_minute_candles.csv
 storage/week_ecom_calender.json
-storage/emas/

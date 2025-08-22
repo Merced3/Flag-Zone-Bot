@@ -23,6 +23,7 @@ CSV_CANDLES_PATH = STORAGE_DIR / 'SPY_15_minute_candles.csv'
 
 # EMA directory + dynamic EMA path retrieval
 EMAS_DIR = STORAGE_DIR / 'emas'
+EMA_STATE_PATH = EMAS_DIR / "ema_state.json"
 def get_ema_path(timeframe: str):
     return EMAS_DIR / f"{timeframe}.json"
 

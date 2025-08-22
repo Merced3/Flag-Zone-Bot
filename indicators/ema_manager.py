@@ -1,8 +1,8 @@
 # indicators/ema_manager.py
-from shared_state import indent, print_log
+from shared_state import indent, print_log, safe_read_json, safe_write_json
 from data_acquisition import get_candle_data_and_merge
 from utils.json_utils import reset_json, initialize_json
-from paths import get_ema_path, AFTERMARKET_EMA_PATH, PREMARKET_EMA_PATH, MERGED_EMA_PATH
+from paths import get_ema_path, AFTERMARKET_EMA_PATH, PREMARKET_EMA_PATH, MERGED_EMA_PATH, EMA_STATE_PATH
 from utils.file_utils import get_current_candle_index
 from utils.ema_utils import calculate_save_EMAs, load_ema_json # the function `load_ema_json()` is called in the `initialize_timeframe_state()` function but its commented out.
 from datetime import datetime, timedelta, time
@@ -14,23 +14,35 @@ MARKET_OPEN = time(9, 30)
 MARKET_CLOSE = time(16, 0)
 
 # Dynamic state tracking for each timeframe
-ema_state = {}
+ema_state = safe_read_json(EMA_STATE_PATH, default={}) # in-memory setup: {}
 
 def initialize_timeframe_state(timeframe):
     if timeframe not in ema_state:
-        #ema_path = get_ema_path(timeframe)
-        #already_has_ema = bool(load_ema_json(ema_path))  # True if prior EMAs exist
-
-        # We could use 'already_has_ema', but this has not been tested. I fear that it won't work
-        # because it might consider `[]` as contents existing plus if it adds one contents into
-        # the ema json file then the first candle that is inbetween the first 15 minutes would
-        # turn this to true making it not work as intented.
-
         ema_state[timeframe] = {
             "candle_list": [],
-            "seen_ts": set(),           # <<< NEW: dedupe guard
-            "has_calculated": False # TODO: `False` before market opens, `True` after first 15 mins of market opens
+            "seen_ts": [],
+            "has_calculated": False  # TODO: `False` before market opens, `True` after first 15 mins of market opens
         }
+    st = ema_state[timeframe]
+    # normalize seen_ts to a set in memory
+    st["seen_ts"] = set(st.get("seen_ts", [])) # <<< dedupe guard
+
+def _persist_state():
+    # convert sets → lists for JSON
+    to_disk = {}
+    for tf, st in ema_state.items():
+        copy = dict(st)
+        copy["seen_ts"] = list(copy.get("seen_ts", []))
+        to_disk[tf] = copy
+    safe_write_json(EMA_STATE_PATH, to_disk)
+
+def reset_ema_state(timeframe):
+    ema_state[timeframe] = {
+        "candle_list": [],
+        "seen_ts": [],
+        "has_calculated": False
+    }
+    _persist_state()
 
 def _append_unique_premarket(state, candle):
     """
@@ -48,6 +60,9 @@ def _clear_buffer(state):
     state["candle_list"].clear()
     state["seen_ts"].clear()
 
+def clear_ema_state_file():
+    safe_write_json(EMA_STATE_PATH, {})
+
 def get_market_open_plus_15():
     now = datetime.now(new_york_tz)
     today = now.date()
@@ -58,7 +73,7 @@ async def update_ema(candle: dict, timeframe: str):
     """
     Main interface to update EMA for a given candle and timeframe.
     """
-    initialize_timeframe_state(timeframe)
+    initialize_timeframe_state(timeframe)   # ensures seen_ts is a *set* in memory
     state = ema_state[timeframe]
 
     current_time = datetime.now(new_york_tz).time()
@@ -92,6 +107,7 @@ async def update_ema(candle: dict, timeframe: str):
 
             state["has_calculated"] = True
             _clear_buffer(state)  # <<< NEW: drop the pre-open cache so counts can't linger
+            _persist_state()                # <- persist flip + cleared buffer
             print_log(f"{indent_pad}[EMA CS] Final EMA list calculated for {timeframe}.")
         # From here on, strictly incremental
         await calculate_save_EMAs(candle, get_current_candle_index(timeframe), timeframe)
@@ -99,6 +115,7 @@ async def update_ema(candle: dict, timeframe: str):
     else:
         # --- PRE 09:45 ET: keep a clean, deduped buffer & live temp EMAs for the UI ---
         _append_unique_premarket(state, candle)  # <<< NEW: dedupe
+        _persist_state()                    # <- persist deduped pre-open buffer
         # Clean any old merge artifacts to prevent mixing runs
         for path in [AFTERMARKET_EMA_PATH, PREMARKET_EMA_PATH, MERGED_EMA_PATH]:
             if os.path.exists(path):

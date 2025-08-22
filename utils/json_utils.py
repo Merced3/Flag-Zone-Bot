@@ -212,7 +212,7 @@ def EOD_reset_all_jsons():
         try:
             ok = safe_write_json(path, default_value, indent_lvl=1)
             if ok:
-                print_log(f" [EOD] Reset: {path} → {type(default_value).__name__} ({len(default_value) if hasattr(default_value,'__len__') else 'n/a'})")
+                print_log(f" [EOD] Reset: {pretty_path(path)} → {type(default_value).__name__} ({len(default_value) if hasattr(default_value,'__len__') else 'n/a'})")
             else:
                 failures.append((path, "`safe_write_json()` returned False"))
         except Exception as e:
