@@ -2,133 +2,158 @@
 from shared_state import indent, print_log, safe_read_json, safe_write_json
 from data_acquisition import get_candle_data_and_merge
 from utils.json_utils import reset_json, initialize_json
-from paths import get_ema_path, AFTERMARKET_EMA_PATH, PREMARKET_EMA_PATH, MERGED_EMA_PATH, EMA_STATE_PATH
+from paths import (
+    get_ema_path,
+    AFTERMARKET_EMA_PATH,
+    PREMARKET_EMA_PATH,
+    MERGED_EMA_PATH,
+    EMA_STATE_PATH,
+)
 from utils.file_utils import get_current_candle_index
-from utils.ema_utils import calculate_save_EMAs, load_ema_json # the function `load_ema_json()` is called in the `initialize_timeframe_state()` function but its commented out.
+from utils.ema_utils import calculate_save_EMAs
 from datetime import datetime, timedelta, time
 import pytz
 import os
 
-new_york_tz = pytz.timezone('America/New_York')
+# -----------------------------
+# Configuration
+# -----------------------------
+USE_JSON_STATE = True  # True = JSON-backed state; False = in-memory ephemeral
+NY_TZ = pytz.timezone("America/New_York")
 MARKET_OPEN = time(9, 30)
-MARKET_CLOSE = time(16, 0)
 
-# Dynamic state tracking for each timeframe
-ema_state = safe_read_json(EMA_STATE_PATH, default={}) # in-memory setup: {}
+# -----------------------------
+# State
+# -----------------------------
+# JSON schema: { "<TF>": { "candle_list": [candle,...], "has_calculated": bool } }
+ema_state = safe_read_json(EMA_STATE_PATH, default={}) if USE_JSON_STATE else {}
 
-def initialize_timeframe_state(timeframe):
-    if timeframe not in ema_state:
-        ema_state[timeframe] = {
-            "candle_list": [],
-            "seen_ts": [],
-            "has_calculated": False  # TODO: `False` before market opens, `True` after first 15 mins of market opens
-        }
-    st = ema_state[timeframe]
-    # normalize seen_ts to a set in memory
-    st["seen_ts"] = set(st.get("seen_ts", [])) # <<< dedupe guard
+def _persist():
+    if USE_JSON_STATE:
+        safe_write_json(EMA_STATE_PATH, ema_state)
 
-def _persist_state():
-    # convert sets → lists for JSON
-    to_disk = {}
-    for tf, st in ema_state.items():
-        copy = dict(st)
-        copy["seen_ts"] = list(copy.get("seen_ts", []))
-        to_disk[tf] = copy
-    safe_write_json(EMA_STATE_PATH, to_disk)
+def _ensure_tf(tf: str):
+    if tf not in ema_state:
+        ema_state[tf] = {"candle_list": [], "has_calculated": False}
+        _persist()
 
-def reset_ema_state(timeframe):
-    ema_state[timeframe] = {
-        "candle_list": [],
-        "seen_ts": [],
-        "has_calculated": False
-    }
-    _persist_state()
-
-def _append_unique_premarket(state, candle):
+def _maybe_daily_reset(tf: str, now_time: time, open_plus_15: time):
     """
-    Only buffer a candle once (by its timestamp string).
-    Prevents inflated counts when WS resends or code replays a candle.
+    If a new session started and we haven't reset yet:
+    - Before 09:45 ET, 'has_calculated' must be False and 'candle_list' empty.
+    If yesterday left it True, clear it here automatically.
     """
-    ts = candle.get("timestamp")
-    # normalize to plain second level for safety
-    ts_key = str(ts)[:19] if ts is not None else None
-    if ts_key and ts_key not in state["seen_ts"]:
-        state["seen_ts"].add(ts_key)
-        state["candle_list"].append(candle)
+    st = ema_state[tf]
+    if now_time < open_plus_15 and st.get("has_calculated", False):
+        st["has_calculated"] = False
+        st["candle_list"].clear()
+        _persist()
 
-def _clear_buffer(state):
-    state["candle_list"].clear()
-    state["seen_ts"].clear()
+def _append_candle(tf: str, candle: dict):
+    """
+    Simple append with a tiny guard against exact duplicate of the last entry.
+    (No global dedupe; we keep it simple.)
+    """
+    cl = ema_state[tf]["candle_list"]
+    if cl and str(cl[-1].get("timestamp"))[:19] == str(candle.get("timestamp"))[:19]:
+        return  # same-timestamp repeat, ignore
+    cl.append(candle)
+    _persist()
 
-def clear_ema_state_file():
-    safe_write_json(EMA_STATE_PATH, {})
+def _remove_merge_artifacts():
+    for p in (AFTERMARKET_EMA_PATH, PREMARKET_EMA_PATH, MERGED_EMA_PATH):
+        if os.path.exists(p):
+            os.remove(p)
 
-def get_market_open_plus_15():
-    now = datetime.now(new_york_tz)
-    today = now.date()
-    market_open_time = datetime.combine(today, MARKET_OPEN)
-    return (market_open_time + timedelta(minutes=15)).time()
+def _get_open_plus_15() -> time:
+    today = datetime.now(NY_TZ).date()
+    mo = datetime.combine(today, MARKET_OPEN)
+    return (mo + timedelta(minutes=15)).time()
 
+# -----------------------------
+# Main
+# -----------------------------
 async def update_ema(candle: dict, timeframe: str):
     """
-    Main interface to update EMA for a given candle and timeframe.
+    Update EMA for a given candle/timeframe.
+
+    Behavior:
+    - Before 09:45 ET:
+        * ensure TF exists, force daily reset if needed
+        * buffer candles to ema_state[tf]["candle_list"]
+        * rebuild temp EMAs from that buffer (for UI)
+        * DO NOT mark 'has_calculated' True yet
+    - At/after 09:45 ET:
+        * if not finalized yet, bootstrap from buffer (and merged CSV), flip 'has_calculated' True, clear buffer
+        * then do incremental update per candle
     """
-    initialize_timeframe_state(timeframe)   # ensures seen_ts is a *set* in memory
-    state = ema_state[timeframe]
+    _ensure_tf(timeframe)
+    st = ema_state[timeframe]
 
-    current_time = datetime.now(new_york_tz).time()
-    market_open_plus_15 = get_market_open_plus_15()
+    now_time = datetime.now(NY_TZ).time()
+    open_plus_15 = _get_open_plus_15()
 
-    # Configurable (or calculated) interval
-    interval_minutes = int(timeframe.replace("M", "").replace("m", ""))
-    candle_interval = interval_minutes
-    candle_timescale = "minute"
-    indent_lvl = 1
+    # EMA output file (list of snapshots with 'x' and per-window values)
     ema_path = get_ema_path(timeframe)
     initialize_json(ema_path, [])
 
-    indent_pad = indent(indent_lvl)
+    indent_pad = indent(1)
 
-    if current_time >= market_open_plus_15:
-        # --- POST 09:45 ET: ensure we are initialized ONCE, then switch to incremental ---
-        if not state["has_calculated"]:
-            # Cover both "normal" and "started-late" cases with the same bootstrap path.
-            print_log(f"{indent_pad}[EMA CS] Finalizing EMAs after first 15 minutes for {timeframe}...")
-            await get_candle_data_and_merge(
-                candle_interval, candle_timescale, "AFTERMARKET", "PREMARKET", indent_lvl+1, timeframe
-            )
-            reset_json(ema_path, [])
+    # ---- PRE 09:45 ET ----
+    if now_time < open_plus_15:
+        # If yesterday leaked 'has_calculated' = True, clear it now
+        _maybe_daily_reset(timeframe, now_time, open_plus_15)
 
-            # Rebuild EMA series deterministically from the buffered candles (if any)
-            if state["candle_list"]:
-                sorted_candles = sorted(state["candle_list"], key=lambda c: c["timestamp"])
-                for i, c in enumerate(sorted_candles):
-                    await calculate_save_EMAs(c, i, timeframe)
+        # Buffer current candle for the temporary EMAs
+        _append_candle(timeframe, candle)
 
-            state["has_calculated"] = True
-            _clear_buffer(state)  # <<< NEW: drop the pre-open cache so counts can't linger
-            _persist_state()                # <- persist flip + cleared buffer
-            print_log(f"{indent_pad}[EMA CS] Final EMA list calculated for {timeframe}.")
-        # From here on, strictly incremental
-        await calculate_save_EMAs(candle, get_current_candle_index(timeframe), timeframe)
-        print_log(f"{indent_pad}[EMA CS] Updated live EMA for {timeframe}.")
-    else:
-        # --- PRE 09:45 ET: keep a clean, deduped buffer & live temp EMAs for the UI ---
-        _append_unique_premarket(state, candle)  # <<< NEW: dedupe
-        _persist_state()                    # <- persist deduped pre-open buffer
-        # Clean any old merge artifacts to prevent mixing runs
-        for path in [AFTERMARKET_EMA_PATH, PREMARKET_EMA_PATH, MERGED_EMA_PATH]:
-            if os.path.exists(path):
-                os.remove(path)
-
+        # Keep temp EMAs consistent and isolated
+        _remove_merge_artifacts()
         await get_candle_data_and_merge(
-            candle_interval, candle_timescale, "AFTERMARKET", "PREMARKET", indent_lvl+1, timeframe
+            int(timeframe.replace("M", "").replace("m", "")),
+            "minute",
+            "AFTERMARKET",
+            "PREMARKET",
+            2,
+            timeframe,
         )
         reset_json(ema_path, [])
 
-        sorted_candles = sorted(state["candle_list"], key=lambda c: c["timestamp"])
-        for i, c in enumerate(sorted_candles):
+        # Rebuild temp EMAs from today's buffer only
+        clist = st["candle_list"]
+        clist_sorted = sorted(clist, key=lambda c: c["timestamp"])
+        for i, c in enumerate(clist_sorted):
             await calculate_save_EMAs(c, i, timeframe)
 
-        # log exact size of the *deduped* buffer so it matches your mental model
-        print_log(f"{indent_pad}[EMA CS] Temp EMA calculated for {timeframe} ({len(state['candle_list'])} candles).")
+        print_log(f"{indent_pad}[EMA CS] Temp EMA calculated for {timeframe} ({len(clist_sorted)} candles).")
+        return
+
+    # ---- AT/AFTER 09:45 ET ----
+    if not st.get("has_calculated", False):
+        # One-time finalize: get merged history, replay buffer, flip flag, clear buffer
+        print_log(f"{indent_pad}[EMA CS] Finalizing EMAs after first 15 minutes for {timeframe}...")
+        await get_candle_data_and_merge(
+            int(timeframe.replace("M", "").replace("m", "")),
+            "minute",
+            "AFTERMARKET",
+            "PREMARKET",
+            2,
+            timeframe,
+        )
+        reset_json(ema_path, [])
+
+        # Replay buffered pre-open/open candles
+        clist = st["candle_list"]
+        clist_sorted = sorted(clist, key=lambda c: c["timestamp"])
+        for i, c in enumerate(clist_sorted):
+            await calculate_save_EMAs(c, i, timeframe)
+
+        # Flip & clear
+        st["has_calculated"] = True
+        st["candle_list"].clear()
+        _persist()
+        print_log(f"{indent_pad}[EMA CS] Final EMA list calculated for {timeframe}.")
+
+    # Incremental update per live candle for the rest of the session
+    await calculate_save_EMAs(candle, get_current_candle_index(timeframe), timeframe)
+    print_log(f"{indent_pad}[EMA CS] Updated live EMA for {timeframe}.")
