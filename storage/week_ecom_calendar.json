@@ -1,26 +1,23 @@
 {
-    "week_timespan": "08-18-25 to 08-24-25",
+    "week_timespan": "08-25-25 to 08-31-25",
     "dates": {
-        "08-19-25": {
+        "08-26-25": {
             "07:30 AM": [
-                "Inflation Rate YoY",
-                "Building Permits Prel",
-                "Housing Starts"
+                "Durable Goods Orders MoM"
             ]
         },
-        "08-20-25": {
-            "01:00 PM": [
-                "FOMC Minutes"
+        "08-28-25": {
+            "07:30 AM": [
+                "GDP Growth Rate QoQ 2nd Est"
             ]
         },
-        "08-21-25": {
-            "09:00 AM": [
-                "Existing Home Sales"
-            ]
-        },
-        "08-22-25": {
-            "09:00 AM": [
-                "Fed Chair Powell Speech"
+        "08-29-25": {
+            "07:30 AM": [
+                "GDP Growth Rate Annualized",
+                "GDP Growth Rate QoQ",
+                "Core PCE Price Index MoM",
+                "Personal Income MoM",
+                "Personal Spending MoM"
             ]
         }
     }

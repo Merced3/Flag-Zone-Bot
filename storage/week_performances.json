@@ -850,6 +850,18 @@
         "num_of_negitive_trades": 0,
         "description": "Day 1, data collection was great, I see no issues, the only thing I want to see if this is consitent, all timeframes were great visual-performance wise, but it does need to be improved also with the data collection (candle creation) needs to be more accurate. Day 2, same thing as yestarday, good everything, no problems. Day 3, we had ema issues again, im going to change the in memory setup to a JSON file setup so i know whats going on in the background, but other than that it was a good run today. Day 4, data collection was good because bot was restarted before market opened. Day 5, I finally see why the ema calculations were off, it was due to the way that we were resetting the emas states, we forgot to change `has_calculated` to `false` at the end of day, it remains `true` after reset when it shouldn't, hopefully after my fix this is correct, also live 15 minute chart ema calculations are incorrect.",
         "important_message_ids": []
+    },
+    {
+        "week_number": 70,
+        "week_start_end_date": "08/25/2025-08/29/2025",
+        "start_ammount": 39174.0,
+        "end_ammount": 39174.0,
+        "total_made": 0.0, 
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "Day1, first day of the new EMA handler script running, 15 min live ema calculations is inaccurate, I added a schema validation code for when the program starts at 9:20am 10 mins before market opens, hopefully that fixes it, other than that everything is pretty good.",
+        "important_message_ids": []
     }
 
 ]

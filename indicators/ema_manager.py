@@ -28,6 +28,68 @@ MARKET_OPEN = time(9, 30)
 # JSON schema: { "<TF>": { "candle_list": [candle,...], "has_calculated": bool } }
 ema_state = safe_read_json(EMA_STATE_PATH, default={}) if USE_JSON_STATE else {}
 
+# ---- Daily reset + schema migration helpers ----
+
+def migrate_ema_state_schema():
+    """
+    Make whatever is in ema_state.json conform to our simple schema:
+    per-TF: { "candle_list": [], "has_calculated": bool }
+    - Drop any legacy keys like 'seen_ts'
+    - Create missing keys with safe defaults
+    - Persist the cleaned structure
+    """
+    global ema_state
+    changed = False
+    # If JSON was empty or not loaded (in-memory mode), make sure it's a dict
+    if not isinstance(ema_state, dict):
+        ema_state = {}
+        changed = True
+
+    for tf, st in list(ema_state.items()):
+        if not isinstance(st, dict):
+            ema_state[tf] = {"candle_list": [], "has_calculated": False}
+            changed = True
+            continue
+
+        # Enforce keys
+        if "candle_list" not in st or not isinstance(st["candle_list"], list):
+            st["candle_list"] = []
+            changed = True
+        if "has_calculated" not in st or not isinstance(st["has_calculated"], bool):
+            st["has_calculated"] = False
+            changed = True
+
+        # Drop legacy keys
+        for legacy_key in ("seen_ts",):
+            if legacy_key in st:
+                st.pop(legacy_key, None)
+                changed = True
+
+    if changed:
+        _persist()
+
+
+def hard_reset_ema_state(selected_timeframes=None):
+    """
+    Reset both the JSON file and the in-memory dict for the provided timeframes.
+    If 'selected_timeframes' is None, reset all known TFs in the file
+    (or just initialize the standard ones if the file is empty).
+    """
+    global ema_state
+
+    if selected_timeframes is None:
+        # If we have TFs already in the file, reset those; otherwise create the common set.
+        selected_timeframes = list(ema_state.keys()) or ["2M", "5M", "15M"]
+
+    for tf in selected_timeframes:
+        ema_state[tf] = {"candle_list": [], "has_calculated": False}
+
+    _persist()
+    print_log(f"[EMA STATE] Hard reset for TFs: {', '.join(selected_timeframes)}")
+
+# -----------------------------
+# Helper functions
+# -----------------------------
 def _persist():
     if USE_JSON_STATE:
         safe_write_json(EMA_STATE_PATH, ema_state)

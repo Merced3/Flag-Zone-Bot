@@ -4,7 +4,7 @@ from utils.json_utils import read_config, get_correct_message_ids, update_config
 from utils.log_utils import write_to_log, clear_temp_logs_and_order_files
 from utils.order_utils import initialize_csv_order_log
 from utils.time_utils import generate_candlestick_times, add_seconds_to_time
-from indicators.ema_manager import update_ema
+from indicators.ema_manager import update_ema, hard_reset_ema_state, migrate_ema_state_schema
 from shared_state import price_lock, print_log
 import shared_state
 from indicators.flag_manager import clear_all_states
@@ -209,6 +209,10 @@ async def main():
                 # Check if it's time to run and hasn't already run today
                 if current_time >= target_time and last_run_date != current_date:
                     print_log(f"[INFO] Running initial_setup and main_loop at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+                    # 9:20am: enforce clean EMA state for the day
+                    migrate_ema_state_schema()                            # drop legacy keys like 'seen_ts'
+                    hard_reset_ema_state(read_config('TIMEFRAMES'))       # clear per-TF candle_list + has_calculated
                     
                     # At 9:20 am setup everything we need before market open, 10 mins should be enough
                     await ensure_economic_calendar_data()

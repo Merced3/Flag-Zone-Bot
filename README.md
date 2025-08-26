@@ -186,6 +186,7 @@ Flag-Zone-Bot/
 │   ├── dash_app.py
 │   ├── chart_updater.py
 │   ├── ws_server.py
+│   ├── about_this_dash_folder.txt
 │   ├── charts/
 │   │   ├── live_chart.py
 │   │   └── zones_chart.py
