@@ -860,7 +860,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day1, first day of the new EMA handler script running, 15 min live ema calculations is inaccurate, I added a schema validation code for when the program starts at 9:20am 10 mins before market opens, hopefully that fixes it, other than that everything is pretty good.",
+        "description": "Day 1, first day of the new EMA handler script running, 15 min live ema calculations is inaccurate, I added a schema validation code for when the program starts at 9:20am 10 mins before market opens, hopefully that fixes it, other than that everything is pretty good. Day 2, it seems like the ema issue seems to have been solved, the 15 min live ema calculations seem to be correct, I wasn't home to monitor it live but I think this is a great foundation, everything seemed to have ran great from end of day results.",
         "important_message_ids": []
     }
 
