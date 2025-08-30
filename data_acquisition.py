@@ -23,7 +23,8 @@ active_provider = "tradier" # global variable to track active provider
 
 async def ws_auto_connect(queue, provider, symbol):
     """
-    Sequential WebSocket connection logic for both Tradier and Polygon providers.
+    Sequential WebSocket connection logic for multiple providers. 
+    (Currently supports Tradier and Polygon, for now.)
     """
     global should_close
     global active_provider
@@ -48,6 +49,7 @@ async def ws_auto_connect(queue, provider, symbol):
         raise ValueError(f"[{provider.upper()}] Invalid provider configuration. Check URL.")
 
     should_close = False
+    retry_count = 0
 
     while True:
         try:
@@ -58,6 +60,9 @@ async def ws_auto_connect(queue, provider, symbol):
                 await asyncio.sleep(RETRY_INTERVAL)
                 retry_count += 1
                 continue  # Retry the loop
+
+            # after a successful connection loop begins, reset `retry_count`
+            retry_count = 0
             
             # Define payloads for authentication and subscription
             payloads = {
@@ -88,12 +93,24 @@ async def ws_auto_connect(queue, provider, symbol):
                 await asyncio.sleep(RETRY_INTERVAL)
                 continue  # Retry the loop
 
-            async with websockets.connect(url, ssl=True, compression=None, extra_headers=headers) as websocket:
+            async with websockets.connect(
+                url, 
+                ssl=True, 
+                compression=None, 
+                extra_headers=headers,
+                ping_interval=20,   # seconds (None to disable)
+                ping_timeout=30     # seconds before considering dead
+            ) as websocket:
+                # The new `ping_interval` and `ping_timeout` are giving the socket more leeway so transient stalls don’t kill it instantly
+                
                 if provider == "polygon":
                     await websocket.send(payloads["polygon_auth"])
-                    print_log(f"[{provider.upper()}] Sent auth payload: {payloads['polygon_auth']}, {datetime.now().isoformat()}")
-
-                    await asyncio.sleep(1)  # Wait for auth acknowledgment
+                    # Wait for an auth response (usually a status / success message)
+                    try:
+                        auth_reply = await asyncio.wait_for(websocket.recv(), timeout=3)
+                        print_log(f"[POLYGON] Auth reply: {auth_reply}")
+                    except asyncio.TimeoutError:
+                        print_log("[POLYGON] No auth ack within 3s; continuing cautiously.")
                     await websocket.send(payloads["polygon_subscribe"])
                     print_log(f"[{provider.upper()}] Sent subscribe payload: {payloads['polygon_subscribe']}, {datetime.now().isoformat()}")
 
@@ -115,6 +132,7 @@ async def ws_auto_connect(queue, provider, symbol):
             print_log(f"[{provider.upper()}] WebSocket failed: {e}")
             # Switch providers locally
             provider = "polygon" if provider == "tradier" else "tradier"
+            active_provider = provider
             print_log(f"[INFO] Switching to {active_provider.capitalize()} WebSocket...")
             await asyncio.sleep(RETRY_INTERVAL)
 
