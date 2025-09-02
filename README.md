@@ -32,7 +32,7 @@ This system analyzes the market using:
 
 ### Most Recent Live **2 Minute Chart:**
 
-![2 Minute Chart](storage/images/SPY_2m_chart.png)
+![2 Minute Chart](storage/images/SPY_2M_chart.png)
 
 ### Most Recent Live **5 Minute Chart:**
 
