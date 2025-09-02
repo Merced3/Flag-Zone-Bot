@@ -59,6 +59,16 @@ SPY_5M_CHART_PATH = IMAGES_DIR / 'SPY_5M_chart.png'                     # Live c
 SPY_15M_CHART_PATH = IMAGES_DIR / 'SPY_15M_chart.png'                   # Live chart
 SPY_15M_ZONE_CHART_PATH = IMAGES_DIR / 'SPY_15M-zone_chart.png'         # Historical chart (Zones and levels)
 
+def get_chart_path(timeframe: str, zone_type: bool = False) -> Path:
+    """
+    Returns the path to the chart image for a given timeframe.
+    Example:
+      get_chart_path("2M")          → storage/images/SPY_2M_chart.png
+      get_chart_path("15M", True)   → storage/images/SPY_15M-zone_chart.png
+    """
+    suffix = "-zone" if zone_type else ""
+    return IMAGES_DIR / f"SPY_{timeframe}{suffix}_chart.png"
+
 
 def pretty_path(path: Path, short: bool = True):                        # We print alot of stuff in terminal and a long path string is pointless and a pretty version of the path is more readable in terminal logs.
     from paths import BASE

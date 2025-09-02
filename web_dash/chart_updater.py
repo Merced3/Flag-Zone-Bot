@@ -1,5 +1,5 @@
 # web_dash/chart_updater.py
-from pathlib import Path
+from paths import get_chart_path, pretty_path
 import plotly.graph_objects as go
 import plotly.io as pio
 from web_dash.charts.live_chart import generate_live_chart
@@ -19,7 +19,7 @@ def update_chart(timeframe="2M", chart_type="live", notify=False):
     # Build a clean figure for static export
     if chart_type == "zones":
         fig = _as_figure(generate_zones_chart())
-        out = Path(f"storage/SPY_{timeframe}-zone_chart.png")  # keep your naming
+        out = get_chart_path(timeframe, zone_type=True)
 
         # Guardrails for zones (categorical x)
         fig.update_layout(
@@ -29,7 +29,7 @@ def update_chart(timeframe="2M", chart_type="live", notify=False):
         )
     elif chart_type == "live":
         fig = _as_figure(generate_live_chart(timeframe))
-        out = Path(f"storage/SPY_{timeframe}_chart.png")
+        out = get_chart_path(timeframe)
 
         # Guardrails for live (datetime x)
         fig.update_layout(
