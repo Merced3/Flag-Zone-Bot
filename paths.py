@@ -4,60 +4,169 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent
 
 # Config
-CONFIG_PATH = BASE / 'config.json'
+CONFIG_PATH = BASE / 'config.json'                                      # This is very needed, this is the control pannel of this whole program, values in this can change how the program runs LIVE.
 
 # Logs
-LOGS_DIR = BASE / 'logs'
-CANDLE_LOGS = {
+LOGS_DIR = BASE / 'logs'                                                # This holds anything log-wise
+CANDLE_LOGS = {                                                         # This is very needed, theses are all candles displayed and used in not-only strategies but on the frontend as well.
     "2M": LOGS_DIR / 'SPY_2M.log',
     "5M": LOGS_DIR / 'SPY_5M.log',
     "15M": LOGS_DIR / 'SPY_15M.log'
 }
-TERMINAL_LOG = LOGS_DIR / 'terminal_output.log'
+TERMINAL_LOG = LOGS_DIR / 'terminal_output.log'                         # This is where all logs are saved while the program is running. This helps us to look back in history to see how the program as a whole handled specific things at specific times.
 
 # Storage
-STORAGE_DIR = BASE / 'storage'
-OBJECTS_PATH = STORAGE_DIR / 'objects' / 'objects.json'
-TIMELINE_PATH = STORAGE_DIR / 'objects' / 'timeline.json'
-CSV_CANDLES_PATH = STORAGE_DIR / 'SPY_15_minute_candles.csv'
+STORAGE_DIR = BASE / 'storage'                                          # this holds any sensitive data, most of the stuff below is in this folder.
+DATA_DIR = STORAGE_DIR / 'data'                                         # This is needed, this is where all parquet files are stored.
+
+# Objects folder
+OBJECTS_DIR = STORAGE_DIR / 'objects'                                   # The `storage/objects/` folder contains zones and levels calculated by `objects.py`. We consider Zones and Levels as objects.
+OBJECTS_PATH = OBJECTS_DIR / 'objects.json'                             # This is needed, this is not only used in main-live functionality but in sim enviroment as well. `web_dash/charts/zones_chart.py` uses this to plot zones and levels which are objects saved in this very file. We also use it to display objects in the sim enviroment which is `tools/plot_objects.py`.
+TIMELINE_PATH = OBJECTS_DIR / 'timeline.json'                           # This is needed, this is a timeline of all objects created from previous days, we used `SPY_15_MINUTE_CANDLES_PATH` and `objects.py` to calculate the objects history and it shows the history in `tools/plot_candles.py`. Its not used though in the `web_dash/charts/zones_chart.py`. This is mainly a simulation tools history, using it to display to `tools/plot_candles.py` (hand built zones/levels simulation).
 
 # EMA directory + dynamic EMA path retrieval
-EMAS_DIR = STORAGE_DIR / 'emas'
-EMA_STATE_PATH = EMAS_DIR / "ema_state.json"
-def get_ema_path(timeframe: str):
+EMAS_DIR = STORAGE_DIR / 'emas'                                         # This is needed by `ema_manager.py`
+EMA_STATE_PATH = EMAS_DIR / "ema_state.json"                            # This is needed by `ema_manager.py`, this is for figuring out if were past the first 15 minutes of market open beacuse were on polygons cheap plan and they have 15 min delayed data, after the first 15 mins were back to the live-correct data.
+def get_ema_path(timeframe: str):                                       # This is needed by `ema_manager.py`, to get the path of the EMA file for every specific timeframe.
     return EMAS_DIR / f"{timeframe}.json"
 
-# JSONs
-LINE_DATA_PATH = STORAGE_DIR / 'line_data.json'
-MARKERS_PATH = STORAGE_DIR / 'markers.json'
-MESSAGE_IDS_PATH = STORAGE_DIR / 'message_ids.json'
-ORDER_CANDLE_TYPE_PATH = STORAGE_DIR / 'order_candle_type.json'
-PRIORITY_CANDLES_PATH = STORAGE_DIR / 'priority_candles.json'
-WEEK_ECOM_CALENDER_PATH = STORAGE_DIR / 'week_ecom_calendar.json'
+# JSONs                                                                 # Everything below this line is no longer needed, but later development will require the replacement of these in a working fashion, EMA's is a good example of what I had to replace `EMAs.json` with.
+LINE_DATA_PATH = STORAGE_DIR / 'line_data.json'                         # No longer needed, worked in older version, newer version require different timeframe flags hence the 'flags' folder which replaces this
+MARKERS_PATH = STORAGE_DIR / 'markers.json'                             # No longer needed, worked in older version, newer version require different timeframe markers hence the 'markers' folder which replaces this
+ORDER_CANDLE_TYPE_PATH = STORAGE_DIR / 'order_candle_type.json'         # No longer needed, worked in older version, newer version doesn't require this
+PRIORITY_CANDLES_PATH = STORAGE_DIR / 'priority_candles.json'           # No longer needed, worked in older version, newer version doesn't require this
+MESSAGE_IDS_PATH = STORAGE_DIR / 'message_ids.json'                     # This is needed, this records all message ID's sent to discord the same day, doesn't remember anything greater than the current day its running. After market ends it resets to zero meaning `{}`.
+WEEK_ECOM_CALENDER_PATH = STORAGE_DIR / 'week_ecom_calendar.json'       # This is needed for the weekly economic calendar events. This is being used to fetch major, relevant events for the current week. So it knows if it should take trades or not at certian times where news can alter the trades results.
 
 # CSVs
-ORDER_LOG_PATH = STORAGE_DIR / 'order_log.csv'
-SPY_15_MINUTE_CANDLES_PATH = STORAGE_DIR / 'SPY_15_minute_candles.csv'
-AFTERMARKET_EMA_PATH = STORAGE_DIR / f"SPY_2_minute_AFTERMARKET.csv"
-PREMARKET_EMA_PATH = STORAGE_DIR / f"SPY_2_minute_PREMARKET.csv"
-MERGED_EMA_PATH = STORAGE_DIR / f"SPY_MERGED.csv"
+CSV_DIR = STORAGE_DIR / 'csv'
+ORDER_LOG_PATH = CSV_DIR / 'order_log.csv'                              # This is needed for logging all orders made during the trading session. For further study later on.
+SPY_15_MINUTE_CANDLES_PATH = CSV_DIR / 'SPY_15_minute_candles.csv'      # This is needed for 2 reasons; 1) this is previous days 15 min candles to not only plot previous history but used to calulate zones and levels, 2) As a backup of the parquet data, just in case something goes wrong with the parquet data, this is a quick way to get the data back.
+AFTERMARKET_EMA_PATH = CSV_DIR / f"SPY_2_minute_AFTERMARKET.csv"        # IDK if these are used, I do see them used in `indicators/ema_manager.py` but I don't know if this is used in practice or is just ghost code, if it is I will remove it in the future.
+PREMARKET_EMA_PATH = CSV_DIR / f"SPY_2_minute_PREMARKET.csv"            # IDK if these are used, I do see them used in `indicators/ema_manager.py` but I don't know if this is used in practice or is just ghost code, if it is I will remove it in the future.
+MERGED_EMA_PATH = CSV_DIR / f"SPY_MERGED.csv"                           # IDK if these are used, I do see them used in `indicators/ema_manager.py` but I don't know if this is used in practice or is just ghost code, if it is I will remove it in the future.
 
-def get_merged_ema_csv_path(timeframe: str):
-    return STORAGE_DIR / f"merged_ema_{timeframe}.csv"
+def get_merged_ema_csv_path(timeframe: str):                            # This is needed, its used in `data_acquisition.py` from the function `get_candle_data_and_merge()` which is called in `indicators/ema_manager.py` in the function `update_ema()`. This is used to get the merged candles of premarket, aftermarket and regular market hours for EMA calculations.
+    return CSV_DIR / f"merged_ema_{timeframe}.csv"
 
 # STATES
-STATES_DIR = BASE / 'states'
+STATES_DIR = BASE / 'states'                                            # This is needed and not needed, this is for the flagging setup, but this only works for on-disk for a singular timeframe (at-the-time 2M), we have everything saved in memory so this is mainly for testing or debugging
 
-# PHOTOS
-SPY_2M_CHART_PATH = STORAGE_DIR / 'SPY_2M_chart.png'
-SPY_5M_CHART_PATH = STORAGE_DIR / 'SPY_5M_chart.png'
-SPY_15M_CHART_PATH = STORAGE_DIR / 'SPY_15M_chart.png'
-SPY_15M_ZONE_CHART_PATH = STORAGE_DIR / 'SPY_15M-zone_chart.png'
+# PHOTOS (Images/Charts)
+IMAGES_DIR = STORAGE_DIR / 'images'                                     # This folder is for cleanliness of photos, to be later sent to discord for me to view when im not home at the computer.
+SPY_2M_CHART_PATH = IMAGES_DIR / 'SPY_2M_chart.png'                     # Live chart
+SPY_5M_CHART_PATH = IMAGES_DIR / 'SPY_5M_chart.png'                     # Live chart
+SPY_15M_CHART_PATH = IMAGES_DIR / 'SPY_15M_chart.png'                   # Live chart
+SPY_15M_ZONE_CHART_PATH = IMAGES_DIR / 'SPY_15M-zone_chart.png'         # Historical chart (Zones and levels)
 
 
-def pretty_path(path: Path, short: bool = True):
+def pretty_path(path: Path, short: bool = True):                        # We print alot of stuff in terminal and a long path string is pointless and a pretty version of the path is more readable in terminal logs.
     from paths import BASE
     try:
         return path.relative_to(BASE) if not short else path.name
     except ValueError:
         return path.name
+    
+
+# FULL PROJECT STRUCTURE
+"""
+Flag-Zone-Bot/
+├── .git/
+├── .github/
+│   └── workflows/
+│       └── python-ci.yml
+├── __pycache__/
+├── docs/
+│   ├── adr/
+│   │   └── 0001-separate-frontend-from-backend.md
+│   └── TOC.md
+├── indicators/
+│   ├── ema_manager.py
+│   └── flag_manager.py
+├── logs/
+│   ├── log files... # SPY_2M.log, SPY_5M.log, SPY_15M.log 
+│   └── terminal_output.log
+├── states/
+├── storage/
+│   ├── csv/ 
+│   │   ├── order_log.csv
+│   │   └── SPY_15_minute_candles.csv
+│   ├── data/
+│   │   └── 15m/
+│   ├── emas/
+│   │   ├── 2M.json
+│   │   ├── 5M.json
+│   │   └── 15M.json
+│   ├── flags/ 
+│   │   ├── 2M.json
+│   │   ├── 5M.json
+│   │   └── 15M.json
+│   ├── images/
+│   │   ├── SPY_2M_chart.png
+│   │   ├── SPY_5M_chart.png
+│   │   ├── SPY_15M_chart.png
+│   │   └── SPY_15M-zone_chart.png
+│   ├── markers/ 
+│   │   ├── 2M.json
+│   │   ├── 5M.json
+│   │   └── 15M.json
+│   ├── objects/ 
+│   │   │   └── 15m/
+│   │   ├── objects.json
+│   │   └── timeline.json 
+│   ├── duck.py
+│   ├── message_ids.json
+│   ├── parquet_writer.py
+│   ├── viewport.py
+│   ├── week_ecom_calendar.json
+│   └── week_performances.json
+├── strategies/
+│   └── trading_strategy.py
+├── tests/
+│   ├── storage_unit_tests/
+│   │   ├── conftest.py
+│   │   ├── test_parquet_writer.py
+│   │   └── test_viewport.py
+│   └── purpose.md
+├── tools/
+│   ├── generate_structure.py
+│   └── plot_candles.py
+├── utils/
+│   ├── __pycache__/
+│   ├── data_utils.py
+│   ├── ema_utils.py
+│   ├── file_utils.py
+│   ├── json_utils.py
+│   ├── log_utils.py
+│   ├── order_utils.py
+│   └── time_utils.py
+├── venv/
+├── web_dash/
+│   ├── __init__.py
+│   ├── dash_app.py
+│   ├── chart_updater.py
+│   ├── ws_server.py
+│   ├── about_this_dash_folder.txt
+│   ├── charts/
+│   │   ├── live_chart.py
+│   │   └── zones_chart.py
+│   └── assets/
+├── .gitignore
+├── buy_option.py
+├── config.json
+├── cred.py
+├── data_acquisition.py
+├── economic_calender_scraper.py
+├── error_handler.py
+├── main.py
+├── objects.py
+├── order_handler.py
+├── paths.py
+├── print_discord_messages.py
+├── README.md   
+├── requirements.txt
+├── rule_manager.py
+├── sentiment_engine.py
+├── shared_state.py
+└── submit_order.py
+"""

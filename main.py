@@ -6,6 +6,7 @@ from utils.order_utils import initialize_csv_order_log
 from utils.time_utils import generate_candlestick_times, add_seconds_to_time
 from indicators.ema_manager import update_ema, hard_reset_ema_state, migrate_ema_state_schema
 from shared_state import price_lock, print_log
+from storage.parquet_writer import append_candle
 import shared_state
 from indicators.flag_manager import clear_all_states
 from strategies.trading_strategy import execute_trading_strategy
@@ -117,6 +118,7 @@ async def process_data(queue):
                     if current_candle["open"] is not None:
                         current_candle["timestamp"] = start_times[timeframe].isoformat()
                         write_to_log(current_candle, read_config('SYMBOL'), timeframe)
+                        append_candle(read_config('SYMBOL'), timeframe, current_candle)
                         print_log(f"[FINAL WRITE] Flushed final {timeframe} candle at market close")
                     
                 current_candles = {tf: {"open": None, "high": None, "low": None, "close": None} for tf in read_config('TIMEFRAMES')}
@@ -150,6 +152,7 @@ async def process_data(queue):
                     if (f_now in timestamps[timeframe]) or (f_now in buffer_timestamps[timeframe]):
                         current_candle["timestamp"] = start_times[timeframe].isoformat()
                         write_to_log(current_candle, read_config('SYMBOL'), timeframe)
+                        append_candle(read_config('SYMBOL'), timeframe, current_candle)
                         
                         # ✅ LOG THE CANDLE COUNT BEFORE EMA UPDATES
                         f_current_time = datetime.now().strftime("%H:%M:%S")
@@ -289,8 +292,8 @@ async def main_loop():
 
             did_run_intraday = True
             task1 = asyncio.create_task(process_data(queue), name="ProcessDataTask")
-            task2 = asyncio.create_task(execute_trading_strategy(), name="TradingStrategyTask")
-            await asyncio.gather(task1, task2)
+            #task2 = asyncio.create_task(execute_trading_strategy(), name="TradingStrategyTask") # We will uncomment this later, once storage and everything that the strategy needs to be setup, is setup.
+            await asyncio.gather(task1)#, task2)
 
         except Exception as e:
             await error_log_and_discord_message(e, "main", "main_loop")
@@ -298,6 +301,8 @@ async def main_loop():
     # 📉 Market closed
     data_acquisition.should_close = True
     websocket_connection = None
+
+    await asyncio.sleep(10) # wait for all tasks to complete
 
     # Only run EOD if we actually did intraday work this session
     if did_run_intraday:

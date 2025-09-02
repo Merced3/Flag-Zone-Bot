@@ -32,19 +32,19 @@ This system analyzes the market using:
 
 ### Most Recent Live **2 Minute Chart:**
 
-![2 Minute Chart](storage/SPY_2m_chart.png)
+![2 Minute Chart](storage/images/SPY_2m_chart.png)
 
 ### Most Recent Live **5 Minute Chart:**
 
-![5 Minute Chart](storage/SPY_5M_chart.png)
+![5 Minute Chart](storage/images/SPY_5M_chart.png)
 
 ### Most Recent Live **15 Minute Chart:**
 
-![15 Minute Chart](storage/SPY_15M_chart.png)
+![15 Minute Chart](storage/images/SPY_15M_chart.png)
 
 ### Most Recent Zones/Levels **15 Minute Chart:**
 
-![15 Minute Zones Chart](storage/SPY_15M-zone_chart.png)
+![15 Minute Zones Chart](storage/images/SPY_15M-zone_chart.png)
 
 ---
 
@@ -142,32 +142,50 @@ Flag-Zone-Bot/
 │   ├── ema_manager.py
 │   └── flag_manager.py
 ├── logs/
-│   ├── SPY_2M.log
+│   ├── log files... # SPY_2M.log, SPY_5M.log, SPY_15M.log 
 │   └── terminal_output.log
 ├── states/
 ├── storage/
+│   ├── csv/ 
+│   │   ├── order_log.csv
+│   │   └── SPY_15_minute_candles.csv
+│   ├── data/ 
+│   │   └── 15m/
 │   ├── emas/
 │   │   ├── 2M.json
 │   │   ├── 5M.json
 │   │   └── 15M.json
-│   ├── objects/
+│   ├── flags/ 
+│   │   ├── 2M.json
+│   │   ├── 5M.json
+│   │   └── 15M.json
+│   ├── images/ # this is where everything chart/image-wise is saved
+│   │   ├── SPY_2M_chart.png
+│   │   ├── SPY_5M_chart.png
+│   │   ├── SPY_15M_chart.png
+│   │   └── SPY_15M-zone_chart.png
+│   ├── markers/ 
+│   │   ├── 2M.json
+│   │   ├── 5M.json
+│   │   └── 15M.json
+│   ├── objects/ 
+│   │   │   └── 15m/
 │   │   ├── objects.json
-│   │   └── timeline.json
-│   ├── EMAs.json
-│   ├── Project_Tasks.md
-│   ├── SPY_2-min_chart.png
-│   ├── SPY_15-min_chart.png
-│   ├── SPY_15_minute_candles.csv
-│   ├── line_data.json
-│   ├── markers.json
+│   │   └── timeline.json 
+│   ├── duck.py
 │   ├── message_ids.json
-│   ├── order_candle_type.json
-│   ├── order_log.csv
-│   ├── priority_candles.json
+│   ├── parquet_writer.py
+│   ├── viewport.py
 │   ├── week_ecom_calendar.json
 │   └── week_performances.json
 ├── strategies/
 │   └── trading_strategy.py
+├── tests/ # This is for `Unit Tests`
+│   ├── storage_unit_tests/ 
+│   │   ├── conftest.py
+│   │   ├── test_parquet_writer.py
+│   │   └── test_viewport.py
+│   └── purpose.md
 ├── tools/
 │   ├── generate_structure.py
 │   └── plot_candles.py
@@ -180,7 +198,7 @@ Flag-Zone-Bot/
 │   ├── log_utils.py
 │   ├── order_utils.py
 │   └── time_utils.py
-├── venv/ # You need to make this
+├── venv/  # You need to make this then `pip install -r requirements.txt`
 ├── web_dash/
 │   ├── __init__.py
 │   ├── dash_app.py
@@ -192,8 +210,6 @@ Flag-Zone-Bot/
 │   │   └── zones_chart.py
 │   └── assets/
 ├── .gitignore
-├── ERRORs.tct
-├── README.md # This File
 ├── buy_option.py
 ├── config.json
 ├── cred.py
@@ -205,6 +221,7 @@ Flag-Zone-Bot/
 ├── order_handler.py
 ├── paths.py
 ├── print_discord_messages.py
+├── README.md # THIS    
 ├── requirements.txt
 ├── rule_manager.py
 ├── sentiment_engine.py

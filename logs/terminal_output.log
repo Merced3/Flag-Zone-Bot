@@ -1,3 +1,145 @@
 [INFO] initial_setup and main_loop completed successfully.
 Waiting until tomorrow's 8:20 AM...
 [INFO] Today is Saturday. Market is closed. Waiting for Monday...
+
+
+HAD TO FIX TIMELINE OBJECTS B/C OF WEBSOCKET ISSUE TODAY (FAULTY INTERNET CONNECTION)
+
+
+These functions below are just tests
+[GCCD] Data received; Candles from '09:30:00' to '15:45:00'.
+
+[Fallback] Cleaned Polygon 15M:
+                        open     close      high       low
+timestamp                                                 
+2025-08-29 09:30:00  647.470  647.0051  647.8400  646.8000
+2025-08-29 09:45:00  647.010  645.5100  647.0100  645.3400
+2025-08-29 10:00:00  645.500  644.3300  646.0630  643.7900
+2025-08-29 10:15:00  644.320  644.6688  644.7900  643.6300
+2025-08-29 10:30:00  644.670  644.2046  645.1100  644.1700
+2025-08-29 10:45:00  644.200  643.8200  644.3600  643.1400
+2025-08-29 11:00:00  643.820  644.3600  644.7600  643.6800
+2025-08-29 11:15:00  644.370  644.4100  644.7700  644.2000
+2025-08-29 11:30:00  644.410  644.1479  644.5500  644.0000
+2025-08-29 11:45:00  644.135  643.7900  644.2550  643.7100
+2025-08-29 12:00:00  643.780  644.5400  644.6800  643.7500
+2025-08-29 12:15:00  644.540  644.1700  644.7600  644.0900
+2025-08-29 12:30:00  644.180  644.9400  644.9500  644.1800
+2025-08-29 12:45:00  644.930  644.7250  645.0399  644.5900
+2025-08-29 13:00:00  644.700  643.8300  644.7000  643.7800
+2025-08-29 13:15:00  643.830  644.0000  644.1100  643.4600
+2025-08-29 13:30:00  644.000  644.3500  644.4200  643.8400
+2025-08-29 13:45:00  644.360  644.6400  645.0142  644.3300
+2025-08-29 14:00:00  644.650  644.5350  644.7000  644.2200
+2025-08-29 14:15:00  644.545  644.2650  644.6600  644.1700
+2025-08-29 14:30:00  644.265  644.2700  644.7400  644.2650
+2025-08-29 14:45:00  644.270  644.4900  644.5000  644.1721
+2025-08-29 15:00:00  644.490  644.6100  644.8312  644.3050
+2025-08-29 15:15:00  644.605  644.5800  644.9900  644.3700
+2025-08-29 15:30:00  644.580  644.7800  644.8900  644.0800
+2025-08-29 15:45:00  644.770  645.0400  645.1400  643.7600
+
+[pull_and_replace_15m] Main CSV `SPY_15_minute_candles.csv` updated with Polygon fallback.
+
+[2025-08-29 (id, lvl)] resistance: (05293, 647.84) | support: (05294, 643.14)
+[VIZL] Starting with 97 zones and 127 levels
+[RESISTANCE ZONE BOTTOM] Body-Based Mode: [34314, 647.0051] (SVF) Size: 0.617
+[   SUPPORT ZONE TOP   ] Structural Mode: (34324, 643.78) | Size: 0.136
+[display_update] Step set to 3896. 225 objects displayed.
+[pull_and_replace_15m] Timeline + objects updated.
+Manually interrupted, cleaning up...
+
+
+
+
+Starting Bot...
+
+
+Discord bot started.
+Starting the main trading bot...
+[INFO] Today is Sunday. Market is closed. Waiting for Monday...
+[INFO] Running initial_setup and main_loop at 2025-09-01 09:20:00
+[EMA STATE] Hard reset for TFs: 2M, 5M, 15M
+[GECD] Get Economic Calender Data:
+    [GECD] Waiting for page to fully load...
+    [GECD] Page has fully loaded!
+    [GECD] Handling Date Range Section...
+    [GECD] Dropdown found, class attribute: dropdown-menu show
+    [GECD] Dropdown is now open!
+    [GECD] Selecting 'This Week' from dropdown...
+    [GECD] Successfully selected 'This Week'.
+
+
+    [GECD] Handling Impact Level Section...
+    [GECD] Dropdown found, class attribute: dropdown-menu show
+    [GECD] Impact dropdown is now open!
+    [GECD] Successfully selected 3-Star impact level.
+
+
+    [GECD] Handling Country Selection...
+    [GECD] Country Panel Found - ID: 'te-c-main-countries', Class: small
+    [GECD] Country selection panel is now open!
+    [GECD] Selecting 'America' from the country list...
+    [GECD] Successfully selected 'America'.
+    [GECD] Country selection saved successfully.
+    [GECD] Waiting for Country Panel to go away...
+    [GECD] Panel Gone!
+
+    [GECD] Handling Category Section...
+    [GECD] Dropdown found, class attribute: dropdown-menu show
+    [GECD] Category dropdown is now open!
+    [GECD] Successfully selected 'All Events'.
+
+
+    [GECD] TimeZone Handling...
+    [GECD] Detected UTC offset for San Antonio: -300 minutes
+    [GECD] Attempting to open the TimeZone dropdown...
+    [GECD] Currently selected TimeZone: -300
+    [GECD] TimeZone is already correct. No changes needed.
+
+
+    [GECD] Extracting Data From Calender...
+    [GECD] Processing Date: 09-02-25
+    [GECD] Extracting 2 events for 09-02-25...
+    [GECD] Skipping event row due to missing elements.
+    [GECD] Processing Date: 09-03-25
+    [GECD] Extracting 2 events for 09-03-25...
+    [GECD] Skipping event row due to missing elements.
+    [GECD] Processing Date: 09-04-25
+    [GECD] Extracting 4 events for 09-04-25...
+    [GECD] Skipping event row due to missing elements.
+    [GECD] Skipping event row due to missing elements.
+    [GECD] Processing Date: 09-05-25
+    [GECD] Extracting 8 events for 09-05-25...
+    [GECD] Skipping event row due to missing elements.
+    [GECD] Skipping event row due to missing elements.
+    [GECD] Skipping event row due to missing elements.
+    [GECD] Skipping event row due to missing elements.
+    [GECD] ✅ Data extraction completed! Total Dates: 4, File Saved: `week_ecom_calendar.json`
+We have logged in as TradeMaster#8429
+
+[DATA_AQUISITION] 'is_market_open()' DATA: 
+{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'closed', 'nyse': 'closed', 'otc': 'closed'}, 'indicesGroups': {'s_and_p': 'closed', 'societe_generale': 'closed', 'msci': 'closed', 'ftse_russell': 'closed', 'mstar': 'closed', 'mstarc': 'closed', 'cccy': 'open', 'cgi': 'closed', 'nasdaq': 'closed', 'dow_jones': 'closed'}, 'market': 'closed', 'serverTime': '2025-09-01T09:20:39-04:00'}
+
+Markets are closed today: 09/01/2025 - Monday
+[INFO] initial_setup and main_loop completed successfully.
+Waiting until tomorrow's 8:20 AM...
+Manually interrupted, cleaning up...
+
+
+
+
+Discord bot started.
+Starting the main trading bot...
+[INFO] Running initial_setup and main_loop at 2025-09-01 10:29:24
+[EMA STATE] Hard reset for TFs: 2M, 5M, 15M
+We have logged in as TradeMaster#8429
+
+[DATA_AQUISITION] 'is_market_open()' DATA: 
+{'afterHours': False, 'currencies': {'crypto': 'open', 'fx': 'open'}, 'earlyHours': False, 'exchanges': {'nasdaq': 'closed', 'nyse': 'closed', 'otc': 'closed'}, 'indicesGroups': {'s_and_p': 'closed', 'societe_generale': 'closed', 'msci': 'closed', 'ftse_russell': 'closed', 'mstar': 'closed', 'mstarc': 'closed', 'cccy': 'open', 'cgi': 'closed', 'nasdaq': 'closed', 'dow_jones': 'closed'}, 'market': 'closed', 'serverTime': '2025-09-01T10:29:30-04:00'}
+
+Markets are closed today: 09/01/2025 - Monday
+[INFO] initial_setup and main_loop completed successfully.
+Waiting until tomorrow's 8:20 AM...
+Manually interrupted, cleaning up...
+Discord bot started.

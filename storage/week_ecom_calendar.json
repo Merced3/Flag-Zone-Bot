@@ -1,23 +1,32 @@
 {
-    "week_timespan": "08-25-25 to 08-31-25",
+    "week_timespan": "09-01-25 to 09-07-25",
     "dates": {
-        "08-26-25": {
-            "07:30 AM": [
-                "Durable Goods Orders MoM"
+        "09-02-25": {
+            "09:00 AM": [
+                "ISM Manufacturing PMI"
             ]
         },
-        "08-28-25": {
-            "07:30 AM": [
-                "GDP Growth Rate QoQ 2nd Est"
+        "09-03-25": {
+            "09:00 AM": [
+                "JOLTs Job Openings"
             ]
         },
-        "08-29-25": {
+        "09-04-25": {
             "07:30 AM": [
-                "GDP Growth Rate Annualized",
-                "GDP Growth Rate QoQ",
-                "Core PCE Price Index MoM",
-                "Personal Income MoM",
-                "Personal Spending MoM"
+                "Balance of Trade"
+            ],
+            "09:00 AM": [
+                "ISM Services PMI"
+            ]
+        },
+        "09-05-25": {
+            "07:30 AM": [
+                "Unemployment Rate",
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ],
+            "09:00 AM": [
+                "Ivey PMI s.a"
             ]
         }
     }

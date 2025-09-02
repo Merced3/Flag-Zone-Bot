@@ -6,13 +6,8 @@ reference/
 __pycache__/
 cred.py
 storage/emas/
+storage/flags/
 storage/markers/
 storage/objects/
-storage/line_data.json
-storage/markers.json
+storage/csv/
 storage/message_ids.json
-storage/order_candle_type.json
-storage/order_log.csv
-storage/priority_candles.json
-storage/SPY_15_minute_candles.csv
-storage/week_ecom_calender.json

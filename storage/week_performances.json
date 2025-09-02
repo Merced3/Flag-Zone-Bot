@@ -862,6 +862,18 @@
         "num_of_negitive_trades": 0,
         "description": "Day 1, first day of the new EMA handler script running, 15 min live ema calculations is inaccurate, I added a schema validation code for when the program starts at 9:20am 10 mins before market opens, hopefully that fixes it, other than that everything is pretty good. Day 2, it seems like the ema issue seems to have been solved, the 15 min live ema calculations seem to be correct, I wasn't home to monitor it live but I think this is a great foundation, everything seemed to have ran great from end of day results. Day 3, I was able to see the candles live, we have a minor issue with the duplicating of the first candle after the 15 minutes of market open but that is no wear near a critical error as compared to what we solved, that will be an easy fix, other than that today ran pretty good, no issues anywhere else. Day 4, Todays run was perfect, I still need to put the zones in the live chart and add the necessary logic to handle them, but I want to come up with better zone/15 minute previous days candle data storage extraction better than what were doing now, I'm thinking about doing sometype of local database or Parquet files, and retireving/querying them with DuckDB so reads are instant, simple and scalable. Day 5, today was alright, everything worked EMA wise but we had a websocket issue, im guessing the wifi went out, i asked GPT and it said there were 3 issues, DNS connectivity failure (primary), then Websocket keepalive timeout, then 2 code bugs making it worse (increment retry count without defining it in coroutine scope, we log that were switching providers but we log `active_provider` which never updates so its misleading), I think i fixed all of that but i won't know until next weeks run.",
         "important_message_ids": [1410837611332763668]
+    },
+    {
+        "week_number": 71,
+        "week_start_end_date": "09/01/2025-09/05/2025",
+        "start_ammount": 39174.0,
+        "end_ammount": 39174.0,
+        "total_made": 0.0,
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "Day 1, today is Memorial Day, Markets closed. Focused on the storage layer: added append-only Parquet partitions (candles by day, objects by month) with DuckDB queries. No more parsing giant CSV/JSON—strategies can load last few sessions instantly and drill into history on demand. Wrote first pytest unit tests for candles, objects, and viewport queries, so the storage layer is verified and safe to extend. This lays the foundation for reliable sims, 100-day lookbacks, and future auto-backtests.",
+        "important_message_ids": []
     }
 
 ]

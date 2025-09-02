@@ -16,7 +16,8 @@ from objects import display_json_update, get_final_timeline_step
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 STORAGE_DIR = BASE_DIR / "storage"
-CANDLES_CSV = STORAGE_DIR / "SPY_15_minute_candles.csv"
+CSV_STORAGE = STORAGE_DIR / "csv"
+CANDLES_CSV = CSV_STORAGE / "SPY_15_minute_candles.csv"
 DISPLAY_PATH = STORAGE_DIR / "objects" / "objects.json"
 WINDOW_DAYS = 5
 
