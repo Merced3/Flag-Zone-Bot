@@ -150,7 +150,12 @@ Flag-Zone-Bot/
 │   │   ├── order_log.csv
 │   │   └── SPY_15_minute_candles.csv
 │   ├── data/ 
+│   │   ├── 2m/
+│   │   │   └── 2025-09-02.parquet
+│   │   ├── 5m/
+│   │   │   └── 2025-09-02.parquet
 │   │   └── 15m/
+│   │       └── 2025-09-02.parquet
 │   ├── emas/
 │   │   ├── 2M.json
 │   │   ├── 5M.json
@@ -183,10 +188,13 @@ Flag-Zone-Bot/
 ├── tests/ # This is for `Unit Tests`
 │   ├── storage_unit_tests/ 
 │   │   ├── conftest.py
+│   │   ├── test_compaction.py
 │   │   ├── test_parquet_writer.py
 │   │   └── test_viewport.py
 │   └── purpose.md
 ├── tools/
+│   ├── __init__.py
+│   ├── compact_parquet.py
 │   ├── generate_structure.py
 │   └── plot_candles.py
 ├── utils/
