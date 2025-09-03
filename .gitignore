@@ -1,4 +1,4 @@
-logs/test_data
+logs/
 logs/example_data
 venv/
 old_code_for_feature_use/
@@ -10,4 +10,5 @@ storage/flags/
 storage/markers/
 storage/objects/
 storage/csv/
+storage/data/
 storage/message_ids.json

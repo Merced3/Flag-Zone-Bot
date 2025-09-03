@@ -196,11 +196,11 @@ def EOD_reset_all_jsons():
     tf_with_emas = [tf for tf in read_config("TIMEFRAMES") if tf in {"2M", "5M", "15M"}]
 
     resets: dict[Path, object] = {
-        MARKERS_PATH: [],                                         # list of marker dicts
+        #MARKERS_PATH: [],                                         # list of marker dicts
         MESSAGE_IDS_PATH: {},                                     # message id mapping
-        LINE_DATA_PATH: {"active_flags": [], "completed_flags": []},  # <-- keep schema
-        ORDER_CANDLE_TYPE_PATH: [],                               # list/queue
-        PRIORITY_CANDLES_PATH: [],                                # list
+        #LINE_DATA_PATH: {"active_flags": [], "completed_flags": []},  # <-- keep schema
+        #ORDER_CANDLE_TYPE_PATH: [],                               # list/queue
+        #PRIORITY_CANDLES_PATH: [],                                # list
         **{Path(get_ema_path(tf)): [] for tf in tf_with_emas},    # all EMA files → empty list
     }
 

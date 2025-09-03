@@ -1,7 +1,7 @@
 # utils/log_utils.py
 import json
 from shared_state import print_log
-from paths import pretty_path, LOGS_DIR, STORAGE_DIR, TERMINAL_LOG, ORDER_LOG_PATH, SPY_15_MINUTE_CANDLES_PATH
+from paths import pretty_path, LOGS_DIR, STORAGE_DIR, CSV_DIR, TERMINAL_LOG, ORDER_LOG_PATH, SPY_15_MINUTE_CANDLES_PATH
 from utils.json_utils import read_config, EOD_reset_all_jsons
 import pandas as pd
 import os
@@ -68,7 +68,7 @@ def clear_temp_logs_and_order_files():
     for file_path in STORAGE_DIR.glob('*order_log*'):
         if file_path not in protected_files:
             files_to_delete.add(file_path)
-    for file_path in STORAGE_DIR.glob('*.csv'):
+    for file_path in CSV_DIR.glob('*.csv'):
         if file_path not in protected_files:
             files_to_delete.add(file_path)
 

@@ -7,6 +7,7 @@ from utils.time_utils import generate_candlestick_times, add_seconds_to_time
 from indicators.ema_manager import update_ema, hard_reset_ema_state, migrate_ema_state_schema
 from shared_state import price_lock, print_log
 from storage.parquet_writer import append_candle
+from tools.compact_parquet import end_of_day_compaction
 import shared_state
 from indicators.flag_manager import clear_all_states
 from strategies.trading_strategy import execute_trading_strategy
@@ -362,6 +363,10 @@ async def process_end_of_day():
     clear_temp_logs_and_order_files()
     reset_profit_loss_orders_list()
 
+    # 6. Storage compaction (safe to call daily; no-op if nothing to do)
+    ny = pytz.timezone('America/New_York')
+    day = datetime.now(ny).strftime("%Y-%m-%d")
+    end_of_day_compaction(day, TFs=["2m","5m","15m"])
 
 async def shutdown(loop):
     """Shutdown tasks and the Discord bot."""

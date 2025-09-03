@@ -94,7 +94,7 @@ Flag-Zone-Bot/
 │   ├── ema_manager.py
 │   └── flag_manager.py
 ├── logs/
-│   ├── log files... # SPY_2M.log, SPY_5M.log, SPY_15M.log 
+│   ├── log files... # *SPY_2M.log, SPY_5M.log, SPY_15M.log*
 │   └── terminal_output.log
 ├── states/
 ├── storage/
@@ -102,7 +102,12 @@ Flag-Zone-Bot/
 │   │   ├── order_log.csv
 │   │   └── SPY_15_minute_candles.csv
 │   ├── data/
+│   │   ├── 2m/
+│   │   │   └── 2025-09-02.parquet
+│   │   ├── 5m/
+│   │   │   └── 2025-09-02.parquet
 │   │   └── 15m/
+│   │       └── 2025-09-02.parquet
 │   ├── emas/
 │   │   ├── 2M.json
 │   │   ├── 5M.json
@@ -135,10 +140,13 @@ Flag-Zone-Bot/
 ├── tests/
 │   ├── storage_unit_tests/
 │   │   ├── conftest.py
+│   │   ├── test_compaction.py
 │   │   ├── test_parquet_writer.py
 │   │   └── test_viewport.py
 │   └── purpose.md
 ├── tools/
+│   ├── __init__.py
+│   ├── compact_parquet.py
 │   ├── generate_structure.py
 │   └── plot_candles.py
 ├── utils/
@@ -171,7 +179,7 @@ Flag-Zone-Bot/
 ├── main.py
 ├── objects.py
 ├── order_handler.py
-├── paths.py
+├── paths.py #*THIS*
 ├── print_discord_messages.py
 ├── README.md   
 ├── requirements.txt

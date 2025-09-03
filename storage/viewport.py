@@ -6,12 +6,11 @@ import pandas as pd
 import paths  # <-- use centralized paths
 
 def _candles_glob(timeframe: str) -> str:
-    # e.g. storage/data/15m/2025-09-02/part-*.parquet
-    return str((paths.DATA_DIR / timeframe / "*" / "*.parquet")).replace("\\", "/")
+    # picks up day files AND parts (recursive)
+    return str((paths.DATA_DIR / timeframe / "**" / "*.parquet")).replace("\\", "/")
 
 def _objects_glob(timeframe: str) -> str:
-    # e.g. storage/objects/15m/2025-09/part-*.parquet
-    return str((paths.OBJECTS_DIR / timeframe / "*" / "*.parquet")).replace("\\", "/")
+    return str((paths.OBJECTS_DIR / timeframe / "**" / "*.parquet")).replace("\\", "/")
 
 def load_viewport(
     *,

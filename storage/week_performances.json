@@ -872,7 +872,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, today is Memorial Day, Markets closed. Focused on the storage layer: added append-only Parquet partitions (candles by day, objects by month) with DuckDB queries. No more parsing giant CSV/JSON—strategies can load last few sessions instantly and drill into history on demand. Wrote first pytest unit tests for candles, objects, and viewport queries, so the storage layer is verified and safe to extend. This lays the foundation for reliable sims, 100-day lookbacks, and future auto-backtests.",
+        "description": "Day 1, today is Memorial Day, Markets closed. Focused on the storage layer: added append-only Parquet partitions (candles by day, objects by month) with DuckDB queries. No more parsing giant CSV/JSON—strategies can load last few sessions instantly and drill into history on demand. Wrote first pytest unit tests for candles, objects, and viewport queries, so the storage layer is verified and safe to extend. This lays the foundation for reliable sims, 100-day lookbacks, and future auto-backtests. Day 2, today was mainly about finishing the implementation of the new storage layer, we got most of it done, we have the candles downloaded as we planned, scalable and everything, its just firguring out how were going to replace the large 15m csv file we have as it kinda servers as a global index for the zones to work off of, now we need to figure that out for the objects (zones/levels) as well.",
         "important_message_ids": []
     }
 
