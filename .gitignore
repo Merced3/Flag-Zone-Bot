@@ -1,4 +1,6 @@
 __pycache__/
+*.pyc
+*.pyo
 
 # Logs
 logs/
@@ -8,11 +10,17 @@ logs/
 .venv/
 venv/
 
+# Credentials / secrets
 cred.py
+
+# Runtime storage artifacts (ignore raw data, keep scripts/configs)
 storage/emas/
 storage/flags/
 storage/markers/
 storage/objects/
 storage/csv/
 storage/data/
-storage/message_ids.json
+
+# Keep these JSONs tracked if needed
+!storage/message_ids.json
+!storage/week_ecom_calendar.json
