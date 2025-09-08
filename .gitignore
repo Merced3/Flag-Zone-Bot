@@ -1,6 +1,13 @@
-logs/
-venv/
 __pycache__/
+
+# Logs
+logs/
+*.log
+
+# Venvs
+.venv/
+venv/
+
 cred.py
 storage/emas/
 storage/flags/
