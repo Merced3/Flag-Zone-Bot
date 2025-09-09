@@ -10,6 +10,7 @@ We use **pytest** to ensure critical components work correctly as the system evo
   - `test_parquet_writer.py` → Tests for appending candles/objects into Parquet.
   - `test_viewport.py` → Tests for loading viewport slices from Parquet.
   - `test_compaction.py` → Tests that daily and monthly compaction correctly merges part files into a single file, verifies integrity, and deletes redundant parts.
+  - `test_csv_to_parquet_days.py` → Tests that the CSV of 15m candles is correctly converted into daily Parquet files with a contiguous `global_x` index and volume defaults.
 
 - **purpose.md** → This file. Explains why tests exist and what they cover.
 

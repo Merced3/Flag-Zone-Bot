@@ -32,7 +32,6 @@ def end_of_day_compaction(day: str, TFs: list = ("2m", "5m", "15m")) -> None:
         res = compact_day(tf, day, delete_parts=True)
         print(f"[compact {tf} {day}] -> {res}")
 
-
 def _write_atomic(df: pd.DataFrame, out_file: Path):
     out_file.parent.mkdir(parents=True, exist_ok=True)
     tmp = out_file.with_suffix(out_file.suffix + ".tmp")
@@ -52,6 +51,12 @@ def compact_day(timeframe: str, day: str, delete_parts: bool = True) -> dict:
 
     dfs = [pd.read_parquet(p) for p in parts]
     df_all = pd.concat(dfs, ignore_index=True).sort_values("ts")
+    
+    if tf == "15m":
+        last_idx = _last_global_index(tf, day)
+        start = last_idx + 1
+        df_all["global_x"] = range(start, start + len(df_all))
+
     # Basic verification
     row_count = len(df_all)
     ts_min = df_all["ts"].min()
@@ -64,6 +69,20 @@ def compact_day(timeframe: str, day: str, delete_parts: bool = True) -> dict:
     df_check = pd.read_parquet(out)
     ok = (len(df_check) == row_count) and (df_check["ts"].min() == ts_min) and (df_check["ts"].max() == ts_max)
 
+    # Extra verification for 15m global_x (only if we stamped it)
+    if tf == "15m" and "global_x" in df_all.columns:
+        start_gx = int(df_all["global_x"].iloc[0])
+        end_gx   = int(df_all["global_x"].iloc[-1])
+
+        # Ensure contiguous, monotonic global_x and that it's preserved on disk
+        gx_ok = (
+            df_check["global_x"].is_monotonic_increasing
+            and int(df_check["global_x"].iloc[0]) == start_gx
+            and int(df_check["global_x"].iloc[-1]) == end_gx
+            and (end_gx - start_gx + 1) == row_count
+        )
+        ok = ok and gx_ok
+        
     if ok and delete_parts:
         for p in parts:
             p.unlink()
@@ -72,7 +91,44 @@ def compact_day(timeframe: str, day: str, delete_parts: bool = True) -> dict:
         except OSError:
             pass
 
-    return {"ok": ok, "rows": row_count, "out": str(out)}
+    res = {"ok": ok, "rows": row_count, "out": str(out)}
+    if tf == "15m" and start_gx is not None:
+        res.update({"start_global_x": start_gx, "end_global_x": end_gx})
+    return res
+
+def _parquet_has_column(path: Path, col: str) -> bool:
+    """Fast schema check without loading the whole file."""
+    try:
+        import pyarrow.parquet as pq
+        return col in pq.ParquetFile(path).schema.names
+    except Exception:
+        # Fallback: try reading just the column; if it fails, it's missing.
+        try:
+            df = pd.read_parquet(path, columns=[col])
+            return col in df.columns
+        except Exception:
+            return False
+
+def _last_global_index(tf: str, day: str) -> int:
+    """Find last known global_x before this day."""
+    tf_dir = paths.DATA_DIR / tf
+    # All previous daily parquet files
+    prev = sorted(tf_dir.glob("*.parquet"))
+    prev_days = [p for p in prev if p.stem < day]
+    if not prev_days:
+        return -1
+    last_file = prev_days[-1]
+    if not _parquet_has_column(last_file, "global_x"):
+        return -1
+    
+    try:
+        # Read only the needed column
+        df = pd.read_parquet(last_file, columns=["global_x"])
+        if len(df) == 0:
+            return -1
+        return int(df["global_x"].max())
+    except Exception:
+        return -1
 
 def compact_month_objects(timeframe: str, year_month: str, delete_parts: bool = True) -> dict:
     """

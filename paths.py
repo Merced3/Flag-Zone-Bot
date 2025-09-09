@@ -141,12 +141,14 @@ Flag-Zone-Bot/
 │   ├── storage_unit_tests/
 │   │   ├── conftest.py
 │   │   ├── test_compaction.py
+│   │   ├── test_csv_to_parquet_days.py
 │   │   ├── test_parquet_writer.py
 │   │   └── test_viewport.py
 │   └── purpose.md
 ├── tools/
 │   ├── __init__.py
 │   ├── compact_parquet.py
+│   ├── csv_to_parquet_days.py
 │   ├── generate_structure.py
 │   └── plot_candles.py
 ├── utils/

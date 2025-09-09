@@ -34,6 +34,46 @@ def test_compact_day_deletes_parts_and_keeps_dayfile(tmp_storage, monkeypatch):
     # ensure ordering by ts
     assert list(df["ts"]) == sorted(df["ts"])
 
+    # NEW: 15m should have global_x, contiguous starting at 0 (no prior day)
+    assert "global_x" in df.columns
+    assert df["global_x"].tolist() == [0,1,2]
+
+def test_compact_day_global_x_continues_from_previous_day(tmp_storage, monkeypatch):
+    parquet_writer = importlib.import_module("storage.parquet_writer")
+    compactor = importlib.import_module("tools.compact_parquet")
+
+    tf = "15m"
+    prev_day = "2025-09-01"
+    curr_day = "2025-09-02"
+
+    # Seed 2 candles for prev_day -> parts
+    for ts in ["2025-09-01T09:30:00-04:00","2025-09-01T09:45:00-04:00"]:
+        parquet_writer.append_candle("SPY", tf, {
+            "timestamp": ts, "open":1, "high":2, "low":0.5, "close":1.5, "volume":100
+        })
+    # Compact prev_day so it gets global_x [0,1]
+    res_prev = compactor.compact_day(tf, prev_day, delete_parts=True)
+    assert res_prev["ok"]
+
+    # Seed 3 candles for curr_day -> parts
+    for ts in ["2025-09-02T09:30:00-04:00","2025-09-02T09:45:00-04:00","2025-09-02T10:00:00-04:00"]:
+        parquet_writer.append_candle("SPY", tf, {
+            "timestamp": ts, "open":1, "high":2, "low":0.5, "close":1.5, "volume":100
+        })
+
+    # Compact curr_day; it should continue from last global_x of prev_day (which ended at 1)
+    res_curr = compactor.compact_day(tf, curr_day, delete_parts=True)
+    assert res_curr["ok"]
+
+    # Verify continuity
+    prev_file = tmp_storage.DATA_DIR / tf / f"{prev_day}.parquet"
+    curr_file = tmp_storage.DATA_DIR / tf / f"{curr_day}.parquet"
+    df_prev = pd.read_parquet(prev_file)
+    df_curr = pd.read_parquet(curr_file)
+
+    assert df_prev["global_x"].tolist() == [0,1]
+    assert df_curr["global_x"].tolist() == [2,3,4]
+
 def test_compact_month_objects_deletes_parts(tmp_storage, monkeypatch):
     parquet_writer = importlib.import_module("storage.parquet_writer")
     compactor = importlib.import_module("tools.compact_parquet")
