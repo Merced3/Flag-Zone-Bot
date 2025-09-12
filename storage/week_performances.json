@@ -884,7 +884,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, data collection was good, we had the websocket fail once but promptly reconnected, other than that everything was good, still working on the global/local index of 15min candles, so that the objects can be based off of that and not large CSV files. Day 2, finally implemented the global index into the parquet 15m candles so that we can laterr base the objects on them and not large csv files, data collection was good, no issues. Day 3, still working on the objects storage, data collection was good, no issues.",
+        "description": "Day 1, data collection was good, we had the websocket fail once but promptly reconnected, other than that everything was good, still working on the global/local index of 15min candles, so that the objects can be based off of that and not large CSV files. Day 2, finally implemented the global index into the parquet 15m candles so that we can laterr base the objects on them and not large csv files, data collection was good, no issues. Day 3, still working on the objects storage, data collection was good, no issues. Day 4, data collection was good, no issues, wasn't able to work on the objects storage because of work (New Job + Uber).",
         "important_message_ids": []
     }
 
