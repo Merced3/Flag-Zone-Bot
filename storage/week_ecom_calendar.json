@@ -1,26 +1,25 @@
 {
-    "week_timespan": "09-15-25 to 09-21-25",
+    "week_timespan": "09-22-25 to 09-28-25",
     "dates": {
-        "09-16-25": {
-            "07:30 AM": [
-                "Inflation Rate YoY",
-                "Retail Sales MoM"
+        "09-23-25": {
+            "11:35 AM": [
+                "Fed Chair Powell Speech"
             ]
         },
-        "09-17-25": {
+        "09-25-25": {
             "07:30 AM": [
-                "Building Permits Prel",
-                "Housing Starts"
+                "Durable Goods Orders MoM",
+                "GDP Growth Rate QoQ Final"
             ],
-            "08:45 AM": [
-                "BoC Interest Rate Decision"
-            ],
-            "01:00 PM": [
-                "Fed Interest Rate Decision",
-                "FOMC Economic Projections"
-            ],
-            "01:30 PM": [
-                "Fed Press Conference"
+            "09:00 AM": [
+                "Existing Home Sales"
+            ]
+        },
+        "09-26-25": {
+            "07:30 AM": [
+                "Core PCE Price Index MoM",
+                "Personal Income MoM",
+                "Personal Spending MoM"
             ]
         }
     }

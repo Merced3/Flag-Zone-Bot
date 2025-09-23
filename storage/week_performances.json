@@ -898,6 +898,18 @@
         "num_of_negitive_trades": 0,
         "description": "Day 1, data collection was good, we had no issues, worked on the objects storage a little bit over the weekend, and still now, but haven't finished yet. Day 2, data collection was good, I think its at a reliable state now. Day 3, data collection was good, no issues, wasn't able to work on objects storage because I was meal prepping today. Day 4, data collection was good, got clearer vision of the plan, Ubered today so wasn't able to work on objects storage. Day 5, we had a data collection issue, 5M chart had a missing candle, We had a socket stalled for a sec and we have clock matching setup for the candles and the error happened right on the 5 min change time, it quickly resumed but after the 5 min clock window, were just missing one candle, which maked the data impure, other than that everything else was good, havent worked more on objects storage yet.",
         "important_message_ids": []
+    },
+    {
+        "week_number": 74,
+        "week_start_end_date": "09/22/2025-09/26/2025",
+        "start_ammount": 39174.0,
+        "end_ammount": 39174.0,
+        "total_made": 0.0,
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "Day 1, Data collection was good, no issues, I worked on the objects storage ALOT and its 3 in the morning of day 2, I think I have a good plan of how to implement it now, so the main meat and potatoes is built out, not running yet, but its at a really good point.",
+        "important_message_ids": []
     }
 
 ]
