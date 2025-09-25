@@ -908,7 +908,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, Data collection was good, no issues, I worked on the objects storage ALOT and its 3 in the morning of day 2, I think I have a good plan of how to implement it now, so the main meat and potatoes is built out, not running yet, but its at a really good point. Day 2, no websocket or windows ping errors, data collection was good, I'm currently working on the object's storage system, should be done by today, i just finished and its 3am (AGAIN, this shit sucks).",
+        "description": "Day 1, Data collection was good, no issues, I worked on the objects storage ALOT and its 3 in the morning of day 2, I think I have a good plan of how to implement it now, so the main meat and potatoes is built out, not running yet, but its at a really good point. Day 2, no websocket or windows ping errors, data collection was good, I'm currently working on the object's storage system, should be done by today, I just finished and its 3am (AGAIN, this shit sucks). Day 3, data collection was good, no issues, wasn't able to get the last step done for the objects storage because i fell asleep while doing it, i also finnaly have the work enivroment setup so that I can work on this project at work.",
         "important_message_ids": []
     }
 
