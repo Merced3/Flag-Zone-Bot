@@ -920,7 +920,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, no trades, still disabled, data collection was good, we did have one websocket stall but it quickly reconnected, led to no errors and no missing candles. Day 2, data collection was good, no issues, haven't worked on any code today but the last 2-3 days ive been working on setting up a really good foundation for the dcumentation side of things. Day 3, data collection good again, no issues, got the documentation done, just need to commit it since its on all the work computer, need to delete some files before i do that.",
+        "description": "Day 1, no trades, still disabled, data collection was good, we did have one websocket stall but it quickly reconnected, led to no errors and no missing candles. Day 2, data collection was good, no issues, haven't worked on any code today but the last 2-3 days ive been working on setting up a really good foundation for the dcumentation side of things. Day 3, data collection good again, no issues, got the documentation done, just need to commit it since its on all the work computer, need to delete some files before i do that. Day 4, no errors on data collection, good again.",
         "important_message_ids": []
     }
 
