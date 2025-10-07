@@ -1,23 +1,22 @@
 {
-    "week_timespan": "09-29-25 to 10-05-25",
+    "week_timespan": "10-06-25 to 10-12-25",
     "dates": {
-        "09-30-25": {
+        "10-07-25": {
             "09:00 AM": [
-                "JOLTs Job Openings"
+                "Ivey PMI s.a"
             ]
         },
-        "10-01-25": {
-            "09:00 AM": [
-                "ISM Manufacturing PMI"
+        "10-08-25": {
+            "01:00 PM": [
+                "FOMC Minutes"
             ]
         },
-        "10-03-25": {
+        "10-10-25": {
             "07:30 AM": [
-                "Non Farm Payrolls",
                 "Unemployment Rate"
             ],
             "09:00 AM": [
-                "ISM Services PMI"
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }
