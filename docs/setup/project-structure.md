@@ -36,9 +36,28 @@ Flag-Zone-Bot/
 │   ├── release-notes.md
 │   └── TOC.md
 ├── storage/
+│   ├── csv/
+│   │   └── order_log.csv
 │   ├── data/2m|5m|15m/...parquet
-│   ├── objects/...
-│   └── images/...
+│   ├── emas/
+│   │   ├── 2M.json
+│   │   ├── 5M.json
+│   │   ├── 15M.json
+│   │   └── ema_state.json
+│   ├── flags/
+│   │   ├── 2M.json
+│   │   ├── 5M.json
+│   │   └── 15M.json
+│   ├── images/
+│   │   ├── SPY_2M_chart.png
+│   │   ├── SPY_5M_chart.png
+│   │   ├── SPY_15M_chart.png
+│   │   └── SPY_15M-zone_chart.png
+│   ├── markers/
+│   │   ├── 2M.json
+│   │   ├── 5M.json
+│   │   └── 15M.json
+│   └── objects/...
 ├── web_dash/
 │   ├── __init__.py
 │   ├── dash_app.py
