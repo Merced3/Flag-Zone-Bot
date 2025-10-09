@@ -932,7 +932,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, Data collection was good but computer restarted near night, luckily. Day 2, luckily no auto-update and data collection was good, no issues.",
+        "description": "Day 1, Data collection was good but computer restarted near night, luckily. Day 2, luckily no auto-update and data collection was good, no issues. Day 3, data collection was good, no issues, been working on the new way to display objects on the frontend, about to finish the handling of the new parquet handling just havent gotten to it because work doesn't give me the time to work on it on there laptops but i am able to work on the displaying of however we handle it - at work, its trivial but something i can get done while working.",
         "important_message_ids": []
     }
 
