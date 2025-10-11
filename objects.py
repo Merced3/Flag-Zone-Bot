@@ -18,6 +18,8 @@ from storage.objects.io import (      # Parquet-backed storage helpers
     build_asof_snapshot_from_timeline,# idem
     load_current_objects
 )
+import pytz
+from tools.compact_parquet import _last_global_index
 
 # What zones mean:
 # 🔁 Support = “Too few sellers to push lower”
@@ -657,6 +659,86 @@ async def pull_and_replace_15m(days_back: int = 1):
     # ✅ Finally: push it all to the display file
     # TODO: display_json_update("all") Change this to something... later on, when your at that point.
     print_log(f"[pull_and_replace_15m] Timeline + objects updated.")
+
+async def create_daily_15m_parquet(file_day_name: str):
+    """
+    Pull 15M MARKET candles for the given day (NY time) from Polygon and write:
+        storage/data/15m/<YYYY-MM-DD>.parquet
+    Schema/Order:
+        symbol, timeframe, ts, open, high, low, close, volume, global_x
+
+    If `day` is None, uses today's NY trading day via get_dates(1, True).
+    Returns the output file Path.
+    """
+
+    symbol = read_config("SYMBOL")
+    tf_label = "15M"
+    
+    # 2) Pull 15M MARKET candles for that day(s)
+    start_str, end_str = get_dates(1, True)
+    df = await get_certain_candle_data(
+        cred.POLYGON_API_KEY,
+        symbol,
+        15, "minute",
+        start_str, end_str,
+        None,
+        market_type="MARKET",
+        indent_lvl=0
+    )
+    if df is None or df.empty:
+        print_log(f"[create_daily_15m_parquet] No data for {file_day_name}.")
+        return None
+
+    df.sort_values("timestamp", inplace=True)
+
+    print_log(f"[create_daily_15m_parquet] Pulled '{len(df)}' rows for '{file_day_name}'.\n\n{df}\n")
+
+    # 3) Ensure tz-aware NY timestamps -> ISO with offset for 'ts'
+    #    (data_acquisition already converts to America/New_York tz)
+    if df["timestamp"].dt.tz is None:
+        df["timestamp"] = df["timestamp"].dt.tz_localize(pytz.timezone("America/New_York"))
+    ts_iso = df["timestamp"].apply(lambda ts: ts.isoformat())
+
+    # 4) Build output DataFrame in required order
+    volume_series = pd.Series(0, index=df.index, dtype="float64") # force all-zero volume as float64
+    out_df = pd.DataFrame({
+        "symbol":   symbol,
+        "timeframe": tf_label,
+        "ts":        ts_iso,
+        "open":      df["open"].astype(float),
+        "high":      df["high"].astype(float),
+        "low":       df["low"].astype(float),
+        "close":     df["close"].astype(float),
+        "volume":    volume_series,
+    })
+
+    # 5) Stamp continuous global_x for 15m by peeking at last file
+    out_dir = DATA_DIR / "15m"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_file = out_dir / f"{file_day_name}.parquet"
+
+    last_global = _last_global_index(tf_label.lower(), file_day_name)
+    start_gx = last_global + 1
+    out_df["global_x"] = range(start_gx, start_gx + len(out_df))
+
+    # 6) Atomic-ish write
+    tmp = out_file.with_suffix(out_file.suffix + ".tmp")
+    out_df.to_parquet(tmp, index=False)
+    tmp.replace(out_file)
+
+    # 7) Verify
+    check = pd.read_parquet(out_file)
+    ok = (
+        len(check) == len(out_df)
+        and check["ts"].min() == out_df["ts"].min()
+        and check["ts"].max() == out_df["ts"].max()
+        and check["global_x"].is_monotonic_increasing
+        and int(check["global_x"].iloc[0]) == start_gx
+        and int(check["global_x"].iloc[-1]) == start_gx + len(out_df) - 1
+    )
+    print_log(f"[create_daily_15m_parquet] → {'OK' if ok else 'WARN'} "
+              f"{len(out_df)} rows → `{pretty_path(out_file)}`")
+    return out_file
 
 """
 # How to run

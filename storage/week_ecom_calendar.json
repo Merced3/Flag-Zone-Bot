@@ -1,26 +1,22 @@
 {
-    "week_timespan": "09-15-25 to 09-21-25",
+    "week_timespan": "10-06-25 to 10-12-25",
     "dates": {
-        "09-16-25": {
-            "07:30 AM": [
-                "Inflation Rate YoY",
-                "Retail Sales MoM"
+        "10-07-25": {
+            "09:00 AM": [
+                "Ivey PMI s.a"
             ]
         },
-        "09-17-25": {
-            "07:30 AM": [
-                "Building Permits Prel",
-                "Housing Starts"
-            ],
-            "08:45 AM": [
-                "BoC Interest Rate Decision"
-            ],
+        "10-08-25": {
             "01:00 PM": [
-                "Fed Interest Rate Decision",
-                "FOMC Economic Projections"
+                "FOMC Minutes"
+            ]
+        },
+        "10-10-25": {
+            "07:30 AM": [
+                "Unemployment Rate"
             ],
-            "01:30 PM": [
-                "Fed Press Conference"
+            "09:00 AM": [
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }
