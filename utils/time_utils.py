@@ -1,7 +1,16 @@
 # utils/time_utils.py, Candlestick time calc, add_seconds_to_time, etc.
+from __future__ import annotations
+from typing import Union
+import pandas as pd
+
 import pytz
 from datetime import datetime, timedelta
 import time
+
+from pathlib import Path
+from typing import Optional, Iterable
+
+# ───🔹 CANDLESTICK TIMESTAMP-MATCH FOR MAIN SCRIPT ────────────────────────
 
 def generate_candlestick_times(start_time, end_time, interval, exclude_first=False):
     new_york_tz = pytz.timezone('America/New_York')
@@ -22,11 +31,26 @@ def add_seconds_to_time(time_str, seconds):
     new_time_obj = time_obj + timedelta(seconds=seconds)
     return new_time_obj.strftime('%H:%M:%S')
 
-def to_unix_timestamp(year, month, day, hour, minute, second=0):
-    dt = datetime(year, month, day, hour, minute, second)
-    return int(time.mktime(dt.timetuple()) * 1000)  # Convert to milliseconds
+# ───🔹 TS CONVERSION HELPERS ─────────────────────────────────────────────
 
-def convert_unix_timestamp_to_time(unix_timestamp, timezone_offset=-5):
-    time = datetime.utcfromtimestamp(unix_timestamp / 1000) + timedelta(hours=timezone_offset)
-    return time.strftime('%m/%d %H:%M:%S')
+def to_ms(val: Union[str, int, float, pd.Timestamp]) -> int:
+    """
+    Convert ISO string / pandas Timestamp / seconds / ms to int64 ms (UTC-aware).
+    - ISO strings or Timestamps -> epoch ms
+    - Numbers: assume seconds if < 10^12, else already ms
+    """
+    if isinstance(val, pd.Timestamp):
+        ts = val
+    elif isinstance(val, (int, float)):
+        # seconds vs ms
+        ts = pd.to_datetime(int(val * 1000 if val < 1_000_000_000_000 else val), unit="ms", utc=True)
+    else:
+        # string like "2025-09-22T15:15:00.505969-04:00"
+        ts = pd.to_datetime(val, utc=True)
 
+    # return epoch ms (int)
+    return int(ts.value // 1_000_000)
+
+def to_iso(ms: int) -> str:
+    """int64 ms -> ISO8601 string with 'Z' (UTC)."""
+    return pd.to_datetime(ms, unit="ms", utc=True).isoformat().replace("+00:00", "Z")

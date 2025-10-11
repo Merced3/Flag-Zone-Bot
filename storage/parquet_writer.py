@@ -5,22 +5,26 @@ from typing import Optional
 import pandas as pd
 import paths                      # <- central paths
 #from storage.duck import conn     # <- single DuckDB connection
+from utils.time_utils import to_ms, to_iso 
 
 def _safe_file_name_from_iso(ts_iso: str) -> str:
     # Create a stable-ish unique suffix (avoid ':' for Windows paths)
     return ts_iso.replace(":", "").replace("-", "").replace("T", "_").replace("+", "").replace("Z","")
 
-def _day_from_iso(ts_iso: str) -> str:
-    # "2025-09-02T09:45:00-04:00" -> "2025-09-02"
-    return ts_iso[:10]  # 'YYYY-MM-DD'
+def _day_from_ms(ts_ms: int) -> str:
+    return pd.to_datetime(ts_ms, unit="ms").strftime("%Y-%m-%d")
 
 def append_candle(symbol: str, timeframe: str, candle: dict):
     """
     Append one finalized candle by writing a 1-row parquet file into:
       storage/data/<tf>/<YYYY-MM-DD>/part-*.parquet
     """
-    ts = candle["timestamp"]
-    day = _day_from_iso(ts)
+
+    # Normalize whatever we get to int64 ms + a readable ISO
+    ts_ms  = to_ms(candle["timestamp"])          # <— normalized int64 ms
+    ts_iso = to_iso(ts_ms)                        # <— stable, UTC ISO for humans/tools
+
+    day = _day_from_ms(ts_ms)
     day_dir = paths.DATA_DIR / timeframe.lower() / day
     day_dir.mkdir(parents=True, exist_ok=True)
 
@@ -28,7 +32,8 @@ def append_candle(symbol: str, timeframe: str, candle: dict):
     df = pd.DataFrame([{
         "symbol": symbol,
         "timeframe": timeframe,
-        "ts": ts,
+        "ts":        ts_ms,                       # <— canonical time
+        "ts_iso":    ts_iso,                      # <— convenience for humans/tools
         "open": float(candle.get("open", 0)),
         "high": float(candle.get("high", 0)),
         "low": float(candle.get("low", 0)),
@@ -37,7 +42,7 @@ def append_candle(symbol: str, timeframe: str, candle: dict):
     }])
 
     # unique file per row
-    out = day_dir / f"part-{_safe_file_name_from_iso(ts)}-{uuid.uuid4().hex[:8]}.parquet"
+    out = day_dir / f"part-{_safe_file_name_from_iso(ts_iso)}-{uuid.uuid4().hex[:8]}.parquet"
     df.to_parquet(out, index=False)
 
 def append_object_event(

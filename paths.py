@@ -21,6 +21,9 @@ DATA_DIR = STORAGE_DIR / 'data'                                         # This i
 
 # Objects folder
 OBJECTS_DIR = STORAGE_DIR / 'objects'                                   # The `storage/objects/` folder contains zones and levels calculated by `objects.py`. We consider Zones and Levels as objects.
+CURRENT_OBJECTS_DIR = OBJECTS_DIR / 'current'                           # This is needed, this is where all current objects are stored, these are the objects used in frontend (displaying) and most importantly in trading strategies.
+TIMELINE_OBJECTS_DIR = OBJECTS_DIR / 'timeline'                         # This is needed, this is where all previous days objects are stored, these are not used in live trading but is for (not yet used) in the sim enviroment and `tools/plot_candles.py` to display previous days objects and hopefully, the zones historical frontend chart (one day, not yet).
+CURRENT_OBJECTS_PATH = CURRENT_OBJECTS_DIR / "objects.parquet"
 OBJECTS_PATH = OBJECTS_DIR / 'objects.json'                             # This is needed, this is not only used in main-live functionality but in sim enviroment as well. `web_dash/charts/zones_chart.py` uses this to plot zones and levels which are objects saved in this very file. We also use it to display objects in the sim enviroment which is `tools/plot_objects.py`.
 TIMELINE_PATH = OBJECTS_DIR / 'timeline.json'                           # This is needed, this is a timeline of all objects created from previous days, we used `SPY_15_MINUTE_CANDLES_PATH` and `objects.py` to calculate the objects history and it shows the history in `tools/plot_candles.py`. Its not used though in the `web_dash/charts/zones_chart.py`. This is mainly a simulation tools history, using it to display to `tools/plot_candles.py` (hand built zones/levels simulation).
 
@@ -62,6 +65,7 @@ SPY_15M_ZONE_CHART_PATH = IMAGES_DIR / 'SPY_15M-zone_chart.png'         # Histor
 def get_chart_path(timeframe: str, zone_type: bool = False) -> Path:
     """
     Returns the path to the chart image for a given timeframe.
+    
     Example:
       get_chart_path("2M")          → storage/images/SPY_2M_chart.png
       get_chart_path("15M", True)   → storage/images/SPY_15M-zone_chart.png
@@ -76,117 +80,3 @@ def pretty_path(path: Path, short: bool = True):                        # We pri
         return path.relative_to(BASE) if not short else path.name
     except ValueError:
         return path.name
-    
-
-# FULL PROJECT STRUCTURE
-"""
-Flag-Zone-Bot/
-├── .git/
-├── .github/
-│   └── workflows/
-│       └── python-ci.yml
-├── __pycache__/
-├── docs/
-│   ├── adr/
-│   │   └── 0001-separate-frontend-from-backend.md
-│   └── TOC.md
-├── indicators/
-│   ├── ema_manager.py
-│   └── flag_manager.py
-├── logs/
-│   ├── log files... # *SPY_2M.log, SPY_5M.log, SPY_15M.log*
-│   └── terminal_output.log
-├── states/
-├── storage/
-│   ├── csv/ 
-│   │   ├── order_log.csv
-│   │   └── SPY_15_minute_candles.csv
-│   ├── data/
-│   │   ├── 2m/
-│   │   │   └── 2025-09-02.parquet
-│   │   ├── 5m/
-│   │   │   └── 2025-09-02.parquet
-│   │   └── 15m/
-│   │       └── 2025-09-02.parquet
-│   ├── emas/
-│   │   ├── 2M.json
-│   │   ├── 5M.json
-│   │   └── 15M.json
-│   ├── flags/ 
-│   │   ├── 2M.json
-│   │   ├── 5M.json
-│   │   └── 15M.json
-│   ├── images/
-│   │   ├── SPY_2M_chart.png
-│   │   ├── SPY_5M_chart.png
-│   │   ├── SPY_15M_chart.png
-│   │   └── SPY_15M-zone_chart.png
-│   ├── markers/ 
-│   │   ├── 2M.json
-│   │   ├── 5M.json
-│   │   └── 15M.json
-│   ├── objects/ 
-│   │   │   └── 15m/
-│   │   ├── objects.json
-│   │   └── timeline.json 
-│   ├── duck.py
-│   ├── message_ids.json
-│   ├── parquet_writer.py
-│   ├── viewport.py
-│   ├── week_ecom_calendar.json
-│   └── week_performances.json
-├── strategies/
-│   └── trading_strategy.py
-├── tests/
-│   ├── storage_unit_tests/
-│   │   ├── conftest.py
-│   │   ├── test_compaction.py
-│   │   ├── test_csv_to_parquet_days.py
-│   │   ├── test_parquet_writer.py
-│   │   └── test_viewport.py
-│   └── purpose.md
-├── tools/
-│   ├── __init__.py
-│   ├── compact_parquet.py
-│   ├── csv_to_parquet_days.py
-│   ├── generate_structure.py
-│   └── plot_candles.py
-├── utils/
-│   ├── __pycache__/
-│   ├── data_utils.py
-│   ├── ema_utils.py
-│   ├── file_utils.py
-│   ├── json_utils.py
-│   ├── log_utils.py
-│   ├── order_utils.py
-│   └── time_utils.py
-├── venv/
-├── web_dash/
-│   ├── __init__.py
-│   ├── dash_app.py
-│   ├── chart_updater.py
-│   ├── ws_server.py
-│   ├── about_this_dash_folder.txt
-│   ├── charts/
-│   │   ├── live_chart.py
-│   │   └── zones_chart.py
-│   └── assets/
-├── .gitignore
-├── buy_option.py
-├── config.json
-├── cred.py
-├── data_acquisition.py
-├── economic_calender_scraper.py
-├── error_handler.py
-├── main.py
-├── objects.py
-├── order_handler.py
-├── paths.py #*THIS*
-├── print_discord_messages.py
-├── README.md   
-├── requirements.txt
-├── rule_manager.py
-├── sentiment_engine.py
-├── shared_state.py
-└── submit_order.py
-"""

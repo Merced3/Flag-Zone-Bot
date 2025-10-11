@@ -14,6 +14,8 @@ import paths  # centralized paths  (storage/, data/, objects/, etc.)
 import json
 
 """
+Luckily This will only need to be run once (or very rarely).
+
 How you’ll use it:
 
 - Convert the entire CSV (with global_x):

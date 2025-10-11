@@ -18,7 +18,7 @@ from order_handler import get_profit_loss_orders_list, reset_profit_loss_orders_
 import data_acquisition
 import asyncio
 from datetime import datetime, timedelta
-from objects import process_end_of_day_15m_candles
+from objects import process_end_of_day_15m_candles_for_objects
 import httpx
 import cred
 import json
@@ -353,7 +353,6 @@ async def process_end_of_day():
 
     #await send_file_discord(MARKERS_PATH)
     await send_file_discord(TERMINAL_LOG)
-    process_end_of_day_15m_candles()
 
     # 4. Administrative/config updates (do this last so nothing breaks mid-report)
     update_config_value('START_OF_DAY_BALANCE', end_of_day_account_balance)
@@ -367,6 +366,7 @@ async def process_end_of_day():
     ny = pytz.timezone('America/New_York')
     day = datetime.now(ny).strftime("%Y-%m-%d")
     end_of_day_compaction(day, TFs=["2m","5m","15m"])
+    process_end_of_day_15m_candles_for_objects()
 
 async def shutdown(loop):
     """Shutdown tasks and the Discord bot."""

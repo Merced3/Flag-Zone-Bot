@@ -20,3 +20,18 @@ We use **pytest** to ensure critical components work correctly as the system evo
 - Prove that our storage layer works independently of the live bot.
 - Verify that compaction safely funnels millions of small files into clean daily/monthly archives.
 - Make the repo more professional (CI/CD and résumé value).
+
+## How to run
+
+```bash
+How to run these tests
+
+- Run just a file:
+    python -m pytest -q tests/storage_unit_tests/<script_name>.py -s
+
+- Run all storage tests:
+    python -m pytest -q tests/storage_unit_tests -s
+
+- If you’re on PowerShell and prefer explicit paths:
+    pytest -q .\tests\storage_unit_tests\<script_name>.py -s
+```

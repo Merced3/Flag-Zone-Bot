@@ -4,6 +4,7 @@ import duckdb
 from typing import Optional, Tuple
 import pandas as pd
 import paths  # <-- use centralized paths
+from utils.time_utils import to_ms
 
 def _candles_glob(timeframe: str) -> str:
     # picks up day files AND parts (recursive)
@@ -23,16 +24,19 @@ def load_viewport(
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     con = duckdb.connect(":memory:")
 
+    # Convert ISO bounds → int64 ms to match candles.ts
+    t0_ms = to_ms(t0_iso)
+    t1_ms = to_ms(t1_iso)
+
     df_candles = con.execute("""
         SELECT symbol, timeframe, ts, open, high, low, close, volume
         FROM read_parquet(?)
         WHERE symbol = ? AND timeframe = ? AND ts BETWEEN ? AND ?
         ORDER BY ts
-    """, [_candles_glob(timeframe), symbol, timeframe, t0_iso, t1_iso]).fetch_df()
+    """, [_candles_glob(timeframe), symbol, timeframe, t0_ms, t1_ms]).fetch_df()
 
-    # Objects (parameterize everything; keep order aligned with placeholders)
+    # Objects still use ISO in parquet; keep these as ISO comparisons
     price_clause = ""
-    # Base params: glob, symbol, timeframe, t1(for event_ts), t1(for coalesce), t0
     params = [_objects_glob(timeframe), symbol, timeframe, t1_iso, t1_iso, t0_iso]
     if y0 is not None and y1 is not None:
         price_clause = " AND y_max >= ? AND y_min <= ?"
@@ -52,7 +56,7 @@ def load_viewport(
         SELECT object_id, object_type, action, t_start, t_end, y_min, y_max, payload
         FROM last_state
         WHERE rn = 1
-            AND COALESCE(t_end, ?) >= ?
+          AND COALESCE(t_end, ?) >= ?
         {price_clause}
     """, params).fetch_df()
 

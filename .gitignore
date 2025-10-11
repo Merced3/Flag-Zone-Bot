@@ -17,9 +17,12 @@ cred.py
 storage/emas/
 storage/flags/
 storage/markers/
-storage/objects/
+storage/objects/current/
+storage/objects/timeline/
 storage/csv/
 storage/data/
+storage/data 2/
+# This (storage/data 2/) is specifically for the work computer version
 
 # Keep these JSONs tracked if needed
 !storage/message_ids.json

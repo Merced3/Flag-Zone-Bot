@@ -2,7 +2,7 @@
 from pathlib import Path
 import sys
 
-# Ensure repo root (where paths.py lives) is on sys.path
+# Ensure repo root (where paths.py AND utils lives) is on sys.path
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -49,32 +49,55 @@ def compact_day(timeframe: str, day: str, delete_parts: bool = True) -> dict:
     if not parts:
         return {"ok": False, "reason": f"no parts for {tf} {day}"}
 
+    # Read and concat all parts
     dfs = [pd.read_parquet(p) for p in parts]
-    df_all = pd.concat(dfs, ignore_index=True).sort_values("ts")
+    df_all = pd.concat(dfs, ignore_index=True) # pd.concat(dfs, ignore_index=True).sort_values("ts")
     
+   # Choose best sort key (prefer int64 ms 'ts'; else fall back to 'ts_iso')
+    if "ts" in df_all.columns and pd.api.types.is_integer_dtype(df_all["ts"]):
+        sort_key = "ts"
+    elif "ts_iso" in df_all.columns:
+        sort_key = "ts_iso"
+    else:
+        # last resort: keep input order (shouldn’t happen with our writers)
+        sort_key = None
+
+    if sort_key:
+        df_all = df_all.sort_values(sort_key)
+    
+    # If this is 15m, stamp contiguous global_x continuing from previous day
+    start_gx = end_gx = None
     if tf == "15m":
-        last_idx = _last_global_index(tf, day)
+        last_idx = _last_global_index(tf, day) # -1 if none
         start = last_idx + 1
         df_all["global_x"] = range(start, start + len(df_all))
+        start_gx = int(df_all["global_x"].iloc[0])
+        end_gx   = int(df_all["global_x"].iloc[-1])
 
-    # Basic verification
+    # Basic verification (handle both ts or ts_iso)
     row_count = len(df_all)
-    ts_min = df_all["ts"].min()
-    ts_max = df_all["ts"].max()
+    if "ts" in df_all.columns:
+        ts_min = df_all["ts"].min()
+        ts_max = df_all["ts"].max()
+    elif "ts_iso" in df_all.columns:
+        ts_min = df_all["ts_iso"].min()
+        ts_max = df_all["ts_iso"].max()
+    else:
+        ts_min = ts_max = None
 
+    # Single atomic write
     out = paths.DATA_DIR / tf / f"{day}.parquet"
     _write_atomic(df_all, out)
 
     # Verify write-back by re-reading
     df_check = pd.read_parquet(out)
-    ok = (len(df_check) == row_count) and (df_check["ts"].min() == ts_min) and (df_check["ts"].max() == ts_max)
+    ok = len(df_check) == row_count
+    if ts_min is not None:
+        key = "ts" if "ts" in df_all.columns else "ts_iso"
+        ok = ok and (df_check[key].min() == ts_min) and (df_check[key].max() == ts_max)
 
     # Extra verification for 15m global_x (only if we stamped it)
     if tf == "15m" and "global_x" in df_all.columns:
-        start_gx = int(df_all["global_x"].iloc[0])
-        end_gx   = int(df_all["global_x"].iloc[-1])
-
-        # Ensure contiguous, monotonic global_x and that it's preserved on disk
         gx_ok = (
             df_check["global_x"].is_monotonic_increasing
             and int(df_check["global_x"].iloc[0]) == start_gx
@@ -83,6 +106,7 @@ def compact_day(timeframe: str, day: str, delete_parts: bool = True) -> dict:
         )
         ok = ok and gx_ok
         
+    # Cleanup
     if ok and delete_parts:
         for p in parts:
             p.unlink()
