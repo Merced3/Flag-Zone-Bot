@@ -19,6 +19,8 @@ storage/flags/
 storage/markers/
 storage/objects/current/
 storage/objects/timeline/
+storage/objects/objects.json
+storage/objects/timeline.json
 storage/csv/
 storage/data/
 
