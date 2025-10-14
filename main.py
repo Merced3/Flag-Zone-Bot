@@ -10,7 +10,7 @@ from storage.parquet_writer import append_candle
 from tools.compact_parquet import end_of_day_compaction
 import shared_state
 from indicators.flag_manager import clear_all_states
-from strategies.trading_strategy import execute_trading_strategy
+#from strategies.trading_strategy import execute_trading_strategy
 from economic_calender_scraper import ensure_economic_calendar_data, setup_economic_news_message
 from print_discord_messages import bot, print_discord, send_file_discord, calculate_day_performance
 from error_handler import error_log_and_discord_message
