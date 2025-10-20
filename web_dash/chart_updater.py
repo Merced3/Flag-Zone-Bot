@@ -18,7 +18,7 @@ def update_chart(timeframe="2M", chart_type="live", notify=False):
     """
     # Build a clean figure for static export
     if chart_type == "zones":
-        fig = _as_figure(generate_zones_chart())
+        fig = _as_figure(generate_zones_chart("15M"))
         out = get_chart_path(timeframe, zone_type=True)
 
         # Guardrails for zones (categorical x)
