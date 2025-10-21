@@ -110,6 +110,27 @@ def _replace_with_retries(src: Path, dst: Path, *, attempts: int = 8, delay: flo
     # If we get here, surface the last error (helps debug a real lock)
     raise last_err
 
+def _normalize_ts(df: pd.DataFrame) -> pd.DataFrame:
+    if "ts_iso" in df.columns:
+        ts = pd.to_datetime(df["ts_iso"], errors="coerce", utc=True)
+    else:
+        s = pd.to_numeric(df.get("ts"), errors="coerce")
+        ts = pd.to_datetime(s, unit="ms", errors="coerce", utc=True)
+    df["ts"] = ts.dt.tz_convert(None)
+    return df
+
+def read_current_objects(symbol: str | None = None, timeframe: str | None = None) -> pd.DataFrame:
+    p = Path(paths.OBJECTS_DIR) / "current" / "objects.parquet"
+    if not p.exists():
+        return pd.DataFrame()
+    df = pd.read_parquet(p)
+    df = _normalize_ts(df)
+    if symbol and "symbol" in df.columns:
+        df = df[df["symbol"] == symbol]
+    if timeframe and "timeframe" in df.columns:
+        df = df[df["timeframe"].astype(str).str.lower() == timeframe.lower()]
+    return df.sort_values("ts").reset_index(drop=True)
+
 # ───🔹 WRITERS / UPSERTS ────────────────────────────────────────────────
 
 def write_current_objects(df: pd.DataFrame) -> None:
@@ -127,7 +148,6 @@ def write_current_objects(df: pd.DataFrame) -> None:
     
     # 2) atomic replace with Windows-friendly retries
     _replace_with_retries(tmp, out)
-
 
 def upsert_current_objects(changes: pd.DataFrame) -> None:
     # normalize incoming

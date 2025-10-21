@@ -1,4 +1,5 @@
-# web_dash/dash_app.py # python web_dash/dash_app.py
+# web_dash/dash_app.py 
+# Run Frontend: "python web_dash/dash_app.py"
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))

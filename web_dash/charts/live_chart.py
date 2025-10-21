@@ -10,38 +10,42 @@ from utils.json_utils import read_config
 from paths import get_ema_path
 from utils.ema_utils import load_ema_json
 from storage.viewport import load_viewport
+from storage.objects.io import read_current_objects
 
 _BAR_MINUTES_RE = re.compile(r"(\d+)\s*[mM]")
 
 def _bar_minutes(tf: str) -> int:
-    m = _BAR_MINUTES_RE.match(tf)
-    if not m:
-        raise ValueError(f"Unrecognized timeframe label: {tf}")
-    return int(m.group(1))
+    m = _BAR_MINUTES_RE.match(str(tf))
+    return int(m.group(1)) if m else 1  # default to 1 minute if weird tf
 
-def _iso(dt: pd.Timestamp) -> str:
-    # viewport wants ISO-like strings
-    return pd.Timestamp(dt).isoformat()
+def _coerce_pos_int(val, default: int) -> int:
+    try:
+        n = int(float(val))
+        return n if n > 0 else default
+    except (TypeError, ValueError):
+        return default
+
+def _pick_bars_limit(timeframe: str, default: int = 600) -> int:
+    cfg = read_config("LIVE_BARS") or {}
+    # tolerate casing differences: "15M" vs "15m"
+    v = cfg.get(timeframe)
+    if v is None:
+        v = cfg.get(timeframe.upper())
+    if v is None:
+        v = cfg.get(timeframe.lower())
+    return _coerce_pos_int(v, default)
 
 def generate_live_chart(timeframe: str):
     symbol = read_config("SYMBOL")
 
-    # ---- Step 1: Read candles from Parquet via viewport with a limiter ----
-    # Allow override in config: "LIVE_BARS": {"2M": 600, "5M": 600, "15M": 600}
-    cfg_nmap = read_config("LIVE_BARS") or {}
-    bars_limit = int(cfg_nmap.get(timeframe, 600))
-
+    bars_limit = _pick_bars_limit(timeframe, default=600)
     tf_min = _bar_minutes(timeframe)
+
     t1 = pd.Timestamp.now()
     t0 = t1 - pd.Timedelta(minutes=bars_limit * tf_min)
 
     try:
-        df_candles, df_objects = load_viewport(
-            symbol=symbol,
-            timeframe=timeframe,   # pass exact label as your folder/timeframe label
-            t0_iso=_iso(t0),
-            t1_iso=_iso(t1),
-        )
+        df_candles, df_objects = load_viewport(symbol, timeframe, t0.isoformat(), t1.isoformat())
 
         if df_candles is None or df_candles.empty or "ts" not in df_candles.columns:
             raise ValueError("No candle data found.")

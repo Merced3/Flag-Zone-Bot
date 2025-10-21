@@ -8,21 +8,15 @@ from storage.viewport import load_viewport
 
 DEFAULT_DAYS = 15  # UI can override later
 
-def _iso(dt: pd.Timestamp) -> str:
-    # Keep it simple; viewport expects ISO-like strings
-    return pd.Timestamp(dt).isoformat()
-
 def generate_zones_chart(timeframe: str = "15M", days: int = DEFAULT_DAYS):
     symbol = read_config("SYMBOL")
     t1 = pd.Timestamp.now()
     t0 = t1 - pd.Timedelta(days=days)
 
-    df_candles, df_objects = load_viewport(
-        symbol=symbol,
-        timeframe=timeframe,   # pass exactly as in config; no case-munging
-        t0_iso=_iso(t0),
-        t1_iso=_iso(t1),
-    )
+    df_candles, df_objects = load_viewport(symbol, timeframe, t0.isoformat(), t1.isoformat())
+    if df_candles.empty:
+        fig = go.Figure().update_layout(title=f"Zones {timeframe} — no data", height=700)
+        return dcc.Graph(figure=fig, style={"height": "700px"})
 
     fig = go.Figure()
 
