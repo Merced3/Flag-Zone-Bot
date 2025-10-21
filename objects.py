@@ -5,21 +5,23 @@ from shared_state import print_log
 from data_acquisition import get_certain_candle_data
 import cred
 import asyncio
+from pathlib import Path
 from datetime import datetime
 from utils.data_utils import get_dates
-from utils.log_utils import read_log_to_df
 from utils.json_utils import read_config
-from paths import pretty_path, TIMELINE_OBJECTS_DIR, SPY_15_MINUTE_CANDLES_PATH, DATA_DIR
+from paths import pretty_path, TIMELINE_OBJECTS_DIR, DATA_DIR
 from storage.objects.io import (      # Parquet-backed storage helpers
     append_timeline_events,
     upsert_current_objects,
     query_current_by_y_range,         # if you want to call from here/UI
     query_current_by_y_and_x,         # idem
     build_asof_snapshot_from_timeline,# idem
-    load_current_objects
+    load_current_objects,
+    write_current_objects,
 )
 import pytz
 from tools.compact_parquet import _last_global_index
+from tools.normalize_ts_all import normalize_file
 
 # What zones mean:
 # 🔁 Support = “Too few sellers to push lower”
@@ -573,92 +575,205 @@ def get_objects():
         pass
     return [], []   # <- ensure callers always get two lists
 
-async def pull_and_replace_15m(days_back: int = 1):
+def _read_day_ts_series(day_path: Path) -> pd.Series:
+    """Read a dayfile's ts as tz-aware NY datetimes, sorted ascending."""
+    df = pd.read_parquet(day_path, columns=["ts"]).sort_values("ts")
+    ts = df["ts"]
+    # normalize to tz-aware UTC then to NY
+    if pd.api.types.is_integer_dtype(ts) or pd.api.types.is_float_dtype(ts):
+        ts = pd.to_datetime(ts, unit="ms", utc=True)
+    else:
+        ts = pd.to_datetime(ts, utc=True)
+    return ts.dt.tz_convert("America/New_York").reset_index(drop=True)
+
+def _find_missing_15m_intervals(ts_series: pd.Series) -> list[pd.Timestamp]:
     """
-    RUN 15 after market closed, because of current polygon subscription plan.
-
-    The purpose of this is to run after 15 mins of market close so that, you the manual user
-    can fix whatever days data incase, wifi or power goes out, websocket/candle data collection 
-    was interupted or corrupted, its for when the live 15 min data might be incorrect and we
-    need some better accuracy. this is so that you remember.
+    Return the list of EXPECTED timestamps missing between consecutive rows,
+    assuming perfect 15m cadence starting from the series' first timestamp.
     """
+    if ts_series.empty:
+        return []
 
-    # TODO: **CLEAR DATA** before pulling new data, so we dont have duplicates.
-    # - Delete the 15m parquet file for today
-    # - Delete the 15m csv file entry for today
-    # - Delete the steps generated in both timelines, parquet and json, for today
-    # - Delete everything in both objects.json and current parquet snapshot. Since timeline will be "re-created" from scratch.
+    missing = []
+    prev = ts_series.iloc[0]
+    # Optional: sanity that first candle aligns on :00/:15/:30/:45
+    # and commonly starts 09:30 NY. We don't fail on this — cadence is king.
+    for curr in ts_series.iloc[1:]:
+        delta = curr - prev
+        step = pd.Timedelta(minutes=15)
+        if delta > step:
+            # generate all missing stamps between prev and curr (exclusive)
+            t = prev + step
+            while t < curr:
+                missing.append(t)
+                t += step
+        prev = curr
+    return missing
 
-    start, end = get_dates(days_back, True) #  go back to this (1, True) after were done finishing the timeline/object upload
-    df = await get_certain_candle_data(
-        cred.POLYGON_API_KEY,
-        read_config('SYMBOL'),
-        15, "minute",
-        start, end,
-        None,  # Don't save to anything
-        market_type="MARKET",
-        indent_lvl=0
-    )
-
-    if df is None or df.empty:
-        print_log("[pull_and_replace_15m] No data returned.")
+def _rebuild_current_snapshot_asof_day(cutoff_day: str) -> None:
+    """
+    Rebuild CURRENT snapshot from all timeline files with YYYY-MM-DD <= cutoff_day.
+    Ignores 'step' vs 'day_step' and uses time ordering to pick each object's last state.
+    """
+    # collect all timeline parts up to cutoff day
+    parts = [p for p in TIMELINE_OBJECTS_DIR.rglob("*.parquet") if p.stem <= cutoff_day]
+    if not parts:
+        # write empty snapshot
+        write_current_objects(pd.DataFrame(columns=[
+            "id","type","left","y","top","bottom","status","symbol","timeframe",
+            "created_ts","updated_ts","created_step","updated_step"
+        ]))
+        print_log(f"[HEAL] No timeline <= {cutoff_day}; wrote empty current snapshot.")
         return
 
-    # ✅ Only keep OCHL + the GOOD timestamp
-    df['timestamp'] = df['timestamp'].dt.strftime("%Y-%m-%d %H:%M:%S")
-    df = df[['timestamp', 'open', 'close', 'high', 'low']]
-    df.sort_values("timestamp", inplace=True)
-    df.set_index("timestamp", inplace=True)
+    cols_keep = [
+        "object_id","type","left","y","top","bottom","status","symbol","timeframe",
+        "ts","created_ts","updated_ts","created_step","updated_step",
+        "day_step","step"
+    ]
+    tdfs = []
+    for p in sorted(parts):
+        try:
+            df = pd.read_parquet(p)
+            # keep only known columns but tolerate missing ones
+            for c in cols_keep:
+                if c not in df.columns:
+                    df[c] = pd.NA
+            df = df[cols_keep]
 
-    # ✅ Convert index BACK to datetime for proper merging
-    df.index = pd.to_datetime(df.index)
+            # normalize types
+            df["ts"] = (pd.to_datetime(df["ts"], utc=True, errors="coerce")
+                        .fillna(pd.NaT))
+            for c in ["left","y","top","bottom","created_ts","updated_ts",
+                      "created_step","updated_step","day_step","step"]:
+                if c in df.columns:
+                    df[c] = pd.to_numeric(df[c], errors="coerce")
+            df["object_id"] = df["object_id"].astype("string")
 
-    print_log(f"\n[Fallback] Cleaned Polygon 15M:\n{df}\n")
-    
-    # ✅ Load existing main CSV if it exists
-    if SPY_15_MINUTE_CANDLES_PATH.exists():
-        df_storage = pd.read_csv(SPY_15_MINUTE_CANDLES_PATH, parse_dates=["timestamp"])
-        df_storage.set_index("timestamp", inplace=True)
+            # prefer explicit symbol/timeframe, fill if missing
+            sym = read_config("SYMBOL")
+            df["symbol"] = df["symbol"].astype("string").fillna(sym)
+            df["timeframe"] = df["timeframe"].astype("string").fillna("15m")
 
-        df_storage.index = pd.to_datetime(df_storage.index)
+            tdfs.append(df)
+        except Exception as e:
+            print_log(f"[HEAL] Skipping timeline part {pretty_path(p)}: {e}")
+
+    if not tdfs:
+        write_current_objects(pd.DataFrame(columns=[
+            "id","type","left","y","top","bottom","status","symbol","timeframe",
+            "created_ts","updated_ts","created_step","updated_step"
+        ]))
+        print_log(f"[HEAL] No readable timeline <= {cutoff_day}; wrote empty current snapshot.")
+        return
+
+    tl = pd.concat(tdfs, ignore_index=True)
+
+    # ordering: by ts, then by per-day step (whichever exists), then by object_id
+    step_col = "day_step" if "day_step" in tl.columns else "step"
+    if step_col not in tl.columns:
+        tl[step_col] = pd.NA
+    tl = tl.sort_values(["object_id", "ts", step_col]).reset_index(drop=True)
+
+    # final state per object up to cutoff_day, # do NOT aggregate 'object_id' itself; it’s the group key
+    keep_cols = ["type","left","y","top","bottom","status","symbol",
+             "timeframe","created_ts","updated_ts","created_step","updated_step"]
+
+    snap = (tl.groupby("object_id")[keep_cols]
+            .last()
+            .reset_index()
+            .rename(columns={"object_id": "id"}))
+
+    # drop removed
+    if "status" in snap.columns:
+        snap = snap[snap["status"].fillna("active") != "removed"]
+
+    write_current_objects(snap)
+    print_log(f"[HEAL] Rebuilt current snapshot from timeline ≤ {cutoff_day} "
+              f"with {len(snap)} active objects.")
+
+def _clean_day_state(day_str: str) -> None:
+    """
+    Remove today's broken artifacts and rebuild current snapshot as-of the day before.
+    """
+    # 1) remove today's 15m parquet
+    day_path = DATA_DIR / "15m" / f"{day_str}.parquet"
+    if day_path.exists():
+        try:
+            day_path.unlink()
+            print_log(f"[HEAL] Deleted bad 15m dayfile → {pretty_path(day_path)}")
+        except Exception as e:
+            print_log(f"[HEAL] Could not delete {pretty_path(day_path)}: {e}")
+
+    # 2) remove today's timeline file
+    tl_path = TIMELINE_OBJECTS_DIR / day_str[:7] / f"{day_str}.parquet"
+    if tl_path.exists():
+        try:
+            tl_path.unlink()
+            print_log(f"[HEAL] Deleted timeline for {day_str} → {pretty_path(tl_path)}")
+        except Exception as e:
+            print_log(f"[HEAL] Could not delete {pretty_path(tl_path)}: {e}")
+
+    # 3) rebuild current snapshot up to the previous day... i think
+    prev_day = (pd.to_datetime(day_str) - pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+    try:
+        _rebuild_current_snapshot_asof_day(prev_day)
+    except Exception as e:
+        print_log(f"[HEAL] Snapshot rebuild error (continuing anyway): {e}")
+
+async def pull_and_replace_15m(days_back: int = 1, day_override: Optional[str] = None):
+    """
+    Auto-heal for today's 15m data:
+      1) Detect gaps in the latest trading day's 15m parquet
+      2) If gaps/missing, clean today's artifacts and rebuild
+      3) Re-pull dayfile from Polygon (create_daily_15m_parquet)
+      4) Re-run EOD object processing
+    """
+    # Determine target day 
+    if day_override:
+        day_str = day_override
     else:
-        df_storage = pd.DataFrame(columns=df.columns)
+        _, day_str = get_dates(days_back, True) # latest trading day, e.g. ('2025-10-03', '2025-10-03')
+    day_path = DATA_DIR / "15m" / f"{day_str}.parquet"
 
-    # ✅ Remove any rows for this day from the old data (clean replacement!)
-    current_day = df.index[0].normalize()
-    #df_storage = df_storage[~df_storage.index.strftime('%Y-%m-%d').eq(current_day)] # Removed this b/c im not trying to filter out anymore, this is taking to long, im trying to just get WHOLE correct data, for now, i need to get this done so i can go to bed.
-    
-    # ✅ Merge clean replacement
-    combined_df = pd.concat([df_storage, df]).sort_index()
-    combined_df.to_csv(SPY_15_MINUTE_CANDLES_PATH)
-    print_log(f"[pull_and_replace_15m] Main CSV `{pretty_path(SPY_15_MINUTE_CANDLES_PATH)}` updated with Polygon fallback.")
+    print_log(f"[HEAL] Checking 15m data for target day: `{day_str}`")
 
-    # ✅ Now re-run the **zone/level logic**
-    day_data = df
-    day_range = day_data["high"].max() - day_data["low"].min()
-    global_offset = len(df_storage)
-    
-    # Prep old objects
-    all_zone_objects, all_lvl_objects = get_objects()
+    gaps = []
+    if day_path.exists():
+        ts_series = _read_day_ts_series(day_path)
+        gaps = _find_missing_15m_intervals(ts_series)
 
-    # Run zone/level logic
-    info = read_day_candles_and_distribute(day_data, current_day, global_offset)
-    new_levels = get_levels(info["high_pos"], info["low_pos"])
-    print_log(f"\n[{current_day.date()} (id, lvl)] {new_levels[0]['type']}: ({new_levels[0]['id']}, {new_levels[0]['y']}) | {new_levels[1]['type']}: ({new_levels[1]['id']}, {new_levels[1]['y']})")
-    get_structures(info["structures"], False)
+        # (Optional) also ensure first bar aligns to :30  (09:30 NY is common)
+        # if ts_series.iloc[0].hour == 9 and ts_series.iloc[0].minute != 30:
+        #     # treat as a gap at the start (informational)
+        #     print_log(f"[HEAL] First bar unusual start: {ts_series.iloc[0]}")
+    else:
+        print_log(f"[HEAL] No dayfile for {day_str} — treating as missing.")
+        gaps = [None]  # force repair
 
-    # Validate and filter old objects
-    zone_objs_to_remove, lvl_objs_to_remove = validate_intraday_zones_lvls(all_zone_objects, all_lvl_objects, new_levels)
-    if zone_objs_to_remove:
-        all_zone_objects = [z for z in all_zone_objects if z["id"] not in {r["id"] for r in zone_objs_to_remove}]
-    if lvl_objs_to_remove:
-        all_lvl_objects = [l for l in all_lvl_objects if l["id"] not in {r["id"] for r in lvl_objs_to_remove}]
+    if gaps:
+        # 1) clean current-day artifacts (timeline + snapshot rewind + remove 15m dayfile)
+        _clean_day_state(day_str)
 
-    today_zone_objects = build_zones(new_levels, info["structures"], day_range, info["starter_zone_data"])
+        # 2) rebuild the 15m dayfile from Polygon
+        await create_daily_15m_parquet(day_str)
 
-    # ✅ Finally: push it all to the display file
-    # TODO: display_json_update("all") Change this to something... later on, when your at that point.
-    print_log(f"[pull_and_replace_15m] Timeline + objects updated.")
+        # 3) regenerate objects for the day from the fresh file
+        process_end_of_day_15m_candles_for_objects()
+
+        # 4) final sanity
+        try:
+            ts_series2 = _read_day_ts_series(day_path)
+            post_gaps = _find_missing_15m_intervals(ts_series2)
+            if post_gaps:
+                print_log(f"[HEAL] WARN: Gaps still detected after repair: {len(post_gaps)}")
+            else:
+                print_log(f"[HEAL] Repair complete for {day_str} (no gaps).")
+        except Exception:
+            # If we can't read it here, the EOD step will surface issues
+            pass
+    else:
+        print_log(f"[HEAL] {day_str} looks complete — no action needed.")
 
 async def create_daily_15m_parquet(file_day_name: str):
     """
@@ -675,7 +790,7 @@ async def create_daily_15m_parquet(file_day_name: str):
     tf_label = "15M"
     
     # 2) Pull 15M MARKET candles for that day(s)
-    start_str, end_str = get_dates(1, True)
+    start_str = end_str = file_day_name #start_str, end_str = get_dates(1, True)
     df = await get_certain_candle_data(
         cred.POLYGON_API_KEY,
         symbol,
@@ -726,6 +841,13 @@ async def create_daily_15m_parquet(file_day_name: str):
     out_df.to_parquet(tmp, index=False)
     tmp.replace(out_file)
 
+    try:
+        res = normalize_file(out_file, dry_run=False, verbose=False)
+        if res.get("ok"):
+            print_log(f"[normalize] {('changed' if res.get('changed') else 'no-op')} → {pretty_path(out_file)}")
+    except Exception as e:
+        print_log(f"[normalize] WARN: could not normalize {pretty_path(out_file)}: {e}")
+
     # 7) Verify
     check = pd.read_parquet(out_file)
     ok = (
@@ -741,13 +863,79 @@ async def create_daily_15m_parquet(file_day_name: str):
     return out_file
 
 """
-# How to run
+HOW TO RUN & RECOVER (15m dayfiles, timeline, current snapshot)
 
-Process the *latest 3 days*: `python objects.py backfill --limit-days 3`
-Process the *earliest 5 days* (useful for first-steps smoke test): `python objects.py backfill --limit-days 5 --oldest-first`
-Process *only today’s dayfile* (your EOD path): `python objects.py eod`
-Process *all days* (if you want to reprocess everything): `python objects.py`
-Process *pull and replace 15m for 1 day* (current): `python objects.py pull-replace --days-back 1`
+EVERYDAY PROCESSING
+- Process ALL days (full rebuild/backfill):
+    `python objects.py`
+- Process ONLY today’s dayfile (your EOD path):
+    `python objects.py eod`
+- Backfill the LATEST N days (quick catch-up; example shows 3):
+    `python objects.py backfill --limit-days 3`
+- Backfill the EARLIEST N days (smoke test from the start; example shows 5):
+    `python objects.py backfill --limit-days 5 --oldest-first`
+
+AUTO-HEAL A SPECIFIC DAY (bad/missing 15m candles → repair timeline/current)
+- Recommended (explicit date; safest, esp. after midnight):
+    `python objects.py pull-replace --day YYYY-MM-DD`
+    Example:
+    `python objects.py pull-replace --day 2025-10-20`
+- Alternative (relative day; “latest trading day”):
+    `python objects.py pull-replace --days-back 1`
+
+WHAT “PULL-REPLACE” DOES
+
+1. Reads `storage/data/15m/<DAY>.parquet` and checks 15-minute cadence in America/New_York time (half-days are OK).
+
+2. If gaps/missing:
+    - Deletes ONLY these two files for that exact DAY:
+        storage/data/15m/<YYYY-MM-DD>.parquet
+        storage/objects/timeline/<YYYY-MM>/<YYYY-MM-DD>.parquet
+    - Rebuilds the CURRENT snapshot as-of the PREVIOUS day from your timeline history.
+    - Re-pulls fresh 15m candles from Polygon and writes:
+        storage/data/15m/<YYYY-MM-DD>.parquet
+        (auto-normalized: ts=int64 epoch ms UTC, ts_iso=ISO8601 Z; volume forced to 0.0; global_x continued)
+    - Re-runs the normal EOD object processing for that day.
+    - Re-checks cadence and logs “Repair complete … (no gaps)”.
+
+3. Safety: it never touches any other days. Prefer --day YYYY-MM-DD to avoid ambiguity around midnight.
+
+STANDALONE: REBUILD JUST A SINGLE 15m DAYFILE (no healer/EOD)
+- Create the parquet only (keeps everything else untouched):
+    `python objects.py create-dayfile --day YYYY-MM-DD`
+  Example:
+    `python objects.py create-dayfile --day 2025-10-20`
+- Overwrite if a file already exists:
+    `python objects.py create-dayfile --day 2025-10-20 --overwrite`
+- After creating a dayfile, you can (optionally) run:
+    `python objects.py eod`
+
+OPTIONAL: NORMALIZE DAYFILES FROM THE CLI (one-off)
+- Dry run (see what would change) for one day:
+    `python tools/normalize_ts_all.py --root storage/data --timeframes 15m --pattern 2025-10-20.parquet --verbose --dry-run`
+- Normalize that day for real:
+    `python tools/normalize_ts_all.py --root storage/data --timeframes 15m --pattern 2025-10-20.parquet --verbose`
+- Normalize EVERYTHING (slower):
+    Dry run:
+        `python tools/normalize_ts_all.py --root storage/data --recurse --verbose --dry-run`
+    Do it:
+        `python tools/normalize_ts_all.py --root storage/data --recurse --verbose`
+
+NUCLEAR OPTION (full rebuild of timeline + current)
+- Only if you truly want a clean slate. Remove all timeline files (and optionally the current snapshot parquet), then backfill everything:
+    (Windows PowerShell)
+    Remove-Item -Recurse -Force .\storage\objects\timeline
+    New-Item -ItemType Directory .\storage\objects\timeline | Out-Null
+
+- Optional: Remove-Item -Force .\storage\objects\current.parquet
+    `python objects.py`
+
+TIPS / NOTES
+- After midnight, ALWAYS prefer: python objects.py pull-replace --day YYYY-MM-DD
+- Volumes in 15m dayfiles are intentionally 0.0 to match historical format.
+- Market open assumed 09:30 America/New_York; cadence check uses 15-minute steps, so half-days are handled naturally.
+- The healer’s snapshot rebuild uses ALL timeline events up to the PREVIOUS day (no “step” pitfalls), then today’s EOD runs on top.
+- create_daily_15m_parquet auto-normalizes the file (ts + ts_iso), sorts by ts, preserves schema, and continues global_x correctly.
 """
 
 if __name__ == "__main__":
@@ -764,6 +952,11 @@ if __name__ == "__main__":
 
     pr = sub.add_parser("pull-replace", help="Fetch 15m from Polygon and replace storage for that day")
     pr.add_argument("--days-back", type=int, default=1, help="How many days back to fetch (default 1)")
+    pr.add_argument("--day", help="YYYY-MM-DD override for the day to heal")
+
+    cd = sub.add_parser("create-dayfile", help="Create/replace one 15m parquet for a specific day (no EOD/healer)")
+    cd.add_argument("--day", required=True, help="YYYY-MM-DD to fetch (e.g. 2025-10-20)")
+    cd.add_argument("--overwrite", action="store_true", help="If set, delete existing dayfile before writing")
 
     args = parser.parse_args()
 
@@ -772,7 +965,17 @@ if __name__ == "__main__":
     elif args.cmd == "eod":
         process_end_of_day_15m_candles_for_objects()
     elif args.cmd == "pull-replace":
-        asyncio.run(pull_and_replace_15m(days_back=args.days_back))
+        asyncio.run(pull_and_replace_15m(days_back=args.days_back, day_override=args.day))
+    elif args.cmd == "create-dayfile":
+        if args.overwrite:
+            try:
+                path = DATA_DIR / "15m" / f"{args.day}.parquet"
+                if path.exists():
+                    path.unlink()
+                    print_log(f"[create-dayfile] Removed existing file → {pretty_path(path)}")
+            except Exception as e:
+                print_log(f"[create-dayfile] WARN: could not remove existing file: {e}")
+        asyncio.run(create_daily_15m_parquet(args.day))
     else:
         # default behavior (backfill everything)
         update_timeline_with_objects()
