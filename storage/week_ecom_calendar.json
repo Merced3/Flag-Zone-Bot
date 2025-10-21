@@ -1,12 +1,28 @@
 {
-    "week_timespan": "10-13-25 to 10-19-25",
+    "week_timespan": "10-20-25 to 10-26-25",
     "dates": {
-        "10-14-25": {
-            "11:20 AM": [
-                "Fed Chair Powell Speech"
+        "10-21-25": {
+            "07:30 AM": [
+                "Inflation Rate YoY"
             ]
         },
-        "10-16-25": {},
-        "10-17-25": {}
+        "10-23-25": {
+            "09:00 AM": [
+                "Existing Home Sales"
+            ]
+        },
+        "10-24-25": {
+            "07:30 AM": [
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
+            ]
+        },
+        "10-27-25": {
+            "07:30 AM": [
+                "Durable Goods Orders MoM"
+            ]
+        }
     }
 }
