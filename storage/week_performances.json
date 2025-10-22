@@ -956,7 +956,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, Today we had a websocket client side issue, it diconnected for over an hour and im fixing the backend data as I write this down, its now 2 in the morning and it's fixed, it can manually self heal and i will implement autonomous self healing later on, whenever i get the chance.",
+        "description": "Day 1, Today we had a websocket client side issue, it diconnected for over an hour and im fixing the backend data as I write this down, its now 2 in the morning and it's fixed, it can manually self heal and i will implement autonomous self healing later on, whenever i get the chance. Day 2 data collection was good, no issues, worked on frontend a little bit, didn't get too far.",
         "important_message_ids": []
     }
 
