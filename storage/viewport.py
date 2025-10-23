@@ -21,6 +21,8 @@ def load_viewport(
     t1_iso: str,
     y0: Optional[float] = None,
     y1: Optional[float] = None,
+    include_parts: bool = True, 
+    include_days: bool = True
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     con = duckdb.connect(":memory:")
 
@@ -34,27 +36,32 @@ def load_viewport(
     if not cand_files:
         return pd.DataFrame(), pd.DataFrame()  # candles empty, objects empty
 
-    # robust ts normalize in SQL
+    # robust read with union_by_name + timestamp normalization in SQL
     sql = """
     WITH src AS (
-    SELECT * FROM read_parquet(?, hive_partitioning=1)
-    ), norm AS (
+    -- union_by_name handles schema diffs between day and part files (e.g., missing global_x)
+    SELECT *
+    FROM read_parquet(?, union_by_name=1, hive_partitioning=1)
+    ),
+    norm AS (
     SELECT
-        symbol, timeframe,
+        symbol,
+        timeframe,
         COALESCE(
         try_strptime(replace(ts_iso, 'Z', '+00:00'), '%Y-%m-%dT%H:%M:%S.%f%z'),
         try_strptime(replace(ts_iso, 'Z', '+00:00'), '%Y-%m-%dT%H:%M:%S%z'),
-        to_timestamp(try_cast(ts AS DOUBLE)/1000.0)
+        to_timestamp(try_cast(ts AS DOUBLE) / 1000.0)  -- epoch ms → seconds
         ) AS ts,
-        open, high, low, close, volume, global_x
+        open, high, low, close, volume,
+        try_cast(global_x AS BIGINT) AS global_x  -- may be NULL for part files
     FROM src
     )
-    SELECT * FROM norm
+    SELECT symbol, timeframe, ts, open, high, low, close, volume, global_x
+    FROM norm
     WHERE ts IS NOT NULL AND ts BETWEEN ? AND ?
     ORDER BY ts
     """
     df_candles = con.execute(sql, [cand_files, t0_iso, t1_iso]).df()
 
-    # return (candles, empty objects) for now
     return df_candles, pd.DataFrame()
 
