@@ -38,7 +38,28 @@ Flag-Zone-Bot/
 ├── storage/
 │   ├── csv/
 │   │   └── order_log.csv
-│   ├── data/2m|5m|15m/...parquet
+│   ├── data/
+│   │   ├── 2m/ 
+│   │   │   ├── 2025-10-22/ # Named whatever today's date is.
+│   │   │   │   ├── part-20251022_133001.290000-c24f98a7.parquet
+│   │   │   │   ├── # Alot of other individual candled-files
+│   │   │   │   └── part-20251022_182800.654000-824267af.parquet
+│   │   │   ├── 2025-10-21.parquet
+│   │   │   └── # Others Daily files...
+│   │   ├── 5m/
+│   │   │   ├── 2025-10-22/
+│   │   │   │   ├── part-20251022_133001.290000-fbe82934.parquet
+│   │   │   │   ├── # samething here
+│   │   │   │   └── part-20251022_182500.343000-6ef44dd7.parquet
+│   │   │   ├── 2025-10-21.parquet
+│   │   │   └── # Others Daily files...
+│   │   └── 15m/
+│   │       ├── 2025-10-22/
+│   │       │   ├── part-20251022_133001.290000-8147ad38.parquet
+│   │       │   ├── # samething here
+│   │       │   └── part-20251022_181501.045000-cb117cc9.parquet
+│   │       ├── 2025-10-21.parquet 
+│   │       └── # Others Daily files... Alot more than the others.
 │   ├── emas/
 │   │   ├── 2M.json
 │   │   ├── 5M.json
