@@ -45,7 +45,12 @@ def generate_live_chart(timeframe: str):
     t0 = t1 - pd.Timedelta(minutes=bars_limit * tf_min)
 
     try:
-        df_candles, df_objects = load_viewport(symbol, timeframe, t0.isoformat(), t1.isoformat())
+        df_candles, df_objects = load_viewport(
+            symbol=symbol,
+            timeframe=timeframe,
+            t0_iso=t0.isoformat(),
+            t1_iso=t1.isoformat(),
+        )
 
         if df_candles is None or df_candles.empty or "ts" not in df_candles.columns:
             raise ValueError("No candle data found.")

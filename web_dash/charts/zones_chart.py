@@ -13,7 +13,13 @@ def generate_zones_chart(timeframe: str = "15M", days: int = DEFAULT_DAYS):
     t1 = pd.Timestamp.now()
     t0 = t1 - pd.Timedelta(days=days)
 
-    df_candles, df_objects = load_viewport(symbol, timeframe, t0.isoformat(), t1.isoformat())
+    df_candles, df_objects = load_viewport(
+        symbol=symbol,
+        timeframe=timeframe,
+        t0_iso=t0.isoformat(),
+        t1_iso=t1.isoformat(),
+    )
+    
     if df_candles.empty:
         fig = go.Figure().update_layout(title=f"Zones {timeframe} — no data", height=700)
         return dcc.Graph(figure=fig, style={"height": "700px"})
