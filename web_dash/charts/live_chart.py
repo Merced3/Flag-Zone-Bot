@@ -75,9 +75,14 @@ def generate_live_chart(timeframe: str):
         return dcc.Graph(figure=empty_fig, style={"height": "700px"})
     
     # ---- Step 2: Load EMAs and map EMA.x -> candle timestamp ----
-    ema_path = get_ema_path(timeframe)
-    emas = load_ema_json(ema_path)
-    df_emas = pd.DataFrame(emas) if emas else None
+    df_emas = None
+    try:
+        ema_path = get_ema_path(timeframe)
+        emas = load_ema_json(ema_path)
+        df_emas = pd.DataFrame(emas) if emas else None
+    except Exception:
+        # No EMA file or bad JSON? no problem—just skip overlays.
+        df_emas = None
 
     if df_emas is not None and not df_emas.empty:
         df_emas = df_emas.copy()

@@ -5,6 +5,8 @@ from typing import Optional, Tuple
 import pandas as pd
 import paths  # <-- use centralized paths
 from utils.time_utils import to_ms
+import os
+DEBUG_VIEWPORT = os.getenv("DEBUG_VIEWPORT") == "1"
 
 def _candles_glob(timeframe: str) -> str:
     # picks up day files AND parts (recursive)
@@ -61,7 +63,19 @@ def load_viewport(
     WHERE ts IS NOT NULL AND ts BETWEEN ? AND ?
     ORDER BY ts
     """
+
+    if DEBUG_VIEWPORT:
+        print(f"[viewport] timeframe={timeframe} files={len(cand_files)} "
+            f"(examples: {cand_files[:2]})")
+
     df_candles = con.execute(sql, [cand_files, t0_iso, t1_iso]).df()
+
+    if DEBUG_VIEWPORT:
+        if not df_candles.empty:
+            print(f"[viewport] rows={len(df_candles)} "
+                f"ts[{df_candles['ts'].min()} → {df_candles['ts'].max()}]")
+        else:
+            print("[viewport] returned 0 rows for window:", t0_iso, "→", t1_iso)
 
     return df_candles, pd.DataFrame()
 
