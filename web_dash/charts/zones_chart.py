@@ -6,9 +6,7 @@ import pandas as pd
 from utils.json_utils import read_config
 from storage.viewport import load_viewport
 
-DEFAULT_DAYS = 15  # UI can override later
-
-def generate_zones_chart(timeframe: str = "15M", days: int = DEFAULT_DAYS):
+def generate_zones_chart(timeframe: str = "15M", days: int = 15):
     symbol = read_config("SYMBOL")
     t1 = pd.Timestamp.now()
     t0 = t1 - pd.Timedelta(days=days)
@@ -18,30 +16,27 @@ def generate_zones_chart(timeframe: str = "15M", days: int = DEFAULT_DAYS):
         timeframe=timeframe,
         t0_iso=t0.isoformat(),
         t1_iso=t1.isoformat(),
+        include_parts=False,   # <- EOD-only
+        include_days=True,
     )
     
     if df_candles.empty:
         fig = go.Figure().update_layout(title=f"Zones {timeframe} — no data", height=700)
         return dcc.Graph(figure=fig, style={"height": "700px"})
 
-    fig = go.Figure()
+    df = df_candles.copy()
+    ts = pd.to_datetime(df["ts"], errors="coerce")
+    df["d"] = ts.dt.tz_localize(None).dt.date
+    last_days = sorted(df["d"].unique())[-days:]
+    df = df[df["d"].isin(last_days)]
 
-    if not df_candles.empty:
-        fig.add_trace(go.Candlestick(
-            x=pd.to_datetime(df_candles["ts"]),
-            open=df_candles["open"],
-            high=df_candles["high"],
-            low=df_candles["low"],
-            close=df_candles["close"]
-        ))
-
-        # Pads based on visible candle range
-        ymin = float(df_candles["low"].min())
-        ymax = float(df_candles["high"].max())
-        pad = (ymax - ymin) * 0.05
-        fig.update_yaxes(range=[ymin - pad, ymax + pad])
-
-    # (Optional) draw zones/levels from df_objects later
+    fig = go.Figure([go.Candlestick(
+        x=pd.to_datetime(df["ts"]),
+        open=df["open"], high=df["high"], low=df["low"], close=df["close"]
+    )])
+    ymin, ymax = float(df["low"].min()), float(df["high"].max())
+    pad = (ymax - ymin) * 0.05
+    fig.update_yaxes(range=[ymin - pad, ymax + pad])
 
     fig.update_layout(
         title=f"{symbol} — Zones ({timeframe})",

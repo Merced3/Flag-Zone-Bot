@@ -9,7 +9,7 @@ from dash import dcc
 from utils.json_utils import read_config
 from paths import get_ema_path
 from utils.ema_utils import load_ema_json
-from storage.viewport import load_viewport
+from storage.viewport import load_viewport, get_timeframe_bounds
 from storage.objects.io import read_current_objects
 
 _BAR_MINUTES_RE = re.compile(r"(\d+)\s*[mM]")
@@ -37,23 +37,26 @@ def _pick_bars_limit(timeframe: str, default: int = 600) -> int:
 
 def generate_live_chart(timeframe: str):
     symbol = read_config("SYMBOL")
-
     bars_limit = _pick_bars_limit(timeframe, default=600)
     tf_min = _bar_minutes(timeframe)
 
+    def _window(end_ts: pd.Timestamp):
+        start = end_ts - pd.Timedelta(minutes=bars_limit * tf_min)
+        return start, end_ts
+
+    # 1st attempt: anchor to now
     t1 = pd.Timestamp.now()
     t0 = t1 - pd.Timedelta(minutes=bars_limit * tf_min)
-
-    try:
-        df_candles, df_objects = load_viewport(
-            symbol=symbol,
-            timeframe=timeframe,
-            t0_iso=t0.isoformat(),
-            t1_iso=t1.isoformat(),
-        )
-
-        if df_candles is None or df_candles.empty or "ts" not in df_candles.columns:
-            raise ValueError("No candle data found.")
+    df_candles, _ = load_viewport(symbol=symbol, timeframe=timeframe,
+                                  t0_iso=t0.isoformat(), t1_iso=t1.isoformat())
+    
+    # Fallback: if empty, anchor to latest ts we have
+    if df_candles.empty:
+        _min_ts, max_ts = get_timeframe_bounds(timeframe=timeframe)
+        if max_ts is not None:
+            t0_fallback, t1_fallback = _window(max_ts)
+            df_candles, _ = load_viewport(symbol=symbol, timeframe=timeframe,
+                                          t0_iso=t0_fallback.isoformat(), t1_iso=t1_fallback.isoformat())
 
         # Normalize/clean
         df_candles = df_candles.copy()
@@ -66,7 +69,7 @@ def generate_live_chart(timeframe: str):
         if df_candles.empty:
             raise ValueError("No candle data found after filtering.")
 
-    except Exception:
+    else:
         empty_fig = go.Figure()
         empty_fig.update_layout(
             title=f"Live {timeframe} Chart - No candle data",
