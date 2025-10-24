@@ -47,35 +47,43 @@ def generate_live_chart(timeframe: str):
     # 1st attempt: anchor to now
     t1 = pd.Timestamp.now()
     t0 = t1 - pd.Timedelta(minutes=bars_limit * tf_min)
-    df_candles, _ = load_viewport(symbol=symbol, timeframe=timeframe,
-                                  t0_iso=t0.isoformat(), t1_iso=t1.isoformat())
+    df_candles, df_objects = load_viewport(
+        symbol=symbol, 
+        timeframe=timeframe,
+        t0_iso=t0.isoformat(),
+        t1_iso=t1.isoformat(),
+        include_parts=True,
+        include_days=False
+    )
     
     # Fallback: if empty, anchor to latest ts we have
     if df_candles.empty:
         _min_ts, max_ts = get_timeframe_bounds(timeframe=timeframe)
         if max_ts is not None:
             t0_fallback, t1_fallback = _window(max_ts)
-            df_candles, _ = load_viewport(symbol=symbol, timeframe=timeframe,
-                                          t0_iso=t0_fallback.isoformat(), t1_iso=t1_fallback.isoformat())
+            df_candles, df_objects = load_viewport(
+                symbol=symbol,
+                timeframe=timeframe,
+                t0_iso=t0_fallback.isoformat(),
+                t1_iso=t1_fallback.isoformat(),
+                include_parts=True,
+                include_days=False
+            )
 
-        # Normalize/clean
-        df_candles = df_candles.copy()
-        df_candles["timestamp"] = pd.to_datetime(df_candles["ts"], errors="coerce")
-        df_candles = df_candles.dropna(subset=["timestamp"]).sort_values("timestamp")
-        # keep only last N bars to be safe even if viewport gave us more
-        if bars_limit:
-            df_candles = df_candles.tail(bars_limit).reset_index(drop=True)
-
-        if df_candles.empty:
-            raise ValueError("No candle data found after filtering.")
-
-    else:
         empty_fig = go.Figure()
         empty_fig.update_layout(
             title=f"Live {timeframe} Chart - No candle data",
             xaxis_title="", yaxis_title="", height=700
         )
         return dcc.Graph(figure=empty_fig, style={"height": "700px"})
+
+    # Normalize/clean
+    df_candles = df_candles.copy()
+    df_candles["timestamp"] = pd.to_datetime(df_candles["ts"], errors="coerce")
+    df_candles = df_candles.dropna(subset=["timestamp"]).sort_values("timestamp")
+    # keep only last N bars to be safe even if viewport gave us more
+    if bars_limit:
+        df_candles = df_candles.tail(bars_limit).reset_index(drop=True)
     
     # ---- Step 2: Load EMAs and map EMA.x -> candle timestamp ----
     df_emas = None
