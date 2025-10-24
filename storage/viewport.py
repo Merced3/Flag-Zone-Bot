@@ -4,7 +4,18 @@ import os
 from typing import List, Tuple, Optional
 import pandas as pd
 import duckdb
-import paths
+
+# --- robust import of root-level paths.py ---
+try:
+    import paths  # project-root module
+except ModuleNotFoundError:
+    import sys
+    from pathlib import Path
+    ROOT = Path(__file__).resolve().parents[1]  # project root (contains paths.py)
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    import paths
+# --------------------------------------------
 
 MARKET_TZ = 'America/Chicago'
 
@@ -104,27 +115,27 @@ def load_viewport(
 
 ## How to use:
 
-1) Quick zones check (15 EOD days on 15M):
+### Quick zones check (15 EOD days on 15M):
 ```bash
-python storage\viewport.py zones --tf 15M --days 15
+python -m storage.viewport --tf 15M zones --days 15
 ```
 
-2) Quick live check (26 bars on 15M, anchored to latest data you have):
+### Quick live check (26 bars on 15M, anchored to latest data you have):
 ```bash
-python storage\viewport.py live --tf 15M --bars 26 --anchor latest
+python -m storage.viewport --tf 15M live  --bars 26 --anchor latest
 ```
 
-3) Live on 2M (195 bars), clip to today’s session open:
+### Live on 2M (195 bars), clip to today’s session open:
 ```bash
-python storage\viewport.py live --tf 2M --bars 195 --anchor now --clip-session
+python -m storage.viewport --tf 2M  live  --bars 195 --anchor now --clip-session
 ```
 
-4) Raw custom window, parts only in 5M:
+### Raw custom window, parts only in 5M:
 ```bash
-python storage\viewport.py raw --tf 5M --include-parts --t0 2025-10-22T09:30:00 --t1 2025-10-22T16:00:00
+python -m storage.viewport --tf 5M  raw   --include-parts --t0 2025-10-22T09:30:00 --t1 2025-10-22T16:00:00
 ```
 
-5) You’ll get clean prints like:
+## You’ll get clean prints like:
 ```bash
 [LAB] ZONES tf=15M days=15 include_days=True include_parts=False
 [LAB] EOD bounds: files=4020 min=2020-05-26 ... max=2025-10-21 ...
