@@ -1,27 +1,23 @@
 {
-    "week_timespan": "10-20-25 to 10-26-25",
+    "week_timespan": "10-27-25 to 11-02-25",
     "dates": {
-        "10-21-25": {
-            "07:30 AM": [
-                "Inflation Rate YoY"
+        "10-29-25": {
+            "08:45 AM": [
+                "BoC Interest Rate Decision",
+                "BoC Monetary Policy Report"
+            ],
+            "01:00 PM": [
+                "Fed Interest Rate Decision"
+            ],
+            "01:30 PM": [
+                "Fed Press Conference"
             ]
         },
-        "10-23-25": {
-            "09:00 AM": [
-                "Existing Home Sales"
-            ]
-        },
-        "10-24-25": {
-            "07:30 AM": [
-                "Core Inflation Rate MoM",
-                "Core Inflation Rate YoY",
-                "Inflation Rate MoM",
-                "Inflation Rate YoY"
-            ]
-        },
-        "10-27-25": {
-            "07:30 AM": [
-                "Durable Goods Orders MoM"
+        "10-30-25": {},
+        "10-31-25": {},
+        "11-03-25": {
+            "10:00 AM": [
+                "ISM Manufacturing PMI"
             ]
         }
     }
