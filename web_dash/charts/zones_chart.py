@@ -4,20 +4,16 @@ from dash import dcc
 import plotly.graph_objs as go
 import pandas as pd
 from utils.json_utils import read_config
-from storage.viewport import load_viewport
+from storage.viewport import load_viewport, days_window
 
 def generate_zones_chart(timeframe: str = "15M", days: int = 15):
     symbol = read_config("SYMBOL")
-    t1 = pd.Timestamp.now()
-    t0 = t1 - pd.Timedelta(days=days)
+    t0, t1, picked = days_window(timeframe, days) # optional: keep only those picked dates in the final df if you want hard enforcement
 
     df_candles, df_objects = load_viewport(
-        symbol=symbol,
-        timeframe=timeframe,
-        t0_iso=t0.isoformat(),
-        t1_iso=t1.isoformat(),
-        include_parts=False,   # <- EOD-only
-        include_days=True,
+        symbol=symbol, timeframe=timeframe,
+        t0_iso=t0, t1_iso=t1,
+        include_days=True, include_parts=False,
     )
     
     if df_candles.empty:

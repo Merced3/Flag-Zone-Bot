@@ -18,7 +18,6 @@ except ModuleNotFoundError:
 # --------------------------------------------
 
 MARKET_TZ = 'America/Chicago'
-
 DEBUG_VIEWPORT = os.getenv("DEBUG_VIEWPORT") == "1"
 
 def _collect_candle_files(timeframe: str, include_days: bool, include_parts: bool) -> List[str]:
@@ -60,6 +59,89 @@ def get_timeframe_bounds(*, timeframe: str,
     min_ts = pd.Timestamp(row[0]) if row and row[0] else None
     max_ts = pd.Timestamp(row[1]) if row and row[1] else None
     return min_ts, max_ts, len(files)
+
+def pick_distinct_trading_dates_sql(
+    timeframe: str,
+    *,
+    days: int,
+    anchor_date: Optional[str] = None,   # "YYYY-MM-DD" or None for "latest"
+    symbol: Optional[str] = None         # optional filter if you add multi-symbol later
+) -> List[str]:
+    """
+    Return an ascending list of the last `days` DISTINCT trading dates present
+    in EOD files only, optionally anchored to <= anchor_date.
+    """
+    files = _collect_candle_files(timeframe, include_days=True, include_parts=False)
+    if not files or days < 1:
+        return []
+
+    con = duckdb.connect(":memory:")
+
+    # Build WHERE fragments
+    where_sym  = "AND symbol = ?" if symbol else ""
+    where_anch = "WHERE d <= ?" if anchor_date else ""
+
+    params: List[object] = [files]
+    if symbol:
+        params.append(symbol)
+    if anchor_date:
+        params.append(anchor_date)
+    params.append(days)
+
+    rows = con.execute(f"""
+      WITH src  AS (
+        SELECT * FROM read_parquet(?, union_by_name=1)
+      ),
+      norm AS (
+        SELECT
+          -- local wall-clock timestamp for consistent chart filters
+          {_ts_sql_expr()} AS ts
+          {", symbol" if symbol else ""}
+        FROM src
+        WHERE ts IS NOT NULL
+        {where_sym}
+      ),
+      dd AS (
+        SELECT CAST(ts AS DATE) AS d FROM norm
+      )
+      SELECT d
+      FROM dd
+      {where_anch}
+      GROUP BY d
+      ORDER BY d DESC
+      LIMIT ?
+    """, params).fetchall()
+
+    if not rows:
+        return []
+
+    # rows come newest→oldest; return ascending
+    dates_desc = [str(r[0]) for r in rows]
+    return list(reversed(dates_desc))
+
+def days_window(
+    timeframe: str,
+    days: int,
+    *,
+    anchor_date: Optional[str] = None,
+    symbol: Optional[str] = None
+) -> Tuple[str, str, List[str]]:
+    """
+    Exactly `days` trading dates from EOD files (no parts).
+      - If anchor_date is None, anchor to the latest date present.
+      - Returns (t0_iso, t1_iso, picked_dates_asc).
+    """
+    picked = pick_distinct_trading_dates_sql(timeframe, days=days, anchor_date=anchor_date, symbol=symbol)
+    if not picked:
+        return "1900-01-01T00:00:00", "1900-01-01T00:00:01", []
+
+    t0_iso = f"{picked[0]}T00:00:00"
+    t1_iso = f"{picked[-1]}T23:59:59.999999"
+
+    if DEBUG_VIEWPORT:
+        print(f"[days_window.sql] tf={timeframe} N={days} anchor={anchor_date} → {picked[0]} … {picked[-1]} (N={len(picked)})")
+
+    return t0_iso, t1_iso, picked
 
 def load_viewport(
     *,
@@ -108,12 +190,19 @@ def load_viewport(
 
     return df_candles, pd.DataFrame()
 
-
 """
 # CLI "lab" for quick testing
 
+## How to use Dev Env:
+**TURN ON:**
+ - Powershell: $env:DEBUG_VIEWPORT="1"
+ - zsh/macOS: export DEBUG_VIEWPORT=1
+**TURN OFF:**
+ - Powershell: IDK YET
+ - zsh/macOS: unset DEBUG_VIEWPORT
 
-## How to use:
+
+## How to use `viewport.py`:
 
 ### Quick zones check (15 EOD days on 15M):
 ```bash
@@ -184,18 +273,18 @@ if __name__ == "__main__":
 
     # Print bounds per the mode and then run the call
     if args.mode in (None, "zones"):
-        days = args.days if args.mode else 15
-        t1 = pd.Timestamp.now()
-        t0 = t1 - pd.Timedelta(days=days + 5)  # cushion
-        print(f"\n[LAB] ZONES  tf={tf}  days={days}  include_days=True  include_parts=False")
-        min_ts, max_ts, nfiles = get_timeframe_bounds(timeframe=tf, include_days=True, include_parts=False)
-        print(f"[LAB] EOD bounds: files={nfiles} min={min_ts}  max={max_ts}")
-        df, _ = load_viewport(symbol=args.symbol, timeframe=tf,
-                              t0_iso=t0.isoformat(), t1_iso=t1.isoformat(),
-                              include_days=True, include_parts=False)
+        t0, t1, picked = days_window(tf, args.days)
+        print(f"[LAB] window: {t0} → {t1}  (trading days={len(picked)}; first={picked[0] if picked else None}, last={picked[-1] if picked else None})")
+
+        df, _ = load_viewport(
+            symbol=args.symbol, timeframe=tf,
+            t0_iso=t0, t1_iso=t1,
+            include_days=True, include_parts=False,
+        )
         print(f"[LAB] ZONES rows={len(df)}")
         if not df.empty:
-            print(f"[LAB] first={df['ts'].iloc[0]}  last={df['ts'].iloc[-1]}  days={len(pd.to_datetime(df['ts']).dt.date.unique())}")
+            ts = pd.to_datetime(df["ts"], errors="coerce")
+            print(f"[LAB] first={ts.iloc[0]}  last={ts.iloc[-1]}  days={len(ts.dt.date.unique())}")
 
     if args.mode in (None, "live"):
         bars = getattr(args, "bars", 26)
