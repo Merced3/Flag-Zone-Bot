@@ -968,7 +968,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, Data collection was good, no issues, shutted down program because computer needs a update.",
+        "description": "Day 1, Data collection was good, no issues, shutted down program because computer needs a update. Day 2, no update to frontend, but data collection was good, no issues.",
         "important_message_ids": []
     }
 
