@@ -1,0 +1,18 @@
+So Now onto the live, I tired running the chart to see if we would get anything and i got this. I knew we still  see that were having a issue with `get_timeframe_bounds`. With the new changes we have, do we even need it?
+
+```
+(venv) mercedgonzales@Merced-Gonzales Flag-Zone-Bot % python web_dash/dash_app.py
+[dash_app] using file: /Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/web_dash/dash_app.py
+[days_window.sql] tf=15M N=15 anchor=None → 2025-09-03 … 2025-09-23 (N=15)
+[viewport] timeframe=15M files=4020  (examples: ['/Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/storage/data/15M/2025-09-05.parquet', '/Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/storage/data/15M/2025-09-15.parquet'])
+[viewport] rows=1170 window: 2025-09-03T00:00:00 → 2025-09-23T23:59:59.999999
+Traceback (most recent call last):
+  File "/Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/web_dash/dash_app.py", line 60, in <module>
+    tab_block("Live 15M Chart", "15M"),
+  File "/Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/web_dash/dash_app.py", line 41, in tab_block
+    initial_fig = generate_zones_chart("15M").figure if tf_key == "zones" else generate_live_chart(tf_key).figure
+  File "/Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/web_dash/charts/live_chart.py", line 61, in generate_live_chart
+    _min_ts, max_ts = get_timeframe_bounds(timeframe=timeframe)
+ValueError: too many values to unpack (expected 2)
+```
+
