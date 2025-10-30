@@ -20,6 +20,21 @@ except ModuleNotFoundError:
 MARKET_TZ = 'America/Chicago'
 DEBUG_VIEWPORT = os.getenv("DEBUG_VIEWPORT") == "1"
 
+def _parquet_has_column(file_list, column_name: str) -> bool:
+    if not file_list:
+        return False
+    con = duckdb.connect(":memory:")
+    try:
+        # LIMIT 0 returns schema only, fast; union_by_name handles mixed schemas
+        desc = con.execute(
+            "SELECT * FROM read_parquet(?, union_by_name=1, hive_partitioning=1) LIMIT 0",
+            [file_list]
+        ).description
+        cols = [c[0] for c in desc] if desc else []
+        return column_name in cols
+    finally:
+        con.close()
+
 def _collect_candle_files(timeframe: str, include_days: bool, include_parts: bool) -> List[str]:
     files: List[str] = []
     for variant in (timeframe, timeframe.lower(), timeframe.upper()):
@@ -44,17 +59,19 @@ def _ts_sql_expr() -> str:
         to_timestamp(try_cast(ts AS DOUBLE)/1000.0)
     ) AT TIME ZONE '{MARKET_TZ}')"""
 
-def get_timeframe_bounds(*, timeframe: str,
-                         include_days: bool = True,
-                         include_parts: bool = True) -> Tuple[Optional[pd.Timestamp], Optional[pd.Timestamp], int]:
+def get_timeframe_bounds(
+    *, timeframe: str,
+    include_days: bool = True,
+    include_parts: bool = True,
+):
     files = _collect_candle_files(timeframe, include_days, include_parts)
     if not files:
         return None, None, 0
     con = duckdb.connect(":memory:")
     row = con.execute(f"""
         WITH src AS (SELECT * FROM read_parquet(?, union_by_name=1)),
-            norm AS (SELECT {_ts_sql_expr()} AS ts FROM src)
-        SELECT min(ts), max(ts) FROM norm WHERE ts IS NOT NULL
+            norm AS (SELECT {_ts_sql_expr()} AS ts FROM src WHERE ts IS NOT NULL)
+        SELECT min(ts), max(ts) FROM norm
     """, [files]).fetchone()
     min_ts = pd.Timestamp(row[0]) if row and row[0] else None
     max_ts = pd.Timestamp(row[1]) if row and row[1] else None
@@ -143,8 +160,7 @@ def days_window(
 
     return t0_iso, t1_iso, picked
 
-def load_viewport(
-    *,
+def load_viewport(*,
     symbol: str,
     timeframe: str,          # "15m"
     t0_iso: str,             # "YYYY-MM-DDTHH:MM:SS-04:00"
@@ -153,40 +169,48 @@ def load_viewport(
     y1=None,
     include_parts: bool = True, 
     include_days: bool = True
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+):
     con = duckdb.connect(":memory:")
     cand_files = _collect_candle_files(timeframe, include_days, include_parts)
 
     if not cand_files:
+        if DEBUG_VIEWPORT:
+            print(f"[viewport] timeframe={timeframe} files=0")
         return pd.DataFrame(), pd.DataFrame()
+
+    # detect if these files have 'global_x'
+    has_gx = _parquet_has_column(cand_files, "global_x")
+    gx_expr = "try_cast(global_x AS BIGINT) AS gx" if has_gx else "CAST(NULL AS BIGINT) AS gx"
+    if DEBUG_VIEWPORT:
+        print(f"[viewport] has_global_x={has_gx} parts={include_parts} days={include_days}")
 
     sql = f"""
     WITH src AS (
-      SELECT * FROM read_parquet(?, union_by_name=1, hive_partitioning=1)
+        SELECT * FROM read_parquet(?, union_by_name=1, hive_partitioning=1)
     ), norm AS (
-      SELECT
-        symbol, timeframe,
-        {_ts_sql_expr()} AS ts,
-        open, high, low, close, volume,
-        try_cast(global_x AS BIGINT) AS gx
-      FROM src
+        SELECT
+            symbol, timeframe,
+            {_ts_sql_expr()} AS ts,
+            open, high, low, close, volume,
+            {gx_expr}
+        FROM src
     )
     SELECT
-      symbol, timeframe, ts, open, high, low, close, volume,
-      gx AS global_x
+        symbol, timeframe, ts, open, high, low, close, volume,
+        gx AS global_x
     FROM norm
     WHERE ts IS NOT NULL AND ts BETWEEN ? AND ?
     ORDER BY ts
     """
+
     if DEBUG_VIEWPORT:
-        print(f"[viewport] timeframe={timeframe} files={len(cand_files)}",
-              f" (examples: {cand_files[:2]})")
+        print(f"[viewport] timeframe={timeframe} files={len(cand_files)}  "
+              f"(examples: {cand_files[:2]})")
+        print(f"[viewport] window: {t0_iso} → {t1_iso}")
 
     df_candles = con.execute(sql, [cand_files, t0_iso, t1_iso]).df()
-
     if DEBUG_VIEWPORT:
-        print(f"[viewport] rows={0 if df_candles.empty else len(df_candles)}",
-              "window:", t0_iso, "→", t1_iso)
+        print(f"[viewport] rows={len(df_candles)} | window:", t0_iso, "→", t1_iso)
 
     return df_candles, pd.DataFrame()
 

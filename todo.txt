@@ -1,18 +1,71 @@
-So Now onto the live, I tired running the chart to see if we would get anything and i got this. I knew we still  see that were having a issue with `get_timeframe_bounds`. With the new changes we have, do we even need it?
+1) Next on the todo list is to get the zones displayed.
 
-```
-(venv) mercedgonzales@Merced-Gonzales Flag-Zone-Bot % python web_dash/dash_app.py
-[dash_app] using file: /Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/web_dash/dash_app.py
-[days_window.sql] tf=15M N=15 anchor=None → 2025-09-03 … 2025-09-23 (N=15)
-[viewport] timeframe=15M files=4020  (examples: ['/Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/storage/data/15M/2025-09-05.parquet', '/Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/storage/data/15M/2025-09-15.parquet'])
-[viewport] rows=1170 window: 2025-09-03T00:00:00 → 2025-09-23T23:59:59.999999
-Traceback (most recent call last):
-  File "/Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/web_dash/dash_app.py", line 60, in <module>
-    tab_block("Live 15M Chart", "15M"),
-  File "/Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/web_dash/dash_app.py", line 41, in tab_block
-    initial_fig = generate_zones_chart("15M").figure if tf_key == "zones" else generate_live_chart(tf_key).figure
-  File "/Users/mercedgonzales/Desktop/MercedProjects/Flag-Zone-Bot/web_dash/charts/live_chart.py", line 61, in generate_live_chart
-    _min_ts, max_ts = get_timeframe_bounds(timeframe=timeframe)
-ValueError: too many values to unpack (expected 2)
-```
+
+2) Remember to put this back once the live chart is fully working with candles and zones:
+"""
+    # ---- Step 2: Load EMAs and map EMA.x -> candle timestamp ----
+    df_emas = None
+    try:
+        ema_path = get_ema_path(timeframe)
+        emas = load_ema_json(ema_path)
+        df_emas = pd.DataFrame(emas) if emas else None
+    except Exception:
+        # No EMA file or bad JSON? no problem—just skip overlays.
+        df_emas = None
+
+    if df_emas is not None and not df_emas.empty:
+        df_emas = df_emas.copy()
+        df_emas["x"] = pd.to_numeric(df_emas["x"], errors="coerce")
+
+        # 1) build candle index for the visible tail
+        df_candles = df_candles.reset_index(drop=True)
+        candle_count = len(df_candles)
+        start = df_emas['x'].max() - (candle_count - 1)  # where this tail starts in global index
+        df_candles['global_idx'] = range(start, start + candle_count)
+
+        # 2) map EMA x -> candle timestamp
+        idx_to_ts = dict(zip(df_candles['global_idx'], df_candles['timestamp']))
+        df_emas['timestamp'] = df_emas['x'].map(idx_to_ts)
+        df_emas['timestamp'] = pd.to_datetime(df_emas['timestamp'], errors='coerce')  # <- force datetime64[ns]
+
+        # 3) keep only rows that actually land in the visible candle window
+        df_emas.dropna(subset=['timestamp'], inplace=True)
+
+    # ---- Step 3: Build the figure (candles + EMAs) ----
+    fig = go.Figure()
+    
+    candlex = df_candles['timestamp']
+    if hasattr(candlex, "dt"):
+        # Python datetime array (export-safe) without the FutureWarning
+        candlex = np.array(candlex.dt.to_pydatetime(), dtype=object)
+    
+    # --- Candles ---
+    fig.add_trace(go.Candlestick(
+        x=candlex,
+        open=df_candles['open'],
+        high=df_candles['high'],
+        low=df_candles['low'],
+        close=df_candles['close'],
+        name='Price'
+    ))
+
+    # --- EMAs ---
+    if df_emas is not None and not df_emas.empty:
+        emax = df_emas['timestamp']
+        if hasattr(emax, "dt"):
+            emax = np.array(emax.dt.to_pydatetime(), dtype=object)
+
+        for window, color in read_config("EMAS"):
+            col = str(window)
+            if col in df_emas.columns:
+                fig.add_trace(go.Scatter(
+                    x=emax,
+                    y=df_emas[col],
+                    mode='lines',
+                    name=f'EMA {window}',
+                    line=dict(color=str(color).lower(), width=1.5),
+                    yaxis="y2",
+                    connectgaps=False,
+                ))
+"""
 

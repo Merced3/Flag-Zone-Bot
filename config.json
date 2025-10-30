@@ -45,5 +45,6 @@
     },
     "OPTION_EXPIRATION_DTE": "not specified",
     "MINS_BEFORE_MAJOR_NEWS_ORDER_CANCELATION": 20,
-    "LIVE_BARS": {"2M": 195, "5M": 78, "15M": 26}
+    "LIVE_BARS": {"2M": 195, "5M": 78, "15M": 26},
+    "LIVE_ANCHOR": "latest"
 }
