@@ -968,7 +968,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, Data collection was good, no issues, shutted down program because computer needs a update. Day 2, no update to frontend, but data collection was good, no issues. Day 3, Data collection was good, no issues, worked on backend, finished the viewport historical days part of it, now got to finish the live portion then make the frontend display it all. Day 4, data collection was good, no issues, also i finished the live portion of the viewport backend of frontend, now just need to connect the 2 parts together and make sure it works.",
+        "description": "Day 1, Data collection was good, no issues, shutted down program because computer needs a update. Day 2, no update to frontend, but data collection was good, no issues. Day 3, Data collection was good, no issues, worked on backend, finished the viewport historical days part of it, now got to finish the live portion then make the frontend display it all. Day 4, data collection was good, no issues, also i finished the live portion of the viewport backend of frontend, now just need to connect the 2 parts together and make sure it works. Day 5, data collection was good, no issues, Didn't work on frontend today because of work and halloween.",
         "important_message_ids": []
     }
 
