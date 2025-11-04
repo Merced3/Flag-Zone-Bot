@@ -1,23 +1,28 @@
 {
-    "week_timespan": "10-27-25 to 11-02-25",
+    "week_timespan": "11-03-25 to 11-09-25",
     "dates": {
-        "10-29-25": {
-            "08:45 AM": [
-                "BoC Interest Rate Decision",
-                "BoC Monetary Policy Report"
-            ],
-            "01:00 PM": [
-                "Fed Interest Rate Decision"
-            ],
-            "01:30 PM": [
-                "Fed Press Conference"
+        "11-03-25": {
+            "09:00 AM": [
+                "ISM Manufacturing PMI"
             ]
         },
-        "10-30-25": {},
-        "10-31-25": {},
-        "11-03-25": {
-            "10:00 AM": [
-                "ISM Manufacturing PMI"
+        "11-04-25": {},
+        "11-05-25": {
+            "09:00 AM": [
+                "ISM Services PMI"
+            ]
+        },
+        "11-06-25": {
+            "09:00 AM": [
+                "Ivey PMI s.a"
+            ]
+        },
+        "11-07-25": {
+            "07:30 AM": [
+                "Unemployment Rate"
+            ],
+            "09:00 AM": [
+                "Michigan Consumer Sentiment Prel"
             ]
         }
     }
