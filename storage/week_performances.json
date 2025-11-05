@@ -980,7 +980,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, data collection was good, no websocket issues, worked on frontend a little bit, nothing substaintial - was trying to get a unit test to work with the new frontend functionality and found that i need to make teh viewport more robust.",
+        "description": "Day 1, data collection was good, no websocket issues, worked on frontend a little bit, nothing substaintial - was trying to get a unit test to work with the new frontend functionality and found that i need to make teh viewport more robust. Day 2, data collection was good, websocket failed then recovered, no candles were affeted, no work has been done to the frontend today.",
         "important_message_ids": []
     }
 
