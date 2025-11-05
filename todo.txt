@@ -1,7 +1,10 @@
-1) Next on the todo list is to get the zones displayed.
+1) Make the viewport UNIT TEST work, hasn't been working for a while now.
+    - I was thinking about loosing up the unit test BUT hardening the actual function to handle offset inputs for robust "API" usage seems like "best-practices".
+
+2) Next on the todo list is to get the zones displayed.
 
 
-2) Remember to put this back once the live chart is fully working with candles and zones:
+3) Remember to put this back once the live chart is fully working with candles and zones:
 """
     # ---- Step 2: Load EMAs and map EMA.x -> candle timestamp ----
     df_emas = None

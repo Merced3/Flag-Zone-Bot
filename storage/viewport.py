@@ -4,13 +4,13 @@ import os
 from typing import List, Tuple, Optional
 import pandas as pd
 import duckdb
+from pathlib import Path
 
 # --- robust import of root-level paths.py ---
 try:
     import paths  # project-root module
 except ModuleNotFoundError:
     import sys
-    from pathlib import Path
     ROOT = Path(__file__).resolve().parents[1]  # project root (contains paths.py)
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
@@ -19,6 +19,19 @@ except ModuleNotFoundError:
 
 MARKET_TZ = 'America/Chicago'
 DEBUG_VIEWPORT = os.getenv("DEBUG_VIEWPORT") == "1"
+
+def _to_local_naive_iso_bound(s: str) -> str:
+    """
+    Convert any ISO string (with/without offset) into a local-naive ISO
+    in MARKET_TZ, matching _ts_sql_expr() which yields local timestamps.
+    """
+    ts = pd.Timestamp(s)
+    if ts.tzinfo is None:
+        # assume local wall-clock intended; localize to market tz
+        ts = ts.tz_localize(MARKET_TZ)
+    else:
+        ts = ts.tz_convert(MARKET_TZ)
+    return ts.tz_localize(None).isoformat()
 
 def _parquet_has_column(file_list, column_name: str) -> bool:
     if not file_list:
@@ -35,21 +48,34 @@ def _parquet_has_column(file_list, column_name: str) -> bool:
     finally:
         con.close()
 
-def _collect_candle_files(timeframe: str, include_days: bool, include_parts: bool) -> List[str]:
-    files: List[str] = []
-    for variant in (timeframe, timeframe.lower(), timeframe.upper()):
-        root = paths.DATA_DIR / variant
+def _collect_candle_files(timeframe: str, include_days: bool, include_parts: bool):
+    # Use a set of real (resolved) paths to avoid duplicates on case-insensitive filesystems
+    seen = set()
+    out = []
+
+    # Collapse variants to a set so we don't iterate identical strings twice
+    for variant in {timeframe, timeframe.lower(), timeframe.upper()}:
+        root = Path(paths.DATA_DIR) / variant
         if not root.exists():
             continue
+
         if include_days:
-            # EOD day files at the root of the TF dir:  <TF>/<YYYY-MM-DD>.parquet
-            files += [str(p) for p in root.glob("*.parquet")]
+            for p in root.glob("*.parquet"):
+                rp = str(p.resolve())
+                if rp not in seen:
+                    seen.add(rp)
+                    out.append(rp)
+
         if include_parts:
-            # live “part-*” files are under subfolders: <TF>/<YYYY-MM-DD>/part-*.parquet
-            for sub in root.iterdir():
-                if sub.is_dir():
-                    files += [str(p) for p in sub.glob("*.parquet")]
-    return files
+            # parts live under date folders; skip any non-part files
+            for p in root.glob("*/*.parquet"):
+                if p.name.startswith("part-"):
+                    rp = str(p.resolve())
+                    if rp not in seen:
+                        seen.add(rp)
+                        out.append(rp)
+
+    return out
 
 def _ts_sql_expr() -> str:
     """Normalized timestamp expression in local (chart) time."""
@@ -184,6 +210,19 @@ def load_viewport(*,
     if DEBUG_VIEWPORT:
         print(f"[viewport] has_global_x={has_gx} parts={include_parts} days={include_days}")
 
+    # normalize bounds to local-naive to match _ts_sql_expr() output
+    t0_local = _to_local_naive_iso_bound(t0_iso)
+    t1_local = _to_local_naive_iso_bound(t1_iso)
+
+    # optional y-range (price) overlap filter
+    price_clause = ""
+    price_params = []
+    if y0 is not None and y1 is not None:
+        lo, hi = (float(y0), float(y1)) if y0 <= y1 else (float(y1), float(y0))
+        # overlap test: NOT (bar entirely below OR entirely above)
+        price_clause = " AND NOT (high < ? OR low > ?)"
+        price_params = [lo, hi]
+    
     sql = f"""
     WITH src AS (
         SELECT * FROM read_parquet(?, union_by_name=1, hive_partitioning=1)
@@ -199,20 +238,36 @@ def load_viewport(*,
         symbol, timeframe, ts, open, high, low, close, volume,
         gx AS global_x
     FROM norm
-    WHERE ts IS NOT NULL AND ts BETWEEN ? AND ?
+    WHERE ts IS NOT NULL
+        AND symbol = ?
+        AND ts BETWEEN ? AND ?{price_clause}
     ORDER BY ts
     """
 
     if DEBUG_VIEWPORT:
-        print(f"[viewport] timeframe={timeframe} files={len(cand_files)}  "
-              f"(examples: {cand_files[:2]})")
-        print(f"[viewport] window: {t0_iso} → {t1_iso}")
+        print(f"[viewport] timeframe={timeframe} files={len(cand_files)}  (examples: {cand_files[:2]})")
+        print(f"[viewport] window: {t0_iso} → {t1_iso} y={y0},{y1}")
 
-    df_candles = con.execute(sql, [cand_files, t0_iso, t1_iso]).df()
+    params = [cand_files, symbol, t0_local, t1_local] + price_params
+    df_candles = con.execute(sql, params).df()
+
+    df_objects = pd.DataFrame()
+
+    # De-dup identical bars when days & parts overlap the same window
+    if not df_candles.empty:
+        before = len(df_candles)
+        df_candles = (
+            df_candles
+            .drop_duplicates(subset=["symbol", "timeframe", "ts"], keep="last")
+            .reset_index(drop=True)
+        )
+        if DEBUG_VIEWPORT and before != len(df_candles):
+            print(f"[viewport] de-duped rows: {before} → {len(df_candles)} (by symbol,timeframe,ts)")
+    
     if DEBUG_VIEWPORT:
         print(f"[viewport] rows={len(df_candles)} | window:", t0_iso, "→", t1_iso)
 
-    return df_candles, pd.DataFrame()
+    return df_candles, df_objects
 
 """
 # CLI "lab" for quick testing
