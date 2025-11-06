@@ -11,7 +11,7 @@ storage/data/<tf>/<YYYY-MM-DD>/part-*.parquet
 
 - `symbol` (str) – e.g., "SPY"
 - `timeframe` (str) – e.g., "2M", "5M", "15M"
-- `ts` (ISO8601 str) – candle open time (canonical timestamp)
+- `ts` (ISO-8601 **with TZ offset**; lexicographically comparable in DuckDB.) – candle open time (canonical timestamp)
 - `open, high, low, close` (float)
 - `volume` (float)
 
@@ -24,3 +24,4 @@ storage/data/<tf>/<YYYY-MM-DD>/part-*.parquet
 ### Notes
 
 - Consumers **must tolerate short gaps** (network hiccups). Strategies should not assume perfect continuity.
+- Directories use `2m/5m/15m`; the `timeframe` column may appear as `2M/5M/15M`—consumers should be case-insensitive.”.
