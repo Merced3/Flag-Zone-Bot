@@ -980,7 +980,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, data collection was good, no websocket issues, worked on frontend a little bit, nothing substaintial - was trying to get a unit test to work with the new frontend functionality and found that i need to make teh viewport more robust. Day 2, data collection was good, websocket failed then recovered, no candles were affeted, no work has been done to the frontend today. Day 3, data collection was good, no issues, worked on frontend a little, got the historical days and live chart working just need to implement a better looking historical chart PLUS the objects (zones/lvls) displayed with it too.",
+        "description": "Day 1, data collection was good, no websocket issues, worked on frontend a little bit, nothing substaintial - was trying to get a unit test to work with the new frontend functionality and found that i need to make teh viewport more robust. Day 2, data collection was good, websocket failed then recovered, no candles were affeted, no work has been done to the frontend today. Day 3, data collection was good, no issues, worked on frontend a little, got the historical days and live chart working just need to implement a better looking historical chart PLUS the objects (zones/lvls) displayed with it too. Day 4, good data collection, no issues, i worked on the documentation side of things today, so that i don't forget on a longer term scale of whats going on.",
         "important_message_ids": []
     }
 
