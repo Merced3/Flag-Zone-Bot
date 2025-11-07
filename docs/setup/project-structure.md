@@ -12,6 +12,7 @@ Flag-Zone-Bot/
 │   ├── api/
 │   │   └── storage-viewport.md
 │   ├── architecture/
+│   │   ├── frontend-overview.md
 │   │   └── overview.md
 │   ├── configuration/
 │   │   └── ticker-and-timeframes.md
