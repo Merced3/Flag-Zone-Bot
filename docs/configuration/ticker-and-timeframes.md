@@ -1,33 +1,44 @@
 # Configuration — Symbol & Timeframes
 
-**StratForge is single‑asset** at runtime, but **ticker‑agnostic**: you can set any instrument your data provider/websocket supports. SPY is just the default.
+**Purpose:** Pick the market instrument we operate on and which bar intervals we build and display. One symbol at a time; the app is otherwise ticker-agnostic. :contentReference[oaicite:0]{index=0}
 
-## Choose a symbol
+---
+
+## 1) What to set (and where)
 
 Edit `config.json`:
 
 ```json
 {
   "symbol": "SPY",
-  "timeframes": ["2m", "5m", "15m"],
-  "provider": {
-    "name": "polygon",
-    "api_key": "YOUR_KEY"
-  }
+  "timeframes": ["2m", "5m", "15m"]
 }
+
 ```
 
-* **symbol**: Any supported ticker (e.g., `QQQ`, `AAPL`, `ES=F`).
-* **provider**: Must support your chosen symbol on the live websocket endpoint.
-* **timeframes**: Lowercase on disk (`2m`, `5m`, `15m`) to match storage layout.
+* `symbol` — the instrument to trade/visualize (e.g., `SPY`, `QQQ`, `AAPL`).
+* `timeframes` — which chart intervals to use; lowercase values (e.g., `2m`, `5m`, `15m`).
 
-## Provider compatibility checklist
+---
 
-* Does the **websocket** stream trades/quotes for the symbol?
-* Are there **rate limits** or **entitlements** (e.g., options vs equities) you must enable?
-* Are timestamps and sessions aligned with your **market hours** logic?
+## 2) What this changes
 
-## Notes
+* **Ingestion & storage**: we only build/write candles for the listed timeframes.
+* **Frontend tabs**: charts are generated for each configured timeframe.
+* **Viewport API**: queries expect the timeframe you configured (lowercase).
 
-* If you change `symbol`, old SPY Parquet files remain valid; you’ll just write new files under the same tree with a different `symbol` column value.
-* Strategies should never hard‑code `SPY`; they read `symbol` from config or shared state.
+---
+
+## 3) Rules & tips (no fluff)
+
+* **Lowercase** timeframes in config (`"2m"`, `"5m"`, `"15m"`). The code and docs assume this.
+* Use **valid** intervals we actually support (start with `2m`, `5m`, `15m`).
+* Don’t hard-code the symbol elsewhere; read it from config.
+* If you remove a timeframe from config, its chart/ingest disappears accordingly (old data remains on disk).
+
+---
+
+## 4) Quick sanity checks
+
+* Do you see one tab per configured timeframe in the web UI?
+* Does `viewport.load_viewport(symbol, timeframe, t0, t1, …)` return rows for that timeframe? (It expects lowercase like `"15m"`, `"5m"`, `"2m"`.)

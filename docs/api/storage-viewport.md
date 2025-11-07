@@ -16,9 +16,15 @@ load_viewport(
 ### Behavior
 
 - **Candles:** `SELECT … FROM read_parquet(glob) WHERE symbol=? AND timeframe=? AND ts BETWEEN ? AND ? ORDER BY ts`.
-- Objects: pick latest event per object with `event_ts <= t1`, then filter by time overlap and optional price clause.
+
+- **Objects (snapshot-based):**
+  Read `storage/objects/current/objects.parquet` and keep rows where:
+  - `symbol = ?` and `timeframe = ?`
+  - `status != "removed"`
+  - if a price band is given: `top >= y0` and `bottom <= y1`
+
 
 ### Gotchas
 
-- `timeframe` is lowercase in the on-disk layout (e.g., `15m`).
-- Ensure `t0_iso/t1_iso` use the same timezone format as stored rows (ISO strings sort correctly).
+- `t0_iso` / `t1_iso` may be given with or without a timezone offset; we normalize them before querying so ISO strings compare correctly.
+- The on-disk folders are lowercase (`2m/5m/15m`) and the `timeframe` column may be cased differently; treat it case-insensitively.
