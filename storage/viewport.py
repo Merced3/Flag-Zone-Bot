@@ -1,21 +1,24 @@
 # storage/viewport.py
+from __future__ import annotations
 
 import os
-from typing import List, Tuple, Optional
+import sys
+import importlib
+from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
 import pandas as pd
 import duckdb
-from pathlib import Path
 
-# --- robust import of root-level paths.py ---
+# --- Ensure project root on sys.path (…/project_root) ---
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+# --- paths: prefer relative (package), fallback to absolute ---
 try:
-    import paths  # project-root module
-except ModuleNotFoundError:
-    import sys
-    ROOT = Path(__file__).resolve().parents[1]  # project root (contains paths.py)
-    if str(ROOT) not in sys.path:
-        sys.path.insert(0, str(ROOT))
-    import paths
-# --------------------------------------------
+    from .. import paths  # type: ignore
+except Exception:
+    import paths  # type: ignore
 
 MARKET_TZ = 'America/Chicago'
 DEBUG_VIEWPORT = os.getenv("DEBUG_VIEWPORT") == "1"
@@ -191,8 +194,6 @@ def load_viewport(*,
     timeframe: str,          # "15m"
     t0_iso: str,             # "YYYY-MM-DDTHH:MM:SS-04:00"
     t1_iso: str,
-    y0=None,
-    y1=None,
     include_parts: bool = True, 
     include_days: bool = True
 ):
@@ -217,12 +218,6 @@ def load_viewport(*,
     # optional y-range (price) overlap filter
     price_clause = ""
     price_params = []
-    if y0 is not None and y1 is not None:
-        lo, hi = (float(y0), float(y1)) if y0 <= y1 else (float(y1), float(y0))
-        # overlap test: NOT (bar entirely below OR entirely above)
-        price_clause = " AND NOT (high < ? OR low > ?)"
-        price_params = [lo, hi]
-    
     sql = f"""
     WITH src AS (
         SELECT * FROM read_parquet(?, union_by_name=1, hive_partitioning=1)
@@ -246,12 +241,9 @@ def load_viewport(*,
 
     if DEBUG_VIEWPORT:
         print(f"[viewport] timeframe={timeframe} files={len(cand_files)}  (examples: {cand_files[:2]})")
-        print(f"[viewport] window: {t0_iso} → {t1_iso} y={y0},{y1}")
 
     params = [cand_files, symbol, t0_local, t1_local] + price_params
     df_candles = con.execute(sql, params).df()
-
-    df_objects = pd.DataFrame()
 
     # De-dup identical bars when days & parts overlap the same window
     if not df_candles.empty:
@@ -267,7 +259,62 @@ def load_viewport(*,
     if DEBUG_VIEWPORT:
         print(f"[viewport] rows={len(df_candles)} | window:", t0_iso, "→", t1_iso)
 
-    return df_candles, df_objects
+    # Candles are fully built, move onto objects
+
+    # --- ensure meta exists ---
+    #if meta is None:
+        #meta = {}
+    meta: Dict = {}
+
+    # --- Compute viewport price band from returned candles ---
+    if df_candles.empty:
+        meta["viewport_price_min"] = None
+        meta["viewport_price_max"] = None
+        meta["objects"] = pd.DataFrame()
+        meta["objects_count"] = 0
+        return df_candles, meta
+
+    vmin = float(df_candles["low"].min())
+    vmax = float(df_candles["high"].max())
+
+    # small fixed padding to catch boundary-touching zones (no knobs, per your request)
+    width = vmax - vmin
+    if width > 0:
+        pad = width * 0.02
+        vmin -= pad
+        vmax += pad
+
+    meta["viewport_price_min"] = vmin
+    meta["viewport_price_max"] = vmax
+
+    # --- Query current objects intersecting this y-range (fast path via stored proc) ---
+    out = query_current_by_y_range(symbol=symbol, timeframe=timeframe, y_min=vmin, y_max=vmax)
+
+    # Normalize to DataFrame (handles duckdb Relation / DataFrame / list[dict])
+    if hasattr(out, "to_df"):
+        df_obj = out.to_df()
+    elif isinstance(out, pd.DataFrame):
+        df_obj = out
+    else:
+        df_obj = pd.DataFrame(out)
+
+    # Safety: normalize columns & prune removed if present
+    if not df_obj.empty:
+        if "id" not in df_obj.columns and "object_id" in df_obj.columns:
+            df_obj["id"] = df_obj["object_id"]
+        if "status" in df_obj.columns:
+            df_obj = df_obj[df_obj["status"] != "removed"]
+        if "id" in df_obj.columns:
+            df_obj = df_obj.drop_duplicates(subset=["id"]).reset_index(drop=True)
+        else:
+            df_obj = df_obj.reset_index(drop=True)
+    else:
+        df_obj = pd.DataFrame()
+
+    meta["objects"] = df_obj
+    meta["objects_count"] = int(len(df_obj))
+
+    return df_candles, meta
 
 """
 # CLI "lab" for quick testing
