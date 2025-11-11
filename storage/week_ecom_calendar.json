@@ -1,28 +1,11 @@
 {
-    "week_timespan": "11-03-25 to 11-09-25",
+    "week_timespan": "11-10-25 to 11-16-25",
     "dates": {
-        "11-03-25": {
-            "09:00 AM": [
-                "ISM Manufacturing PMI"
-            ]
-        },
-        "11-04-25": {},
-        "11-05-25": {
-            "09:00 AM": [
-                "ISM Services PMI"
-            ]
-        },
-        "11-06-25": {
-            "09:00 AM": [
-                "Ivey PMI s.a"
-            ]
-        },
-        "11-07-25": {
+        "11-13-25": {},
+        "11-14-25": {},
+        "11-17-25": {
             "07:30 AM": [
-                "Unemployment Rate"
-            ],
-            "09:00 AM": [
-                "Michigan Consumer Sentiment Prel"
+                "Inflation Rate YoY"
             ]
         }
     }
