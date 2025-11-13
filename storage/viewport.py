@@ -8,17 +8,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 import pandas as pd
 import duckdb
-
-# --- Ensure project root on sys.path (…/project_root) ---
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-# --- paths: prefer relative (package), fallback to absolute ---
-try:
-    from .. import paths  # type: ignore
-except Exception:
-    import paths  # type: ignore
+from .objects.io import query_current_by_y_range  
+import paths
 
 MARKET_TZ = 'America/Chicago'
 DEBUG_VIEWPORT = os.getenv("DEBUG_VIEWPORT") == "1"
@@ -195,7 +186,9 @@ def load_viewport(*,
     t0_iso: str,             # "YYYY-MM-DDTHH:MM:SS-04:00"
     t1_iso: str,
     include_parts: bool = True, 
-    include_days: bool = True
+    include_days: bool = True,
+    y0: float | None = None,
+    y1: float | None = None,
 ):
     con = duckdb.connect(":memory:")
     cand_files = _collect_candle_files(timeframe, include_days, include_parts)
@@ -258,36 +251,27 @@ def load_viewport(*,
     
     if DEBUG_VIEWPORT:
         print(f"[viewport] rows={len(df_candles)} | window:", t0_iso, "→", t1_iso)
-
-    # Candles are fully built, move onto objects
-
-    # --- ensure meta exists ---
-    #if meta is None:
-        #meta = {}
-    meta: Dict = {}
-
-    # --- Compute viewport price band from returned candles ---
+    
+    # If no candles, return early with empty objects
     if df_candles.empty:
-        meta["viewport_price_min"] = None
-        meta["viewport_price_max"] = None
-        meta["objects"] = pd.DataFrame()
-        meta["objects_count"] = 0
-        return df_candles, meta
+        return df_candles, pd.DataFrame()
 
-    vmin = float(df_candles["low"].min())
-    vmax = float(df_candles["high"].max())
+    # Candles are fully built, de-duped, move onto objects
 
-    # small fixed padding to catch boundary-touching zones (no knobs, per your request)
-    width = vmax - vmin
-    if width > 0:
-        pad = width * 0.02
-        vmin -= pad
-        vmax += pad
+    # ---- viewport price band ----
+    if y0 is not None and y1 is not None:
+        vmin = float(min(y0, y1))
+        vmax = float(max(y0, y1))
+    else:
+        vmin = float(df_candles["low"].min())
+        vmax = float(df_candles["high"].max())
+        width = vmax - vmin
+        if width > 0:
+            pad = width * 0.02   # small fixed padding
+            vmin -= pad
+            vmax += pad
 
-    meta["viewport_price_min"] = vmin
-    meta["viewport_price_max"] = vmax
-
-    # --- Query current objects intersecting this y-range (fast path via stored proc) ---
+    # ---- pull objects only within this y-range ----
     out = query_current_by_y_range(symbol=symbol, timeframe=timeframe, y_min=vmin, y_max=vmax)
 
     # Normalize to DataFrame (handles duckdb Relation / DataFrame / list[dict])
@@ -298,7 +282,6 @@ def load_viewport(*,
     else:
         df_obj = pd.DataFrame(out)
 
-    # Safety: normalize columns & prune removed if present
     if not df_obj.empty:
         if "id" not in df_obj.columns and "object_id" in df_obj.columns:
             df_obj["id"] = df_obj["object_id"]
@@ -308,13 +291,23 @@ def load_viewport(*,
             df_obj = df_obj.drop_duplicates(subset=["id"]).reset_index(drop=True)
         else:
             df_obj = df_obj.reset_index(drop=True)
-    else:
-        df_obj = pd.DataFrame()
 
-    meta["objects"] = df_obj
-    meta["objects_count"] = int(len(df_obj))
+    # Ensure object_id exists and is string for callers/tests
+    if "object_id" not in df_obj.columns:
+        if "id" in df_obj.columns:
+            df_obj["object_id"] = df_obj["id"]
+        else:
+            df_obj["object_id"] = None
 
-    return df_candles, meta
+    df_obj["object_id"] = df_obj["object_id"].astype(str)
+
+    # Optional: stable column order (keeps extras at the end)
+    preferred = ["object_id","id","type","left","y","top","bottom","status","symbol","timeframe"]
+    df_obj = df_obj[[c for c in preferred if c in df_obj.columns] +
+                    [c for c in df_obj.columns if c not in preferred]]
+
+    # --- IMPORTANT: return objects directly, not meta ---
+    return df_candles, df_obj
 
 """
 # CLI "lab" for quick testing

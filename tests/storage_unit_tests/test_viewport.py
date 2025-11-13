@@ -1,35 +1,29 @@
-# tests\storage_unit_tests\test_viewport.py
+# tests/storage_unit_tests/test_viewport.py
 import importlib
-import duckdb
+import pandas as pd  # ← add this
 
 def test_load_viewport_filters_time_and_price(tmp_storage):
-    # Import modules after patching paths
     parquet_writer = importlib.import_module("storage.parquet_writer")
     viewport = importlib.import_module("storage.viewport")
+    from storage.objects.io import upsert_current_objects  # ← write to snapshot
 
-    # Seed two candles, two objects
+    # Seed two candles
     parquet_writer.append_candle("SPY", "15m", {
         "timestamp":"2025-09-02T09:45:00-04:00","open":450,"high":451,"low":449.5,"close":450.5,"volume":100
     })
     parquet_writer.append_candle("SPY", "15m", {
         "timestamp":"2025-09-02T10:00:00-04:00","open":450.5,"high":452,"low":450,"close":451.5,"volume":120
     })
-    parquet_writer.append_object_event(
-        symbol="SPY", timeframe="15m",
-        object_id="lvl-1", object_type="level", action="create",
-        event_ts="2025-09-02T09:50:00-04:00",
-        t_start="2025-09-02T09:50:00-04:00", t_end=None,
-        y_min=451.0, y_max=451.0, payload={"note":"test"}
-    )
-    parquet_writer.append_object_event(
-        symbol="SPY", timeframe="15m",
-        object_id="zone-omit", object_type="zone", action="create",
-        event_ts="2025-09-02T08:00:00-04:00",
-        t_start="2025-09-02T08:00:00-04:00", t_end="2025-09-02T08:30:00-04:00",
-        y_min=440.0, y_max=441.0, payload={}
-    )
 
-    # Ask for a viewport that covers 09:45–10:00 and price ~450.8–451.2
+    # Seed CURRENT snapshot objects directly (1 inside the band, 1 outside)
+    upsert_current_objects(pd.DataFrame([
+        {"id":"90001","type":"support","left":22815,"y":451.0,
+         "top":pd.NA,"bottom":pd.NA,"status":"active","symbol":"SPY","timeframe":"15m"},
+        {"id":"90002","type":"support","left":22849,"y":444.0,
+         "top":pd.NA,"bottom":pd.NA,"status":"active","symbol":"SPY","timeframe":"15m"},
+    ]))
+
+    # Query viewport over 09:45–10:00 with price band 450.8–451.2
     df_c, df_o = viewport.load_viewport(
         symbol="SPY", timeframe="15m",
         t0_iso="2025-09-02T09:45:00-04:00", t1_iso="2025-09-02T10:00:00-04:00",
@@ -38,6 +32,25 @@ def test_load_viewport_filters_time_and_price(tmp_storage):
 
     # Candles in range = both
     assert len(df_c) == 2
-    # Only the level at 451 intersects price band and is active in time window
-    assert len(df_o) == 1
-    assert df_o["object_id"][0] == "lvl-1"
+
+    # We expect at least one object (we injected one in-range)
+    assert not df_o.empty
+
+    # Property checks: every returned object overlaps price band and matches symbol/timeframe
+    lo, hi = 450.8, 451.2
+
+    def overlaps(row):
+        y = row.get("y")
+        top = row.get("top")
+        bottom = row.get("bottom")
+        if pd.notna(y):
+            return lo - 1e-9 <= float(y) <= hi + 1e-9
+        if pd.isna(top) or pd.isna(bottom):
+            return False
+        a, b = float(min(top, bottom)), float(max(top, bottom))
+        return b >= lo - 1e-9 and a <= hi + 1e-9
+
+    assert all(overlaps(r) for _, r in df_o.iterrows())
+    assert set(df_o["symbol"].unique()) <= {"SPY"}
+    if "status" in df_o.columns:
+        assert (df_o["status"] != "removed").all()
