@@ -992,7 +992,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, data collection was good no issues, worked on the ~backend~ of the frontend a little bit, have an error on that but live run was good. Day 2, data collection was good again, we did have a hiccup in websocket connection but it quickly solved itself and got back to it, no candles were affected, was able to work on backend today. Day 3, data collection was good, no issues, worked more on the backend of frontend and solved the zones issue, now just need to work on getting the unit test to work (not too be overfitted, like it was originally but im glad i found out about it) then to get the frontend to ACTUALLY SHOW the EMAS and markers but that will at a latter date.",
+        "description": "Day 1, data collection was good no issues, worked on the ~backend~ of the frontend a little bit, have an error on that but live run was good. Day 2, data collection was good again, we did have a hiccup in websocket connection but it quickly solved itself and got back to it, no candles were affected, was able to work on backend today. Day 3, data collection was good, no issues, worked more on the backend of frontend and solved the zones issue, now just need to work on getting the unit test to work (not too be overfitted, like it was originally but im glad i found out about it) then to get the frontend to ACTUALLY SHOW the EMAS and markers but that will at a latter date. Day 4, Data collection was good, no issues, Finished backend of frontend.",
         "important_message_ids": []
     }
 ]
