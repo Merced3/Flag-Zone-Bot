@@ -1,9 +1,20 @@
 # objects.py
+
+# Guard heavy/runtime-only deps so import works in CI/tests
+try:
+    from data_acquisition import get_certain_candle_data  # used only in live flows
+except Exception:  # catches ModuleNotFoundError for cred inside data_acquisition
+    def get_certain_candle_data(*args, **kwargs):
+        raise RuntimeError("data_acquisition/get_certain_candle_data unavailable in CI/tests")
+
+try:
+    import cred  # runtime secrets
+except ModuleNotFoundError:
+    cred = None  # fine for tests; any runtime path that needs cred must handle None
+
 from typing import Optional
 import pandas as pd
 from shared_state import print_log
-from data_acquisition import get_certain_candle_data
-import cred
 import asyncio
 from datetime import datetime
 from utils.data_utils import get_dates
