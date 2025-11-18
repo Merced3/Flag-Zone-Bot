@@ -1,11 +1,23 @@
 {
-    "week_timespan": "11-10-25 to 11-16-25",
+    "week_timespan": "11-17-25 to 11-23-25",
     "dates": {
-        "11-13-25": {},
-        "11-14-25": {},
         "11-17-25": {
             "07:30 AM": [
                 "Inflation Rate YoY"
+            ]
+        },
+        "11-19-25": {
+            "01:00 PM": [
+                "FOMC Minutes"
+            ]
+        },
+        "11-20-25": {
+            "07:30 AM": [
+                "Non Farm Payrolls",
+                "Unemployment Rate"
+            ],
+            "09:00 AM": [
+                "Existing Home Sales"
             ]
         }
     }
