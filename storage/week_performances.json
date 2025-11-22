@@ -1004,7 +1004,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, data collection was good, didn't work on program today. Day 2, data collection was good, no issues, websocket disconnected then reconnected quickly, no candles were affected. Day 3, data collection was good, no issues was able to work on frontend, making it look nicer but still in progress, we did have a websocket disconnect but it quickly reconnected and no candles were affected.",
+        "description": "Day 1, data collection was good, didn't work on program today. Day 2, data collection was good, no issues, websocket disconnected then reconnected quickly, no candles were affected. Day 3, data collection was good, no issues was able to work on frontend, making it look nicer but still in progress, we did have a websocket disconnect but it quickly reconnected and no candles were affected. day 4 and 5, data collection was good as ussual, no issues, didn't work on program these days, grandpa died.",
         "important_message_ids": []
     }
 ]
