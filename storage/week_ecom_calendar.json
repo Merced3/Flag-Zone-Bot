@@ -1,23 +1,26 @@
 {
-    "week_timespan": "11-17-25 to 11-23-25",
+    "week_timespan": "11-24-25 to 11-30-25",
     "dates": {
-        "11-17-25": {
+        "11-25-25": {
             "07:30 AM": [
-                "Inflation Rate YoY"
+                "PPI MoM",
+                "Retail Sales MoM"
             ]
         },
-        "11-19-25": {
-            "01:00 PM": [
-                "FOMC Minutes"
+        "11-26-25": {
+            "07:30 AM": [
+                "Durable Goods Orders MoM"
             ]
         },
-        "11-20-25": {
+        "11-28-25": {
             "07:30 AM": [
-                "Non Farm Payrolls",
-                "Unemployment Rate"
-            ],
+                "GDP Growth Rate Annualized",
+                "GDP Growth Rate QoQ"
+            ]
+        },
+        "12-01-25": {
             "09:00 AM": [
-                "Existing Home Sales"
+                "ISM Manufacturing PMI"
             ]
         }
     }
