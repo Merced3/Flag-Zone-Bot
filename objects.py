@@ -895,6 +895,7 @@ WHAT “PULL-REPLACE” DOES
     - Re-pulls fresh 15m candles from Polygon and writes:
         storage/data/15m/<YYYY-MM-DD>.parquet
         (auto-normalized: ts=int64 epoch ms UTC, ts_iso=ISO8601 Z; volume forced to 0.0; global_x continued)
+        Terminal: `python objects.py pull-replace --day YYYY-MM-DD`
     - Re-runs the normal EOD object processing for that day.
     - Re-checks cadence and logs “Repair complete … (no gaps)”.
 
