@@ -101,6 +101,7 @@ Flag-Zone-Bot/
 │   │   ├── live_chart.py
 │   │   └── zones_chart.py
 │   └── assets/
+│       └── style.css
 ├── .gitignore
 ├── buy_option.py
 ├── config.json
