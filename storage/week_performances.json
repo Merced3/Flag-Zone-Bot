@@ -1018,5 +1018,17 @@
         "num_of_negitive_trades": 0,
         "description": "Day 1, data collection was good, only issue was that the economic calender data pull was unsuccessful, some type of error came up, luckily sense were not taking any trades right now that error won't affect anything. Day 2, data collection was good, and the ecom calander data collection actually worked without changing anything, no errors in terminal, another clean run, wasn't able to work on program today, im thinking about bring my portable computer to a bar or sometype of public place where i can work on creating this while being in a public place, i feel lonely, ive been lonely long before this project ever started. Day 3, data collection was good, no issues, didn't work on program today. Day 4, thanksgiving, market closed. Day 5, data collection was good but market ended early. Some candle data was at idle for the rest of the day hene why the images look weird, I Didn't correct the mistake, not yet. I fixed it.",
         "important_message_ids": []
+    },
+    {
+        "week_number": 84,
+        "week_start_end_date": "12/01/2025-12/05/2025",
+        "start_ammount": 39174.0,
+        "end_ammount": 39174.0,
+        "total_made": 0.0,
+        "num_of_trades": 0,
+        "num_of_profitable_trades": 0,
+        "num_of_negitive_trades": 0,
+        "description": "Day 1, 2, and 3, I was at a funeral and im glad to say i saw no errors in the terminal and its been running good like always. Day 4, data collection good, no issues, was able to work on one of the frontend branches today, got the candles to display correctly now im working on the obects (zones/levels) to display correctly.",
+        "important_message_ids": []
     }
 ]

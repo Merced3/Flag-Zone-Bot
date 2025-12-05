@@ -1,26 +1,30 @@
 {
-    "week_timespan": "11-24-25 to 11-30-25",
+    "week_timespan": "12-01-25 to 12-07-25",
     "dates": {
-        "11-25-25": {
-            "07:30 AM": [
-                "PPI MoM",
-                "Retail Sales MoM"
-            ]
-        },
-        "11-26-25": {
-            "07:30 AM": [
-                "Durable Goods Orders MoM"
-            ]
-        },
-        "11-28-25": {
-            "07:30 AM": [
-                "GDP Growth Rate Annualized",
-                "GDP Growth Rate QoQ"
-            ]
-        },
         "12-01-25": {
             "09:00 AM": [
                 "ISM Manufacturing PMI"
+            ]
+        },
+        "12-03-25": {
+            "09:00 AM": [
+                "ISM Services PMI"
+            ]
+        },
+        "12-04-25": {
+            "09:00 AM": [
+                "Ivey PMI s.a"
+            ]
+        },
+        "12-05-25": {
+            "07:30 AM": [
+                "Unemployment Rate"
+            ],
+            "09:00 AM": [
+                "Core PCE Price Index MoM",
+                "Michigan Consumer Sentiment Prel",
+                "Personal Income MoM",
+                "Personal Spending MoM"
             ]
         }
     }
