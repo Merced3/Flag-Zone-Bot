@@ -10,6 +10,7 @@ Objects (zones, levels, markers, flags) are **event-sourced** and also materiali
 ## Columns
 
 ### Current snapshot (`objects/current/objects.parquet`)
+
 These columns are enforced on read/write (nullable Pandas dtypes for stability):
 
 - `id` (string) — stable object id
@@ -27,6 +28,7 @@ These columns are enforced on read/write (nullable Pandas dtypes for stability):
 - `updated_step` (Int64) — engine step index at last update
 
 ### Timeline events (`objects/timeline/YYYY-MM/YYYY-MM-DD.parquet`)
+
 Each row is a single event (append-only):
 
 - `step` (Int64) — engine step index

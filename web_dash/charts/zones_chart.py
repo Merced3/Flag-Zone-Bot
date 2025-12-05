@@ -24,7 +24,7 @@ def _apply_market_rangebreaks(fig: go.Figure):
         showgrid=False,
     )
 
-def _add_day_bands(fig: go.Figure, ts_plot: pd.Series, tf_minutes: int, opacity=0.26):
+def _add_day_bands(fig: go.Figure, ts_plot: pd.Series, tf_minutes: int, opacity=0.40):
     # assumes df_c['ts'] exists (ISO with tz per your storage contract)
     dates = ts_plot.dt.floor("D")
     for i, d in enumerate(pd.unique(dates)):
@@ -66,14 +66,15 @@ def generate_zones_chart(timeframe: str = "15M", days: int = 10):
     # --- debug: counts per ET day before trimming ---
     ts_et_raw = pd.to_datetime(df_c["ts"], utc=True, errors="coerce").dt.tz_convert(TZ)
     pre_counts_c = pd.Series(ts_et_raw.dt.date).value_counts().sort_index()
-    print(f"[zones_chart pre] candles per day ({timeframe}):\n{pre_counts_c}")
-
-    if "ts" in df_o.columns:
+    print(f"[zones_chart] candles per day ({timeframe}):\n{pre_counts_c}")
+    print(f"[zones_chart] total objects: {len(df_o)}\n{df_o}") # The point of this was too see what structure the objects have
+    # objects structure: Columns: [object_id, id, type, left, y, top, bottom, status, symbol, timeframe]
+    if "ts" in df_o.columns: # We need to change this, not just the if statement but the contents inside to better handle what we want to display in terminal, best fit.
         ts_et_o = pd.to_datetime(df_o["ts"], utc=True, errors="coerce").dt.tz_convert(TZ)
         pre_counts_o = pd.Series(ts_et_o.dt.date).value_counts().sort_index()
-        print(f"[zones_chart pre] objects per day:\n{pre_counts_o}")
+        print(f"[zones_chart] objects per day:\n{pre_counts_o}")
     else:
-        print("[zones_chart pre] objects have no ts column")
+        print("[zones_chart] objects have no ts column")
 
     # Empty case
     if df_c.empty:
@@ -83,27 +84,14 @@ def generate_zones_chart(timeframe: str = "15M", days: int = 10):
         )
         return dcc.Graph(figure=empty, style={"height": "700px"})
     
-    # 2) Normalize time → ET and make it NAIVE for Plotly rangebreaks
-    ts_utc = pd.to_datetime(df_c["ts"], utc=True, errors="coerce")
-    ts_et  = ts_utc.dt.tz_convert(TZ)
-    ts_plot = ts_et.dt.tz_localize(None)  # naive ET datetimes for Plotly
+    # Normalize time → ET and make it NAIVE for Plotly/rangebreaks; do not trim rows
+    ts_local = pd.to_datetime(df_c["ts"], errors="coerce").dt.tz_localize("America/Chicago")
+    ts_et = ts_local.dt.tz_convert(TZ)
+    ts_plot = ts_et.dt.tz_localize(None)
+    df_c = df_c.assign(_ts_plot=ts_plot, _et_date=ts_plot.dt.date)  # _et_date only for debug/stats
 
-    # 3) Keep last N distinct ET dates (robust if t0/t1 spans more)
-    df_c = df_c.assign(_ts_plot=ts_plot, _et_date=ts_plot.dt.date)
-    keep_dates = sorted(df_c["_et_date"].unique())[-days:]
-    df_c = df_c[df_c["_et_date"].isin(keep_dates)]
-
-    # --- debug: counts per ET day after trimming ---
-    post_counts_c = df_c.groupby("_et_date").size()
-    print(f"[zones_chart post] candles per day ({timeframe}):\n{post_counts_c}")
-
-    if "ts" in df_o.columns:
-        df_o = df_o.assign(_et_date=pd.to_datetime(df_o["ts"], utc=True, errors="coerce").dt.tz_convert(TZ).dt.date)
-        post_counts_o = df_o.groupby("_et_date").size()
-        print(f"[zones_chart post] objects per day:\n{post_counts_o}")
 
     # 4) Candles
-    # x = pd.to_datetime(df_c["ts"], utc=True, errors="coerce").dt.tz_convert(TZ)
     # Use naive ET timestamps so rangebreaks don’t remove midday bars
     x = ts_plot
     fig = go.Figure(go.Candlestick(
