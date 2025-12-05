@@ -52,7 +52,7 @@ def _draw_objects(fig: go.Figure, df_o: pd.DataFrame):
             fig.add_hrect(y0=y0, y1=y1, line_width=0,
                           fillcolor="#60a5fa", opacity=0.13)
 
-def generate_zones_chart(timeframe: str = "15M", days: int = 10):
+def generate_zones_chart(timeframe: str = "15m", days: int = 10):
     symbol = read_config("SYMBOL")
     t0, t1, picked = days_window(timeframe, days)
 

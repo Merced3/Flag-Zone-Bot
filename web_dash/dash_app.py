@@ -76,13 +76,13 @@ def refresh_any(msg, selected_tab, graph_id):
     if msg:
         payload = msg.get("data") if isinstance(msg, dict) else msg
         if isinstance(payload, str) and payload == f"chart:{tf_key}":
-            return (generate_zones_chart("15M").figure
+            return (generate_zones_chart("15m").figure
                     if tf_key == "zones"
                     else generate_live_chart(tf_key).figure)
 
     # B) Tab-activation refresh (user clicked into this TF)
     if selected_tab == tf_key:
-        return (generate_zones_chart("15M").figure
+        return (generate_zones_chart("15m").figure
                 if tf_key == "zones"
                 else generate_live_chart(tf_key).figure)
 
