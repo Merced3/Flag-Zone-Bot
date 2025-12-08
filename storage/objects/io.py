@@ -163,7 +163,8 @@ def upsert_current_objects(changes: pd.DataFrame) -> None:
     # 1) update overlap via DataFrame.update (keeps dtypes, no warnings)
     overlap = cur_idx.index.intersection(ch_idx.index)
     if len(overlap):
-        cur_idx.update(ch_idx.loc[overlap])
+        # prefer incoming non-null values without breaking nullable dtypes
+        cur_idx.loc[overlap] = ch_idx.loc[overlap].combine_first(cur_idx.loc[overlap])
 
     # 2) append new ids (dtypes already aligned)
     new_ids = ch_idx.index.difference(cur_idx.index)
