@@ -1,8 +1,6 @@
 # tests\storage_unit_tests\test_parquet_writer.py
 import duckdb
-from datetime import datetime, timezone, timedelta
 import importlib, pandas as pd
-from pathlib import Path
 
 def test_append_candle_creates_daily_parquet(tmp_storage):
     # Import after monkeypatch so parquet_writer sees patched paths

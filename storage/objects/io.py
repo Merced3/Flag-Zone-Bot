@@ -55,20 +55,21 @@ def _enforce_schema(df: pd.DataFrame) -> pd.DataFrame:
                 out[c] = out[c].astype("string")
     return out
 
-# ───🔹 PATHS & ENSURE ────────────────────────────────────────────────────
-CUR_PATH = paths.CURRENT_OBJECTS_PATH
-TL_DIR   = paths.TIMELINE_OBJECTS_DIR
+# ───🔹 PATHS & STORAGE ───────────────────────────────────────────────────
+
+def _cur_path(): return paths.CURRENT_OBJECTS_PATH
+def _timeline_dir(): return paths.TIMELINE_OBJECTS_DIR
 
 def _ensure_dirs():
-    CUR_PATH.parent.mkdir(parents=True, exist_ok=True)
-    TL_DIR.mkdir(parents=True, exist_ok=True)
+    _cur_path().parent.mkdir(parents=True, exist_ok=True)
+    _timeline_dir().mkdir(parents=True, exist_ok=True)
 
 # ───🔹 LOADERS ───────────────────────────────────────────────────────────
 
 def load_current_objects(columns: list[str] | None = None) -> pd.DataFrame:
     _ensure_dirs()
     try:
-        df = pd.read_parquet(CUR_PATH)
+        df = pd.read_parquet(_cur_path())
         df = _enforce_schema(df)
         if columns:
             # make sure requested columns exist even if empty
@@ -85,7 +86,7 @@ def load_timeline_day(day: str) -> pd.DataFrame:
     """
     Load timeline events for YYYY-MM-DD, or empty frame if missing.
     """
-    p = paths.TIMELINE_OBJECTS_DIR / day[:7] / f"{day}.parquet"
+    p = _timeline_dir() / day[:7] / f"{day}.parquet"
     try:
         return pd.read_parquet(p)
     except FileNotFoundError:
@@ -120,7 +121,7 @@ def _normalize_ts(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def read_current_objects(symbol: str | None = None, timeframe: str | None = None) -> pd.DataFrame:
-    p = Path(paths.OBJECTS_DIR) / "current" / "objects.parquet"
+    p = _cur_path()
     if not p.exists():
         return pd.DataFrame()
     df = pd.read_parquet(p)
@@ -140,7 +141,7 @@ def write_current_objects(df: pd.DataFrame) -> None:
     _ensure_dirs()
     df = _enforce_schema(df)
 
-    out = CUR_PATH
+    out = _cur_path()
     tmp = out.with_name(out.name + ".tmp")
 
     # 1) write to a temp file (closed once to_parquet returns)
@@ -198,7 +199,7 @@ def append_timeline_events(events: pd.DataFrame) -> Path:
     # Day routing
     day = ev["ts"].dt.tz_convert("UTC").dt.normalize().iloc[0]
     day_str = day.strftime("%Y-%m-%d")
-    month_dir = TL_DIR / day_str[:7]
+    month_dir = _timeline_dir() / day_str[:7]
     month_dir.mkdir(parents=True, exist_ok=True)
     out = month_dir / f"{day_str}.parquet"
 
@@ -273,7 +274,7 @@ def build_asof_snapshot_from_timeline(step: int,
     Reconstruct the last-known state of each object up to 'step' (inclusive)
     from daily-partitioned timeline parquet files.
     """
-    parts = sorted(TL_DIR.rglob("*.parquet"))
+    parts = sorted(_timeline_dir().rglob("*.parquet"))
     if not parts:
         return pd.DataFrame(columns=["id","type","left","y","top","bottom","status","symbol","timeframe"])
 

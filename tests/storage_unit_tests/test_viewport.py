@@ -1,11 +1,11 @@
 # tests/storage_unit_tests/test_viewport.py
 import importlib
-import pandas as pd  # ← add this
+import pandas as pd
 
 def test_load_viewport_filters_time_and_price(tmp_storage):
     parquet_writer = importlib.import_module("storage.parquet_writer")
     viewport = importlib.import_module("storage.viewport")
-    from storage.objects.io import upsert_current_objects  # ← write to snapshot
+    io = importlib.import_module("storage.objects.io")
 
     # Seed two candles
     parquet_writer.append_candle("SPY", "15m", {
@@ -16,7 +16,7 @@ def test_load_viewport_filters_time_and_price(tmp_storage):
     })
 
     # Seed CURRENT snapshot objects directly (1 inside the band, 1 outside)
-    upsert_current_objects(pd.DataFrame([
+    io.upsert_current_objects(pd.DataFrame([
         {"id":"90001","type":"support","left":22815,"y":451.0,
          "top":pd.NA,"bottom":pd.NA,"status":"active","symbol":"SPY","timeframe":"15m"},
         {"id":"90002","type":"support","left":22849,"y":444.0,

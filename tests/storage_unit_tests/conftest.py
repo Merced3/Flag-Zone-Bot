@@ -11,19 +11,26 @@ import importlib
 
 @pytest.fixture
 def tmp_storage(tmp_path, monkeypatch):
-    """
-    Redirect paths.DATA_DIR and paths.OBJECTS_DIR to a temp folder so tests
-    don't touch your real storage/.
-    """
-    # Import paths as a module so we can monkeypatch attributes
     paths = importlib.import_module("paths")
-    data_dir = tmp_path / "storage" / "data"
-    objects_dir = tmp_path / "storage" / "objects"
-    data_dir.mkdir(parents=True, exist_ok=True)
-    objects_dir.mkdir(parents=True, exist_ok=True)
+    storage_dir = tmp_path / "storage"
+    data_dir = storage_dir / "data"
+    objects_dir = storage_dir / "objects"
 
+    monkeypatch.setattr(paths, "STORAGE_DIR", storage_dir, raising=False)
     monkeypatch.setattr(paths, "DATA_DIR", data_dir, raising=False)
     monkeypatch.setattr(paths, "OBJECTS_DIR", objects_dir, raising=False)
+    monkeypatch.setattr(paths, "CURRENT_OBJECTS_DIR", objects_dir / "current", raising=False)
+    monkeypatch.setattr(paths, "TIMELINE_OBJECTS_DIR", objects_dir / "timeline", raising=False)
+    monkeypatch.setattr(paths, "CURRENT_OBJECTS_PATH",
+                        objects_dir / "current" / "objects.parquet", raising=False)
+
+    data_dir.mkdir(parents=True, exist_ok=True)
+    (objects_dir / "current").mkdir(parents=True, exist_ok=True)
+    (objects_dir / "timeline").mkdir(parents=True, exist_ok=True)
+
+    # reload so imports pick up patched paths
+    importlib.reload(importlib.import_module("storage.objects.io"))
+    importlib.reload(importlib.import_module("storage.viewport"))
 
     yield types.SimpleNamespace(DATA_DIR=data_dir, OBJECTS_DIR=objects_dir)
 
