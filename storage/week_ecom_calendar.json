@@ -1,31 +1,24 @@
 {
-    "week_timespan": "12-01-25 to 12-07-25",
+    "week_timespan": "12-08-25 to 12-14-25",
     "dates": {
-        "12-01-25": {
+        "12-09-25": {
             "09:00 AM": [
-                "ISM Manufacturing PMI"
+                "JOLTs Job Openings",
+                "JOLTs Job Openings"
             ]
         },
-        "12-03-25": {
-            "09:00 AM": [
-                "ISM Services PMI"
-            ]
-        },
-        "12-04-25": {
-            "09:00 AM": [
-                "Ivey PMI s.a"
-            ]
-        },
-        "12-05-25": {
-            "07:30 AM": [
-                "Unemployment Rate"
+        "12-10-25": {
+            "08:45 AM": [
+                "BoC Interest Rate Decision"
             ],
-            "09:00 AM": [
-                "Core PCE Price Index MoM",
-                "Michigan Consumer Sentiment Prel",
-                "Personal Income MoM",
-                "Personal Spending MoM"
+            "01:00 PM": [
+                "Fed Interest Rate Decision",
+                "FOMC Economic Projections"
+            ],
+            "01:30 PM": [
+                "Fed Press Conference"
             ]
-        }
+        },
+        "12-11-25": {}
     }
 }
