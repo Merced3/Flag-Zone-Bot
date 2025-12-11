@@ -6,6 +6,7 @@ import plotly.graph_objs as go
 import pandas as pd
 from utils.json_utils import read_config
 from storage.viewport import load_viewport, days_window
+from web_dash.assets.object_styles import draw_objects
 
 TZ = "America/New_York"
 
@@ -36,21 +37,6 @@ def _add_day_bands(fig: go.Figure, ts_plot: pd.Series, tf_minutes: int, opacity=
         color = "#f1f3f5" if i % 2 == 0 else "#ffffff"
         fig.add_vrect(x0=x0, x1=x1, fillcolor=color, opacity=opacity,
                       layer="below", line_width=0)
-
-def _draw_objects(fig: go.Figure, df_o: pd.DataFrame):
-    if df_o.empty: return
-    # levels
-    if "y" in df_o.columns:
-        for y in df_o["y"].dropna().astype(float):
-            fig.add_hline(y=y, line_width=1, line_dash="dot",
-                          line_color="#6b7280", opacity=0.65)
-    # zones
-    if {"top", "bottom"}.issubset(df_o.columns):
-        for _, r in df_o.dropna(subset=["top", "bottom"]).iterrows():
-            y0 = float(min(r["top"], r["bottom"]))
-            y1 = float(max(r["top"], r["bottom"]))
-            fig.add_hrect(y0=y0, y1=y1, line_width=0,
-                          fillcolor="#60a5fa", opacity=0.13)
 
 def generate_zones_chart(timeframe: str = "15m", days: int = 10):
     symbol = read_config("SYMBOL")
@@ -105,7 +91,7 @@ def generate_zones_chart(timeframe: str = "15m", days: int = 10):
     # 5) Remove gaps + add day stripes + overlay objects
     _apply_market_rangebreaks(fig)
     _add_day_bands(fig, df_c["_ts_plot"], _tf_minutes(timeframe))
-    _draw_objects(fig, df_o)
+    draw_objects(fig, df_o, df_c, _tf_minutes(timeframe), variant="zones")
 
     # 6) Layout polish
     fig.update_layout(

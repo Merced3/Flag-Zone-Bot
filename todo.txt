@@ -1,10 +1,9 @@
-1) Make the viewport UNIT TEST work, hasn't been working for a while now.
-    - I was thinking about loosing up the unit test BUT hardening the actual function to handle offset inputs for robust "API" usage seems like "best-practices".
+Currently working on everything display-wise
 
-2) Next on the todo list is to get the zones displayed.
+Everything the new storage system works, just need to get the display/frontend to read whats in the storage via the new stored procedures functionality. The unit tests will show everything storage working.
 
-
-3) Remember to put this back once the live chart is fully working with candles and zones:
+ALONG THE WAY:
+-  Remember to put this back once the live chart is fully working with candles and zones:
 """
     # ---- Step 2: Load EMAs and map EMA.x -> candle timestamp ----
     df_emas = None
@@ -72,3 +71,6 @@
                 ))
 """
 
+NEXT THING TO WORK ON:
+[x] The zones chart "displays" the zones but not there starting points nor there correct color. that needs to be fixed. The zones chart should be done after that point.
+[ ] After that we need to work on the live chart, because they don't display zones, levels, emas, flags, nothing... they only currently display candles but we want everything else.
