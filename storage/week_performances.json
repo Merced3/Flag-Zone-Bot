@@ -1040,7 +1040,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, Data collection was good today, but we did have a websocket connection issue at ‘08:56:00’ but luckily I quickly got connected back and no candles were affected, also finished with perfecting all 12. unit tests with all warnings gone. Day 2, data collection good, no issues, no work done on the frontend branch.",
+        "description": "Day 1, Data collection was good today, but we did have a websocket connection issue at ‘08:56:00’ but luckily I quickly got connected back and no candles were affected, also finished with perfecting all 12. unit tests with all warnings gone. Day 2, data collection good, no issues, no work done on the frontend branch. Day 3, 4, and 5, data collection was good, no issues that the bot didn't recover from. Alot of work has been done to the front end as this week was deticated to it. The frontend should be somewhat finished this upcoming week.",
         "important_message_ids": []
     }
 ]
