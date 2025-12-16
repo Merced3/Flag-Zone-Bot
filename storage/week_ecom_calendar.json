@@ -1,24 +1,32 @@
 {
-    "week_timespan": "12-08-25 to 12-14-25",
+    "week_timespan": "12-15-25 to 12-21-25",
     "dates": {
-        "12-09-25": {
+        "12-15-25": {
+            "07:30 AM": [
+                "Inflation Rate YoY"
+            ]
+        },
+        "12-16-25": {
+            "07:30 AM": [
+                "Non Farm Payrolls",
+                "Non Farm Payrolls",
+                "Retail Sales MoM",
+                "Unemployment Rate"
+            ]
+        },
+        "12-17-25": {},
+        "12-18-25": {
+            "07:30 AM": [
+                "Core Inflation Rate MoM",
+                "Core Inflation Rate YoY",
+                "Inflation Rate MoM",
+                "Inflation Rate YoY"
+            ]
+        },
+        "12-19-25": {
             "09:00 AM": [
-                "JOLTs Job Openings",
-                "JOLTs Job Openings"
+                "Existing Home Sales"
             ]
-        },
-        "12-10-25": {
-            "08:45 AM": [
-                "BoC Interest Rate Decision"
-            ],
-            "01:00 PM": [
-                "Fed Interest Rate Decision",
-                "FOMC Economic Projections"
-            ],
-            "01:30 PM": [
-                "Fed Press Conference"
-            ]
-        },
-        "12-11-25": {}
+        }
     }
 }
