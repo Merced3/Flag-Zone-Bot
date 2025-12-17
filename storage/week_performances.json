@@ -1052,7 +1052,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, Data collection was good, websocket hickup but quickly recovered, no affected candles, havent worked on frontend because today all i did was meal prep.",
+        "description": "Day 1, Data collection was good, websocket hickup but quickly recovered, no affected candles, havent worked on frontend because today all i did was meal prep. Day 2, data collection good, no issues, didn't work on frontend because i wanted good sleep.",
         "important_message_ids": []
     }
 ]
