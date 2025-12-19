@@ -7,6 +7,7 @@ import pandas as pd
 from utils.json_utils import read_config
 from storage.viewport import load_viewport, days_window
 from web_dash.assets.object_styles import draw_objects
+from web_dash.charts.theme import apply_layout, GREEN, RED
 
 TZ = "America/New_York"
 
@@ -39,6 +40,7 @@ def _add_day_bands(fig: go.Figure, ts_plot: pd.Series, tf_minutes: int, opacity=
                       layer="below", line_width=0)
 
 def generate_zones_chart(timeframe: str = "15m", days: int = 10):
+    print(f"\n[zones_chart] timeframe: {timeframe}, days: {days}")
     symbol = read_config("SYMBOL")
     t0, t1, picked = days_window(timeframe, days)
 
@@ -52,15 +54,11 @@ def generate_zones_chart(timeframe: str = "15m", days: int = 10):
     # --- debug: counts per ET day before trimming ---
     ts_et_raw = pd.to_datetime(df_c["ts"], utc=True, errors="coerce").dt.tz_convert(TZ)
     pre_counts_c = pd.Series(ts_et_raw.dt.date).value_counts().sort_index()
-    print(f"[zones_chart] candles per day ({timeframe}):\n{pre_counts_c}")
-    print(f"[zones_chart] total objects: {len(df_o)}\n{df_o}") # The point of this was too see what structure the objects have
+    
     # objects structure: Columns: [object_id, id, type, left, y, top, bottom, status, symbol, timeframe]
     if "ts" in df_o.columns: # We need to change this, not just the if statement but the contents inside to better handle what we want to display in terminal, best fit.
         ts_et_o = pd.to_datetime(df_o["ts"], utc=True, errors="coerce").dt.tz_convert(TZ)
         pre_counts_o = pd.Series(ts_et_o.dt.date).value_counts().sort_index()
-        print(f"[zones_chart] objects per day:\n{pre_counts_o}")
-    else:
-        print("[zones_chart] objects have no ts column")
 
     # Empty case
     if df_c.empty:
@@ -83,9 +81,9 @@ def generate_zones_chart(timeframe: str = "15m", days: int = 10):
     fig = go.Figure(go.Candlestick(
         x=x,
         open=df_c["open"], high=df_c["high"], low=df_c["low"], close=df_c["close"],
-        increasing_line_color="#16a34a", decreasing_line_color="#ef4444",
-        increasing_fillcolor="#16a34a", decreasing_fillcolor="#ef4444",
-        name="Price"
+        increasing_line_color=GREEN, decreasing_line_color=RED,
+        increasing_fillcolor=GREEN, decreasing_fillcolor=RED,
+        name="Price",
     ))
 
     # 5) Remove gaps + add day stripes + overlay objects
@@ -94,16 +92,6 @@ def generate_zones_chart(timeframe: str = "15m", days: int = 10):
     draw_objects(fig, df_o, df_c, _tf_minutes(timeframe), variant="zones")
 
     # 6) Layout polish
-    fig.update_layout(
-        title=f"{symbol} — Zones ({timeframe.upper()})",
-        margin=dict(l=30, r=20, t=40, b=30),
-        paper_bgcolor="#f7f8fa", plot_bgcolor="#fdfdfd",
-        xaxis=dict(title=None, showspikes=True, spikemode="across", spikesnap="cursor"),
-        yaxis=dict(title=None, gridcolor="#eaecef", zeroline=False),
-        hovermode="x unified",
-        xaxis_rangeslider_visible=False,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
-        height=700, uirevision="zones",
-    )
+    apply_layout(fig, title=f"{symbol} — Live ({timeframe.upper()})", uirevision="zones")
 
     return dcc.Graph(figure=fig, style={"height": "700px"})

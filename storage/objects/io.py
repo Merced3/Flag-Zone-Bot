@@ -245,6 +245,7 @@ def query_current_by_y_range(y_min: float, y_max: float,
     - Levels: y in range
     - Zones: [min(top,bottom), max(top,bottom)] overlaps range
     """
+    #print(f"[io] query_current_by_y_range() - timeframe={timeframe}: y_min={y_min}, y_max={y_max}")
     cols = ["id","type","left","y","top","bottom","status","symbol","timeframe"]
     df = load_current_objects(columns=cols)
 

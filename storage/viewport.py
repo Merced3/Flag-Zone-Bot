@@ -272,8 +272,8 @@ def load_viewport(*,
             vmax += pad
 
     # ---- pull objects only within this y-range ----
-    out = query_current_by_y_range(symbol=symbol, timeframe=timeframe, y_min=vmin, y_max=vmax)
-
+    out = query_current_by_y_range(symbol=symbol, timeframe="15m", y_min=vmin, y_max=vmax) # has to be 15m because that's where objects are created and stored
+    #print(f"[viewport] objects before filtering: {len(out)}")
     # Normalize to DataFrame (handles duckdb Relation / DataFrame / list[dict])
     if hasattr(out, "to_df"):
         df_obj = out.to_df()
