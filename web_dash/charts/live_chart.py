@@ -11,7 +11,6 @@ from storage.viewport import load_viewport, get_timeframe_bounds
 from web_dash.charts.theme import apply_layout, GREEN, RED
 from web_dash.assets.object_styles import draw_objects
 
-# Ema imports (currently unused, not for long)
 from paths import get_ema_path
 from utils.ema_utils import load_ema_json
 
