@@ -10,7 +10,7 @@ NEXT THING TO WORK ON:
         figures driven by storage.viewport, not image placeholders; live charts pull Parquet parts only
         and honor LIVE_ANCHOR/LIVE_BARS; zones uses days_window (dayfiles only) with rangebreaks/day
         stripes; initial WS “kick” (chart:<tf>) from ws_server; separate PNG/export path via chart_updater.py.
-    [ ] `ws_server.md`:
+    [x] `ws_server.md`:
         Document POST /trigger-chart-update, POST /refresh-chart (saves PNG async), WS /ws/chart-updates, 
         payloads (chart:<tf>), and the startup broadcast for all TFs.
     [ ] `storage-viewport.md`:
