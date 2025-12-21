@@ -22,7 +22,7 @@ NEXT THING TO WORK ON:
         Update schema to match reality: candles carry ts (int64 ms) + ts_iso (UTC ISO), optional global_x
         stamped during 15m compaction; parts live under date folders, dayfiles sit beside them; live charts
         read parts-only while zones read dayfiles; note DuckDB union_by_name + hive partitioning.
-    [ ] `ticker-and-timeframes.md`:
+    [x] `ticker-and-timeframes.md`:
         Reflect current config keys and casing. TIMEFRAMES is typically upper-case in config.json; add 
         LIVE_BARS (per-TF window) and LIVE_ANCHOR (now|latest|date:YYYY-MM-DD) which control live chart 
         windows.
