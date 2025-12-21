@@ -1,4 +1,12 @@
-# ✅ Release Notes
+# Release Notes
+
+---
+
+## Parquet Live WebDash & DuckDB Viewport
+
+- **Goal**: Move candles/objects to append-only Parquet with compacted dayfiles, and drive the Dash UI from DuckDB/viewport instead of CSV/JSON paths.
+- **Status**: ✅ Completed
+- **Description**: Candles now carry `ts` (int64 ms) + `ts_iso`; 15m dayfiles stamp `global_x`. `storage/viewport.load_viewport` reads parts/dayfiles with DuckDB (`union_by_name`, hive partitioning) and filters objects from the 15m snapshot by price band. The web dashboard was overhauled: Dash tabs render live from Parquet, WS server broadcasts `chart:<TF>` signals, and `chart_updater.py` exports PNGs (with optional notify) without coupling to the UI.
 
 ---
 

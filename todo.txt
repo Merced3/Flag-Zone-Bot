@@ -26,7 +26,7 @@ NEXT THING TO WORK ON:
         Reflect current config keys and casing. TIMEFRAMES is typically upper-case in config.json; add 
         LIVE_BARS (per-TF window) and LIVE_ANCHOR (now|latest|date:YYYY-MM-DD) which control live chart 
         windows.
-    [ ] `release-notes.md`:
+    [x] `release-notes.md`:
         Add an entry for this branch (Parquet append-only writes, DuckDB viewport, live Dash overhaul with 
         WS triggers/PNG exporter).
     ADDITIONAL CHANGES:
