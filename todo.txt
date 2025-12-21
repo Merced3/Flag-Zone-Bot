@@ -33,7 +33,7 @@ NEXT THING TO WORK ON:
     [x] Add a runbook in `docs/runbooks/` for operating the dashboard stack (start `uvicorn web_dash.ws_server`,
     start `python -m web_dash.dash_app`, optional `chart_updater.update_chart(..., notify=True)`, ports, basic
     verification).
-    [ ] `storage_tests.md`: 
+    [x] `storage_tests.md`: 
         Expand to cover viewport dedup (parts+days), price-band object filtering, `global_x` stamping
         continuity on 15m compaction, and `days_window()` date selection.
     [ ] `project-structure.md`: 
