@@ -2,7 +2,7 @@
 
 ## Why
 
-Fast reads, safe incremental writes, and small files during the session. We write **Parquet parts** and compact them later; DuckDB reads via simple globs.
+Fast reads, safe incremental writes, and small files during the session. We write Parquet parts and compact them later; DuckDB reads via simple globs.
 
 ## Key goals
 
@@ -15,48 +15,48 @@ Fast reads, safe incremental writes, and small files during the session. We writ
 
 ```bash
 Flag-Zone-Bot/
-├── storage/
-│   ├── data/
-│   │   ├── 2m/
-│   │   │   ├── 2025-10-22/
-│   │   │   │   ├── part-20251022_133001.290000-c24f98a7.parquet
-│   │   │   │   └── ... more candle parts ...
-│   │   │   ├── 2025-10-21.parquet   # compacted dayfile
-│   │   │   └── ...
-│   │   ├── 5m/
-│   │   │   └── (same pattern as above)
-│   │   └── 15m/
-│   │       └── (same pattern as above)
-│   ├── objects/
-│   │   ├── current/
-│   │   │   └── objects.parquet      # latest state of all objects
-│   │   └── timeline/
-│   │       └── YYYY-MM/
-│   │           └── YYYY-MM-DD.parquet  # append-only events for that day
-│   └── images/ …, emas/ …, flags/ …   # see dedicated docs
+├─ storage/
+│  ├─ data/
+│  │  ├─ 2m/
+│  │  │  ├─ 2025-10-22/
+│  │  │  │  ├─ part-20251022_133001.290000-c24f98a7.parquet
+│  │  │  │  ├─ ... more candle parts ...
+│  │  │  └─ 2025-10-22.parquet        # compacted dayfile sits beside the folder
+│  │  ├─ 5m/                          # same pattern
+│  │  ├─ 15m/                         # same pattern; dayfiles but has global_x
+│  ├─ objects/
+│  │  ├─ current/
+│  │  │  └─ objects.parquet           # latest state of all objects
+│  │  └─ timeline/
+│  │     └─ YYYY-MM/
+│  │        └─ YYYY-MM-DD.parquet     # append-only events for that day
+│  ├─ images/, emas/, flags/          # see dedicated docs
 ```
 
 ## Write-path summary
 
-- **Candles:** each finalized candle → single-row Parquet part in `.../<TF>/<YYYY-MM-DD>/`.
-- **Objects:** each create/update/close → single-row Parquet **event** in `objects/timeline/YYYY-MM/`.
-- **Compaction:** merges candle parts to a **dayfile** `.../<TF>/<YYYY-MM-DD>.parquet`. (Object compaction is optional/by-month later.)
+- **Candles:** each finalized candle -> single-row Parquet part in `.../<TF>/<YYYY-MM-DD>/part-*.parquet`.
+- **Objects:** each create/update/close -> single-row Parquet event in `objects/timeline/YYYY-MM/`.
+- **Compaction:** merges candle parts to a **dayfile** `.../<TF>/<YYYY-MM-DD>.parquet` (sits beside the dated folder). On 15m dayfiles, compaction stamps `global_x` continuously across days. Object compaction is optional/by-month later.
 
 ## Read-path summary
+
 - Call `viewport.load_viewport(t0, t1, ...)` to get:
-    - a time-bounded candles frame
-    - the **last-known state** of each object overlapping the viewport (optionally constrained to a price band using top/bottom)
+  - a time-bounded candles frame
+  - the **last-known state** of each object overlapping the viewport (optionally constrained to a price band using top/bottom)
+- Live charts read **parts only** (`include_parts=True, include_days=False`) and anchor to the latest part if needed; zones/history charts read **dayfiles** (`include_days=True, include_parts=False`). When both are mixed, duplicates are dropped by `(symbol,timeframe,ts)`.
+- DuckDB queries use `read_parquet(..., union_by_name=1, hive_partitioning=1)` to tolerate schema drift and date-folder layout (lowercase tf folders).
 
 ## Time & TZ
 
-- `t0/t1` bounds may be ISO with **or** without an offset; we normalize them to a local-naive ISO in the market timezone before querying.
-- All canonical timestamps persisted in Parquet are ISO strings **with** a TZ offset so DuckDB can compare them lexicographically.
+- `t0/t1` bounds may be ISO with or without an offset; we normalize them to a local-naive ISO in the market timezone before querying.
+- Candles carry `ts` (int64 ms, UTC) and `ts_iso` (UTC ISO string); DuckDB compares either safely (lexical on `ts_iso`).
 - The UI may present data in the market timezone (e.g., America/Chicago) for consistency.
 
 ## Contracts (high level)
 
 - **Candles** are append-only; compaction rewrites files but not values.
-- **Objects** are event-sourced; render latest snapshot rows where `status != "removed"`. For price-window queries, overlap via `top/bottom.`
+- **Objects** are event-sourced; render latest snapshot rows where `status != "removed"`. For price-window queries, overlap via `top/bottom`.
 
 ## Retention
 

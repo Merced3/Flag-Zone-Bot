@@ -18,7 +18,7 @@ NEXT THING TO WORK ON:
         global_x column in candle output, and clarify that objects come from the 15m snapshot filtered 
         by price band via query_current_by_y_range. Mention days_window()/get_timeframe_bounds() helpers 
         used by the charts.
-    [ ] `candles_schema.md` and `storage-system.md`:
+    [x] `candles_schema.md` and `storage-system.md`:
         Update schema to match reality: candles carry ts (int64 ms) + ts_iso (UTC ISO), optional global_x
         stamped during 15m compaction; parts live under date folders, dayfiles sit beside them; live charts
         read parts-only while zones read dayfiles; note DuckDB union_by_name + hive partitioning.
