@@ -92,6 +92,6 @@ def generate_zones_chart(timeframe: str = "15m", days: int = 10):
     draw_objects(fig, df_o, df_c, _tf_minutes(timeframe), variant="zones")
 
     # 6) Layout polish
-    apply_layout(fig, title=f"{symbol} — Live ({timeframe.upper()})", uirevision="zones")
+    apply_layout(fig, title=f"{symbol} — Historical ({timeframe.upper()})", uirevision="zones")
 
     return dcc.Graph(figure=fig, style={"height": "700px"})
