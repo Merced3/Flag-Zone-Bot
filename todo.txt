@@ -30,7 +30,7 @@ NEXT THING TO WORK ON:
         Add an entry for this branch (Parquet append-only writes, DuckDB viewport, live Dash overhaul with 
         WS triggers/PNG exporter).
     ADDITIONAL CHANGES:
-    [ ] Add a runbook in `docs/runbooks/` for operating the dashboard stack (start `uvicorn web_dash.ws_server`,
+    [x] Add a runbook in `docs/runbooks/` for operating the dashboard stack (start `uvicorn web_dash.ws_server`,
     start `python -m web_dash.dash_app`, optional `chart_updater.update_chart(..., notify=True)`, ports, basic
     verification).
     [ ] `storage_tests.md`: 
