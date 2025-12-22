@@ -1,31 +1,10 @@
 {
-    "week_timespan": "12-15-25 to 12-21-25",
+    "week_timespan": "12-22-25 to 12-28-25",
     "dates": {
-        "12-15-25": {
+        "12-23-25": {
             "07:30 AM": [
-                "Inflation Rate YoY"
-            ]
-        },
-        "12-16-25": {
-            "07:30 AM": [
-                "Non Farm Payrolls",
-                "Non Farm Payrolls",
-                "Retail Sales MoM",
-                "Unemployment Rate"
-            ]
-        },
-        "12-17-25": {},
-        "12-18-25": {
-            "07:30 AM": [
-                "Core Inflation Rate MoM",
-                "Core Inflation Rate YoY",
-                "Inflation Rate MoM",
-                "Inflation Rate YoY"
-            ]
-        },
-        "12-19-25": {
-            "09:00 AM": [
-                "Existing Home Sales"
+                "Durable Goods Orders MoM",
+                "GDP Growth Rate QoQ 2nd Est"
             ]
         }
     }
