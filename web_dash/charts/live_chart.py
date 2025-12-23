@@ -11,8 +11,8 @@ from storage.viewport import load_viewport, get_timeframe_bounds
 from web_dash.charts.theme import apply_layout, GREEN, RED
 from web_dash.assets.object_styles import draw_objects
 
-from paths import get_ema_path
-from utils.ema_utils import load_ema_json
+#from paths import get_ema_path
+#from utils.ema_utils import load_ema_json
 
 _BAR_MINUTES_RE = re.compile(r"(\d+)\s*[mM]")
 TZ = "America/New_York"
@@ -117,22 +117,25 @@ def generate_live_chart(timeframe: str):
     ))
 
     # Draw EMAs
+    """
     ema_path = get_ema_path(tf.upper()) # get_ema_path() is a older function that runs off of the old uppercase naming convention, will change if need be.
-    ema_df = load_ema_json(ema_path)
-    if ema_df is not None and not ema_df.empty:
+    ema_raw = load_ema_json(ema_path)
+    ema_df = pd.DataFrame(ema_raw) if isinstance(ema_raw, list) else ema_raw
+    if ema_df is not None and not ema_df.empty and "ts" in ema_df.columns:
         ema_df["timestamp"] = pd.to_datetime(ema_df["ts"], errors="coerce")
         merged = pd.merge_asof(
             df_candles.sort_values("timestamp"), 
             ema_df.sort_values("timestamp"),
             on="timestamp"
         )
-        for col in [c for c in merged.columns if c.lower().startswith("ema")]:
+        for col in [c for c in ema_df.columns if str(c).lower().startswith("ema") or str(c).isdigit()]:
             fig.add_trace(go.Scatter(
                 x=candlex, y=merged[col],
                 mode="lines", name=col.upper(),
                 line=dict(width=1.4, color="#1d4ed8"),
                 yaxis="y", hoverinfo="skip",
             ))
+    """
 
     # Draw objects (zones/levels)
     draw_objects(fig, df_objects, df_candles, tf_min, variant="live")

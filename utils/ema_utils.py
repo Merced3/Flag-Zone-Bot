@@ -53,9 +53,11 @@ async def calculate_save_EMAs(candle, X_value, timeframe):
     for window, _ in read_config('EMAS'):  # window, color
         ema_col = f"EMA_{window}"
         df[ema_col] = df['close'].ewm(span=window, adjust=False).mean()
+        #ts_val = candle.get("timestamp")
         current_ema_values[str(window)] = df[ema_col].iloc[-1]
 
     current_ema_values['x'] = X_value
+    #current_ema_values["ts"] = ts_val
     update_ema_json(path, current_ema_values)
 
 def get_latest_ema_values(ema_type, timeframe):
@@ -142,6 +144,8 @@ def load_ema_json(path):
     try:
         data = safe_read_json(path, default=[])
         return data if isinstance(data, list) and data else None
+        #df = load_json_df(path)
+        #return df if not df.empty else None
     except:
         return None
     
