@@ -38,7 +38,7 @@ def generate_live_chart(timeframe: str):
     symbol = read_config("SYMBOL")
     bars_limit = _pick_bars_limit(tf, default=600)
     tf_min = _bar_minutes(tf)
-    print(f"\n[live_chart] timeframe: {tf}")
+    #print(f"\n[live_chart] timeframe: {tf}")
 
     anchor = str(read_config("LIVE_ANCHOR")).lower()  # 'now' | 'latest'
 
@@ -102,7 +102,7 @@ def generate_live_chart(timeframe: str):
     df_candles["_ts_plot"] = ts_et.dt.tz_localize(None)
 
     # Debug
-    print(f"[live_chart] candles={len(df_candles)} objects={len(df_objects)}")
+    #print(f"[live_chart] candles={len(df_candles)} objects={len(df_objects)}")
 
     # --- plot ---
     fig = go.Figure()

@@ -40,7 +40,7 @@ def _add_day_bands(fig: go.Figure, ts_plot: pd.Series, tf_minutes: int, opacity=
                       layer="below", line_width=0)
 
 def generate_zones_chart(timeframe: str = "15m", days: int = 10):
-    print(f"\n[zones_chart] timeframe: {timeframe}, days: {days}")
+    #print(f"\n[zones_chart] timeframe: {timeframe}, days: {days}")
     symbol = read_config("SYMBOL")
     t0, t1, picked = days_window(timeframe, days)
 
