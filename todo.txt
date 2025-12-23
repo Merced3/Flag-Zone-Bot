@@ -36,9 +36,9 @@ NEXT THING TO WORK ON:
     [x] `storage_tests.md`: 
         Expand to cover viewport dedup (parts+days), price-band object filtering, `global_x` stamping
         continuity on 15m compaction, and `days_window()` date selection.
-    [ ] `project-structure.md`: 
+    [x] `project-structure.md`: 
         Refresh the tree to include new files (`object_styles.json`, `theme.py`, Parquet parts/dayfiles with 
         `ts`+`ts_iso`), and drop any outdated CSV-first wording.
-    [ ] Fix the corrupted glyphs/checkmarks across several docs (`TOC.md`, `roadmap.md`, `release-notes.md`)
+    [x] Fix the corrupted glyphs/checkmarks across several docs (`TOC.md`, `roadmap.md`, `release-notes.md`)
     and update roadmap statuses (e.g., the “NEW UI/UX” item is now done).
 [ ] Merge these changes from `webdash/parquet-live` branch to `main/master` branch.
