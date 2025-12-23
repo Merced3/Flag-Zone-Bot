@@ -1,7 +1,6 @@
 # tests/storage_unit_tests/test_objects_storage.py
 import pandas as pd
-from pathlib import Path
-import importlib, shutil
+import importlib
 
 # ───✅ SNAPSHOT UPSERT TESTS ─────────────────────────────────────────────
 

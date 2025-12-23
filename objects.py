@@ -1,23 +1,35 @@
 # objects.py
+from __future__ import annotations
+
+# Guard heavy/runtime-only deps so import works in CI/tests
+try:
+    from data_acquisition import get_certain_candle_data  # used only in live flows
+except Exception:  # catches ModuleNotFoundError for cred inside data_acquisition
+    def get_certain_candle_data(*args, **kwargs):
+        raise RuntimeError("data_acquisition/get_certain_candle_data unavailable in CI/tests")
+
+try:
+    import cred  # runtime secrets
+except ModuleNotFoundError:
+    cred = None  # fine for tests; any runtime path that needs cred must handle None
+
+import argparse
 from typing import Optional
 import pandas as pd
 from shared_state import print_log
-from data_acquisition import get_certain_candle_data
-import cred
 import asyncio
 from pathlib import Path
 from datetime import datetime
 from utils.data_utils import get_dates
 from utils.json_utils import read_config
-from paths import pretty_path, TIMELINE_OBJECTS_DIR, DATA_DIR
+from pathlib import Path
+from paths import pretty_path, TIMELINE_OBJECTS_DIR, DATA_DIR, CURRENT_OBJECTS_PATH
 from storage.objects.io import (      # Parquet-backed storage helpers
     append_timeline_events,
     upsert_current_objects,
-    query_current_by_y_range,         # if you want to call from here/UI
-    query_current_by_y_and_x,         # idem
-    build_asof_snapshot_from_timeline,# idem
-    load_current_objects,
+    _enforce_schema,
     write_current_objects,
+    load_current_objects
 )
 import pytz
 from tools.compact_parquet import _last_global_index
@@ -539,6 +551,80 @@ def _next_object_serial_from_parquet() -> int:
         pass
     return 1
 
+def rebuild_snapshot_from_timeline(
+    *,
+    max_step: Optional[int] = None,
+    symbol: Optional[str] = None,
+    timeframe: Optional[str] = None,
+    keep_removed: Optional[bool] = False,
+    dry_run: Optional[bool] = False,
+):
+    parts = sorted(Path(TIMELINE_OBJECTS_DIR).rglob("*.parquet"))
+    if not parts:
+        print(f"[rebuild] No timeline parquet files under {TIMELINE_OBJECTS_DIR}")
+        return None
+
+    tdfs = []
+    for p in parts:
+        df = pd.read_parquet(p)
+        if "step" not in df.columns and "day_step" in df.columns:
+            df = df.rename(columns={"day_step": "step"})
+        if "step" not in df.columns:
+            continue
+        df["step"] = pd.to_numeric(df["step"], errors="coerce")
+        df = df[df["step"].notna()]
+        if max_step is not None:
+            df = df[df["step"] <= max_step]
+        if symbol:
+            df = df[df.get("symbol") == symbol]
+        if timeframe:
+            df = df[df.get("timeframe") == timeframe]
+        if not df.empty:
+            tdfs.append(df)
+
+    if not tdfs:
+        print("[rebuild] No timeline rows after filtering")
+        return None
+
+    tl = pd.concat(tdfs, ignore_index=True)
+    if "ts" in tl.columns:
+        tl["ts"] = pd.to_datetime(tl["ts"], errors="coerce")
+
+    # Normalize missing status on remove actions so pruning works
+    if "action" in tl.columns and "status" in tl.columns:
+        tl.loc[(tl["action"] == "remove") & tl["status"].isna(), "status"] = "removed"
+
+    # Sort chronologically so the last event per object is the newest even when day_step resets daily
+    if "ts" in tl.columns:
+        tl = tl.sort_values(["object_id", "ts", "step"])
+    else:
+        tl = tl.sort_values(["object_id", "step"])
+
+    keep_cols = [
+        "object_id","type","left","y","top","bottom","status",
+        "symbol","timeframe","created_ts","updated_ts","created_step","updated_step"
+    ]
+    keep_cols = [c for c in keep_cols if c in tl.columns]
+    snap = (
+        tl[keep_cols + ["step"]]
+        .groupby("object_id", sort=False)
+        .last()
+        .reset_index()
+        .rename(columns={"object_id": "id"})
+    )
+
+    if not keep_removed and "status" in snap.columns:
+        snap = snap[snap["status"].fillna("active") != "removed"]
+
+    snap = _enforce_schema(snap)
+
+    if dry_run:
+        print(f"[DRY RUN] would write {len(snap)} rows to `{pretty_path(CURRENT_OBJECTS_PATH)}`")
+        return snap
+
+    write_current_objects(snap)
+    print(f"[rebuild] wrote {len(snap)} rows to `{pretty_path(CURRENT_OBJECTS_PATH)}`")
+    return snap
 # ───🔸 EXTERNAL HELPERS / UI HOOKS ───────────────────────────────────────
 
 def get_objects():
@@ -940,8 +1026,6 @@ TIPS / NOTES
 """
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description="Objects backfill / EOD helpers")
     sub = parser.add_subparsers(dest="cmd")
 
@@ -959,6 +1043,13 @@ if __name__ == "__main__":
     cd.add_argument("--day", required=True, help="YYYY-MM-DD to fetch (e.g. 2025-10-20)")
     cd.add_argument("--overwrite", action="store_true", help="If set, delete existing dayfile before writing")
 
+    rs = sub.add_parser("rebuild-snapshot", help="Rebuild current snapshot from timeline parquet files")
+    rs.add_argument("--max-step", type=int, default=None, help="Optional inclusive step cutoff")
+    rs.add_argument("--symbol", default=None, help="Optional symbol filter")
+    rs.add_argument("--timeframe", default=None, help="Optional timeframe filter")
+    rs.add_argument("--keep-removed", action="store_true", help="Keep rows with status=removed")
+    rs.add_argument("--dry-run", action="store_true", help="Report only; do not write objects.parquet")
+
     args = parser.parse_args()
 
     if args.cmd == "backfill":
@@ -966,17 +1057,15 @@ if __name__ == "__main__":
     elif args.cmd == "eod":
         process_end_of_day_15m_candles_for_objects()
     elif args.cmd == "pull-replace":
-        asyncio.run(pull_and_replace_15m(days_back=args.days_back, day_override=args.day))
-    elif args.cmd == "create-dayfile":
-        if args.overwrite:
-            try:
-                path = DATA_DIR / "15m" / f"{args.day}.parquet"
-                if path.exists():
-                    path.unlink()
-                    print_log(f"[create-dayfile] Removed existing file → {pretty_path(path)}")
-            except Exception as e:
-                print_log(f"[create-dayfile] WARN: could not remove existing file: {e}")
-        asyncio.run(create_daily_15m_parquet(args.day))
+        asyncio.run(pull_and_replace_15m(days_back=args.days_back))
+    elif args.cmd == "rebuild-snapshot":
+        rebuild_snapshot_from_timeline(
+            max_step=args.max_step,
+            symbol=args.symbol,
+            timeframe=args.timeframe,
+            keep_removed=args.keep_removed,
+            dry_run=args.dry_run,
+        )
     else:
         # default behavior (backfill everything)
         update_timeline_with_objects()

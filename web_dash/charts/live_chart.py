@@ -1,150 +1,150 @@
 # web_dash/charts/live_chart.py
+from __future__ import annotations
+import re
+import numpy as np
 import pandas as pd
-import pytz
 import plotly.graph_objs as go
 from dash import dcc
-from utils.ema_utils import load_ema_json
-from paths import get_ema_path, CANDLE_LOGS, LINE_DATA_PATH, MARKERS_PATH
+
 from utils.json_utils import read_config
-from shared_state import safe_read_json
-from collections import deque
-import io
-import numpy as np
-import warnings
+from storage.viewport import load_viewport, get_timeframe_bounds
+from web_dash.charts.theme import apply_layout, GREEN, RED
+from web_dash.assets.object_styles import draw_objects
 
-# silence just this pandas deprecation (safe until we remove .to_pydatetime)
-warnings.filterwarnings(
-    "ignore",
-    message="The behavior of DatetimeProperties.to_pydatetime is deprecated",
-    category=FutureWarning,
-)
+from paths import get_ema_path
+from utils.ema_utils import load_ema_json
 
-NY = "America/New_York"
+_BAR_MINUTES_RE = re.compile(r"(\d+)\s*[mM]")
+TZ = "America/New_York"
 
-def to_local_naive(ts_series):
-    # Convert whatever is in your logs (ISO strings / epoch) → tz-aware UTC
-    # → convert to America/New_York → strip tz (tz-naive datetimes for Plotly)
-    s = pd.to_datetime(ts_series, utc=True, errors="coerce")
-    return s.dt.tz_convert(NY).dt.tz_localize(None)
+def _bar_minutes(tf: str) -> int:
+    m = _BAR_MINUTES_RE.match(str(tf))
+    return int(m.group(1)) if m else 1  # default to 1 minute if weird tf
 
-def _read_last_jsonl(path, n=600):
-    """
-    Fast-ish tail for JSONL files: read only the last n lines.
-    """
-    dq = deque(maxlen=n)
-    with open(path, 'r', encoding='utf-8') as f:
-        for line in f:
-            dq.append(line)
-    if not dq:
-        return pd.DataFrame(columns=['timestamp','open','high','low','close'])
-    return pd.read_json(io.StringIO(''.join(dq)), lines=True)
-
-def generate_live_chart(timeframe):
-    # Load candle data from log file
-    candle_path = CANDLE_LOGS.get(timeframe)
-    # print(f"[generate_live_chart] Loading candles from: {candle_path}")
+def _coerce_pos_int(val, default: int) -> int:
     try:
-        N_MAP = {"2M": 600, "5M": 600, "15M": 600}  # tune as you like
-        df_candles = _read_last_jsonl(candle_path, N_MAP.get(timeframe, 600))
-        df_candles['timestamp'] = to_local_naive(df_candles['timestamp'])
-        df_candles['timestamp'] = pd.to_datetime(df_candles['timestamp'], errors='coerce')  # <- ensure datetime64[ns]
-        df_candles = df_candles.sort_values('timestamp').reset_index(drop=True)
+        n = int(float(val))
+        return n if n > 0 else default
+    except (TypeError, ValueError):
+        return default
 
-        if df_candles.empty or 'timestamp' not in df_candles.columns:
-            raise ValueError("No candle data found.")
-    except Exception as e:
-        empty_fig = go.Figure()
-        empty_fig.update_layout(
-            title=f"Live {timeframe} Chart - No candle data",
-            xaxis_title="",
-            yaxis_title="",
-            height=700
+def _pick_bars_limit(timeframe: str, default: int = 600) -> int:
+    cfg = read_config("LIVE_BARS") or {}
+    v = cfg.get(timeframe) or cfg.get(timeframe.upper()) or cfg.get(timeframe.lower())
+    return _coerce_pos_int(v, default)
+
+def generate_live_chart(timeframe: str):
+    tf = timeframe.lower()
+    symbol = read_config("SYMBOL")
+    bars_limit = _pick_bars_limit(tf, default=600)
+    tf_min = _bar_minutes(tf)
+    print(f"\n[live_chart] timeframe: {tf}")
+
+    anchor = str(read_config("LIVE_ANCHOR")).lower()  # 'now' | 'latest'
+
+    # If we have any parts at all, capture their latest ts for a fallback
+    _min_ts, latest_parts_ts, _nparts = get_timeframe_bounds(
+        timeframe=tf,
+        include_days=False,
+        include_parts=True,
+    )
+
+    if anchor == "latest" and latest_parts_ts is not None:
+        t1 = latest_parts_ts
+    else:
+        t1 = pd.Timestamp.now()
+    t0 = t1 - pd.Timedelta(minutes=bars_limit * tf_min)
+
+    df_candles, df_objects = load_viewport(
+        symbol=symbol, 
+        timeframe=tf,
+        t0_iso=t0.isoformat(),
+        t1_iso=t1.isoformat(),
+        include_days=False,    # LIVE = parts only
+        include_parts=True,
+    )
+
+    # fallback: if 'now' produced 0 rows but we DO have parts, re-anchor to latest
+    if df_candles.empty and latest_parts_ts is not None and anchor != "latest":
+        t1 = latest_parts_ts
+        t0 = t1 - pd.Timedelta(minutes=bars_limit * tf_min)
+        df_candles, _ = load_viewport(
+            symbol=symbol,
+            timeframe=tf,
+            t0_iso=t0.isoformat(),
+            t1_iso=t1.isoformat(),
+            include_days=False,
+            include_parts=True,
         )
-        return dcc.Graph(figure=empty_fig, style={"height": "700px"})
-    
-    # This is for later, just saving this for whenever we need it
-    #flag_data = safe_read_json(LINE_DATA_PATH)
-    #marker_data = safe_read_json(MARKERS_PATH)
 
-    # Load EMAs
-    ema_path = get_ema_path(timeframe)
-    emas = load_ema_json(ema_path)
-    df_emas = pd.DataFrame(emas) if emas else None
+    if df_candles.empty:
+        fig = go.Figure()
+        fig.update_layout(
+            title=f"Live {timeframe} Chart - No candle data",
+            xaxis_title="", yaxis_title="", height=700
+        )
+        return dcc.Graph(figure=fig, style={"height": "700px"})
 
-    if df_emas is not None and not df_emas.empty:
-        # make sure x is numeric
-        df_emas['x'] = pd.to_numeric(df_emas['x'], errors='coerce')
+    # Normalize/clean + tail
+    df_candles = df_candles.copy()
+    df_candles["timestamp"] = pd.to_datetime(df_candles["ts"], errors="coerce")
+    df_candles = df_candles.dropna(subset=["timestamp"]).sort_values("timestamp")
+    if bars_limit:
+        df_candles = df_candles.tail(bars_limit).reset_index(drop=True)
 
-        # 1) build candle index for the visible tail
-        df_candles = df_candles.reset_index(drop=True)
-        candle_count = len(df_candles)
-        start = df_emas['x'].max() - (candle_count - 1)  # where this tail starts in global index
-        df_candles['global_idx'] = range(start, start + candle_count)
+    # _ts_plot (naive ET) for both candles and objects
+    ts = pd.to_datetime(df_candles["ts"], errors="coerce")
+    if ts.dt.tz is None:
+        ts_local = ts.dt.tz_localize("America/Chicago")
+    else:
+        ts_local = ts.dt.tz_convert("America/Chicago")
+    ts_et = ts_local.dt.tz_convert(TZ)
+    df_candles["_ts_plot"] = ts_et.dt.tz_localize(None)
 
-        # 2) map EMA x -> candle timestamp
-        idx_to_ts = dict(zip(df_candles['global_idx'], df_candles['timestamp']))
-        df_emas['timestamp'] = df_emas['x'].map(idx_to_ts)
-        df_emas['timestamp'] = pd.to_datetime(df_emas['timestamp'], errors='coerce')  # <- force datetime64[ns]
+    # Debug
+    print(f"[live_chart] candles={len(df_candles)} objects={len(df_objects)}")
 
-        # 3) keep only rows that actually land in the visible candle window
-        df_emas.dropna(subset=['timestamp'], inplace=True)
-
-
+    # --- plot ---
     fig = go.Figure()
-
-    # --- Candlesticks ---
-    candlex = df_candles['timestamp']
-    if hasattr(candlex, "dt"):
-        # Python datetime array (export-safe) without the FutureWarning
-        candlex = np.array(candlex.dt.to_pydatetime(), dtype=object)
+    candlex = df_candles["_ts_plot"].to_numpy() #candlex = np.array(df_candles["_ts_plot"].dt.to_pydatetime(), dtype=object)
     fig.add_trace(go.Candlestick(
         x=candlex,
-        open=df_candles['open'],
-        high=df_candles['high'],
-        low=df_candles['low'],
-        close=df_candles['close'],
-        name='Price'
+        open=df_candles["open"], high=df_candles["high"],
+        low=df_candles["low"], close=df_candles["close"],
+        increasing_line_color=GREEN, decreasing_line_color=RED,
+        increasing_fillcolor=GREEN, decreasing_fillcolor=RED,
+        name="Price",
     ))
 
-    # --- EMAs ---
-    if df_emas is not None:
-        emax = df_emas['timestamp']
-        if hasattr(emax, "dt"):
-            emax = np.array(emax.dt.to_pydatetime(), dtype=object)
-        for window, color in read_config("EMAS"):
-            col = str(window)
-            if col in df_emas.columns:
-                fig.add_trace(go.Scatter(
-                    x=emax,
-                    y=df_emas[col],
-                    mode='lines',
-                    name=f'EMA {window}',
-                    line=dict(color=color.lower(), width=1.5),
-                    yaxis="y2",
-                    connectgaps=False,
-                ))
+    # Draw EMAs
+    ema_path = get_ema_path(tf.upper()) # get_ema_path() is a older function that runs off of the old uppercase naming convention, will change if need be.
+    ema_df = load_ema_json(ema_path)
+    if ema_df is not None and not ema_df.empty:
+        ema_df["timestamp"] = pd.to_datetime(ema_df["ts"], errors="coerce")
+        merged = pd.merge_asof(
+            df_candles.sort_values("timestamp"), 
+            ema_df.sort_values("timestamp"),
+            on="timestamp"
+        )
+        for col in [c for c in merged.columns if c.lower().startswith("ema")]:
+            fig.add_trace(go.Scatter(
+                x=candlex, y=merged[col],
+                mode="lines", name=col.upper(),
+                line=dict(width=1.4, color="#1d4ed8"),
+                yaxis="y", hoverinfo="skip",
+            ))
 
-    fig.update_layout(
-        title=f"Live {timeframe} Chart",
-        xaxis_title='Time',
-        yaxis_title='Price',
-        xaxis=dict(type="date"),
-        xaxis_rangeslider_visible=False,
-        uirevision=f"live-{timeframe}",
-        yaxis2=dict(overlaying="y", matches="y", showticklabels=False, showgrid=False)
-    )
+    # Draw objects (zones/levels)
+    draw_objects(fig, df_objects, df_candles, tf_min, variant="live")
 
-    fig.update_traces(cliponaxis=True, selector=dict(type="scatter"))
-
-    # --- keep y-range based ONLY on candles ---
-    visible_min = df_candles['low'].min()
-    visible_max = df_candles['high'].max()
-    span = float(visible_max - visible_min)
+    # Layout: key on the right, focus y-range on candles only
+    visible_min = float(df_candles["low"].min())
+    visible_max = float(df_candles["high"].max())
+    span = max(visible_max - visible_min, 0.0)
     pad = max(span * 0.05, 0.05)
 
-    fig.update_yaxes(
-        range=[visible_min - pad, visible_max + pad],
-        autorange=False
-    )
+    apply_layout(fig, title=f"{symbol} — Live ({timeframe.upper()})", uirevision=f"live-{timeframe}")
+    fig.update_yaxes(range=[visible_min - pad, visible_max + pad], autorange=False)
+    fig.update_traces(cliponaxis=True, selector=dict(type="scatter"))
 
     return dcc.Graph(figure=fig, style={"height": "700px"})

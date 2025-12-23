@@ -1,0 +1,11 @@
+{
+  "default": {"line": "#6b7280", "fill": "#94a3b8", "level_opacity": 0.7, "zone_opacity": 0.12},
+  "types": {
+    "support":    {"line": "#10b981", "fill": "#bbf7d0"},
+    "resistance": {"line": "#ef4444", "fill": "#fecdd3"}
+  },
+  "variants": {
+    "zones": {"level_width": 1,   "zone_opacity": 0.50},
+    "live":  {"level_width": 1.2, "zone_opacity": 0.20}
+  }
+}

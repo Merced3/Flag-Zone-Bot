@@ -1,30 +1,55 @@
-# Objects – Event Log Schema
+# Objects — Event Log & Snapshot Schemas
 
-Objects (zones, levels, markers, flags) are stored as **events**. Last event for an `object_id` is the current state.
+Objects (zones, levels, markers, flags) are **event-sourced** and also materialized into a current-state snapshot for fast UI/strategy reads.
 
-### Path pattern
+## Path pattern
 
-```
-storage/objects/<tf>/<YYYY-MM>/part-*.parquet
-# after compaction → storage/objects/<tf>/<YYYY-MM>/events.parquet
-```
+- **Current snapshot**: `storage/objects/current/objects.parquet`
+- **Timeline events**: `storage/objects/timeline/YYYY-MM/YYYY-MM-DD.parquet`
 
-### Columns
+## Columns
 
-- `symbol` (str)
-- `timeframe` (str)
-- `event_ts` (ISO8601 str) – when the event occurred
-- `object_id` (str) – stable UUID/string for the object across its life
-- `object_type` (str) – zone|level|marker|flag
-- `action` (str) – create|update|close
-- `t_start` (ISO str | null) – candle-time where the object becomes active
-- `t_end` (ISO str | null) – last candle-time where object is active (null if open)
-- `y_min` (float | null)
-- `y_max` (float | null)
-- `payload` (JSON str) – free-form metadata
+### Current snapshot (`objects/current/objects.parquet`)
 
-### Rules & semantics
+These columns are enforced on read/write (nullable Pandas dtypes for stability):
 
-- **Event-sourced:** render latest row by `event_ts` per `object_id`.
-- **Overlap:** an object is considered visible in a viewport if `COALESCE(t_end, t1) >= t0`.
-- Optional **price window filter** using `y_min`/`y_max`.
+- `id` (string) — stable object id
+- `type` (string) — e.g., `zone|level|marker|flag`
+- `left` (Int64) — x/index positioning hint
+- `y` (Float64) — anchor price
+- `top` (Float64) — max price bound (for price-window filtering)
+- `bottom` (Float64) — min price bound (for price-window filtering)
+- `status` (string) — e.g., `active|removed`
+- `symbol` (string) — e.g., `SPY`
+- `timeframe` (string) — e.g., `2M|5M|15M`
+- `created_ts` (Int64) — integer timestamp
+- `updated_ts` (Int64) — integer timestamp
+- `created_step` (Int64) — engine step index at create
+- `updated_step` (Int64) — engine step index at last update
+
+### Timeline events (`objects/timeline/YYYY-MM/YYYY-MM-DD.parquet`)
+
+Each row is a single event (append-only):
+
+- `step` (Int64) — engine step index
+- `ts` (Int64 or ISO) — event time (writer may normalize upstream)
+- `action` (string) — `create|update|close`
+- `reason` (string) — free-form reason/explanation
+- `object_id` (string) — id the event refers to (same as `id` in snapshot)
+- `type` (string)
+- `left, y, top, bottom` (numeric) — geometry/price info
+- `status` (string)
+- `symbol` (string)
+- `timeframe` (string)
+
+## Rules & semantics
+
+- **Event-sourced**: the latest event per `object_id` defines the current state that’s mirrored in the snapshot.
+- **Visibility (UI/strategies)**: render objects where `status != "removed"`. If a price window is provided, filter by overlap using `top/bottom` (not `y_min/y_max`).
+- **Partitioning** (timeline): events are written under `timeline/YYYY-MM/` with one Parquet file per day (`YYYY-MM-DD.parquet`), append-only.
+- **Schema enforcement**: snapshot reads/writes coerce missing columns and cast to the nullable dtypes above to keep DuckDB/Parquet consistent.
+
+## Typical queries
+
+- **Latest state for a viewport**: read the snapshot and filter by `symbol`, `timeframe`, and optional price band `[pmin,pmax]` using `top >= pmin AND bottom <= pmax`.  
+- **Audit/history**: read `timeline/2025-10/2025-10-22.parquet` for all events that day; union globs for multi-day windows.

@@ -1,33 +1,49 @@
 # Configuration — Symbol & Timeframes
 
-**StratForge is single‑asset** at runtime, but **ticker‑agnostic**: you can set any instrument your data provider/websocket supports. SPY is just the default.
+**Purpose:** Pick the market instrument we operate on and which bar intervals we build and display. One symbol at a time; the app is otherwise ticker-agnostic.
 
-## Choose a symbol
+---
+
+## 1) What to set (and where)
 
 Edit `config.json`:
 
 ```json
 {
-  "symbol": "SPY",
-  "timeframes": ["2m", "5m", "15m"],
-  "provider": {
-    "name": "polygon",
-    "api_key": "YOUR_KEY"
-  }
+  "SYMBOL": "SPY",
+  "TIMEFRAMES": ["2M", "5M", "15M"],
+  "LIVE_BARS": {"2M": 195, "5M": 78, "15M": 26},
+  "LIVE_ANCHOR": "latest"
 }
 ```
 
-* **symbol**: Any supported ticker (e.g., `QQQ`, `AAPL`, `ES=F`).
-* **provider**: Must support your chosen symbol on the live websocket endpoint.
-* **timeframes**: Lowercase on disk (`2m`, `5m`, `15m`) to match storage layout.
+* `SYMBOL` — the instrument to trade/visualize (e.g., `SPY`, `QQQ`, `AAPL`).
+* `TIMEFRAMES` — which chart intervals to use; upper-case values (e.g., `2M`, `5M`, `15M`).
+* `LIVE_BARS` — per-timeframe window size for live charts (bars to show in the Dash live view).
+* `LIVE_ANCHOR` — how to anchor the live window: `"now"`, `"latest"`, or `"date:YYYY-MM-DD"`.
 
-## Provider compatibility checklist
+---
 
-* Does the **websocket** stream trades/quotes for the symbol?
-* Are there **rate limits** or **entitlements** (e.g., options vs equities) you must enable?
-* Are timestamps and sessions aligned with your **market hours** logic?
+## 2) What this changes
 
-## Notes
+* **Ingestion & storage**: we only build/write candles for the listed timeframes.
+* **Frontend tabs**: charts are generated for each configured timeframe (tabs labeled `2M/5M/15M`).
+* **Viewport API**: queries expect the timeframe you configured (case-insensitive, but config is upper-case).
+* **Live chart window**: `LIVE_BARS` controls how many bars to show; `LIVE_ANCHOR` controls the right edge of the window.
 
-* If you change `symbol`, old SPY Parquet files remain valid; you’ll just write new files under the same tree with a different `symbol` column value.
-* Strategies should never hard‑code `SPY`; they read `symbol` from config or shared state.
+---
+
+## 3) Rules & tips (no fluff)
+
+* **Upper-case** timeframes in config (`"2M"`, `"5M"`, `"15M"`). The code reads them case-insensitively, but config is upper by convention.
+* Use **valid** intervals we support (start with `2M`, `5M`, `15M`).
+* Don’t hard-code the symbol or timeframes elsewhere; read them from config.
+* If you remove a timeframe from config, its chart/ingest disappears accordingly (old data remains on disk).
+* For live charts, set `LIVE_ANCHOR` to `"latest"` to align to the most recent part; use `"now"` if you want a moving wall-clock anchor; `"date:YYYY-MM-DD"` to anchor to a fixed day.
+
+---
+
+## 4) Quick sanity checks
+
+* Do you see one tab per configured timeframe in the web UI?
+* Does `viewport.load_viewport(symbol, timeframe, t0, t1, ...)` return rows for that timeframe? (It is case-insensitive, but config uses `"15M"`, `"5M"`, `"2M"`.)

@@ -1,13 +1,42 @@
 # Why `docs/` Exist
 
-If it explains how/why the system works (not just what it does), it probably belongs in `docs/`. If it’s user-facing marketing or setup basics, that’s `README.md`
+If it explains how/why the system works (not just what it does), it belongs in `docs/`. If it’s user-facing marketing or setup basics, that’s `README.md`.
 
 ```bash
 Flag-Zone-Bot/
-├── docs/
-│   ├── adr/
-│   │   └── 0001-separate-frontend-from-backend.md
-│   └── TOC.md # This!
+├─ docs/
+│  ├─ adr/
+│  │  ├─ 0001-separate-frontend-from-backend.md
+│  │  └─ 0002-parquet-append-and-duckdb-reads.md
+│  ├─ api/
+│  │  ├─ storage-viewport.md
+│  │  └─ ws_server.md
+│  ├─ architecture/
+│  │  ├─ frontend-overview.md
+│  │  └─ overview.md
+│  ├─ configuration/
+│  │  └─ ticker-and-timeframes.md
+│  ├─ data/
+│  │  ├─ candles_schema.md
+│  │  ├─ objects_schema.md
+│  │  └─ storage-system.md
+│  ├─ frontend/
+│  │  └─ web_dash.md
+│  ├─ overview/
+│  │  └─ stratforge.md
+│  ├─ runbooks/
+│  │  ├─ dashboard-stack.md
+│  │  ├─ end-of-day-compaction.md
+│  │  └─ rebuild-ema-state.md
+│  ├─ setup/
+│  │  └─ project-structure.md
+│  ├─ strategies/
+│  │  └─ README.md
+│  ├─ testing/
+│  │  └─ storage_tests.md
+│  ├─ roadmap.md
+│  ├─ release-notes.md
+│  └─ TOC.md   # This
 ```
 
 ---
@@ -32,10 +61,10 @@ Flag-Zone-Bot/
   3.4 Development Mode vs Live Trading Mode  
 
 4. **Architecture Overview**
-  4.1 High-Level System Diagram
-  4.2 Module Breakdown
-  4.3 Data Flow & Storage Locations
-  4.4 See `docs/adr/` for key technical decisions and tradeoffs
+  4.1 High-Level System Diagram  
+  4.2 Module Breakdown  
+  4.3 Data Flow & Storage Locations  
+  4.4 See `docs/adr/` for key technical decisions and tradeoffs  
 
 5. **Data Acquisition**
   5.1 Live Market Data Sources  
@@ -76,7 +105,7 @@ Flag-Zone-Bot/
 
 12. **Changelog**
   12.1 Week-by-Week Progress  
-  12.2 Major Milestones
+  12.2 Major Milestones  
 
 ---
 
@@ -88,7 +117,7 @@ Flag-Zone-Bot/
 - **runbooks/** — Step-by-step ops tasks.
   - `docs/runbooks/start-all-services.md`
   - `docs/runbooks/recover-stuck-websocket.md`
-- **api/** — Endpoints for your internal FastAPI services.
+- **api/** — Endpoints for internal FastAPI services.
   - `docs/api/ws_server.md` (routes, payloads, examples)
 - **data/** — Schemas and contracts for files/DB tables.
   - `docs/data/candles_schema.md`
@@ -96,14 +125,14 @@ Flag-Zone-Bot/
 - **playbooks/** — “When X happens, do Y.”
   - `docs/playbooks/market-halt.md`
   - `docs/playbooks/broker-timeout.md`
-- **troubleshooting.md** — Common errors + fixes (e.g., “Dash not updating,” “PNG not saving”).
+- **troubleshooting.md** — Common errors + fixes.
 - **testing.md** — How to run unit/integration/replay tests; test data locations.
 - **conventions.md** — Code style, naming, folder conventions, logging levels.
 - **roadmap.md** — Short-term priorities, longer-term ideas.
-- **release-notes.md** — Human-readable summary per week/day (you already do weekly reports—link them).
+- **release-notes.md** — Human-readable summary per week/day.
 - **security.md** — Token management, .env usage, what never goes in Git.
 - **perf-notes.md** — Known bottlenecks, profiling tips, scale ideas.
-- **incident_postmortems/** — Optional but gold when things break.
+- **incident_postmortems/** — Optional but great when things break.
 
 ---
 
@@ -153,9 +182,9 @@ What success looks like.
 What must be true (tokens, services up, market state).
 
 ## Steps
-1) …
-2) …
-3) …
+1) ...
+2) ...
+3) ...
 
 ## Verification
 Logs/metrics to check.

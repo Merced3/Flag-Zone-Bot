@@ -1,88 +1,71 @@
-# Storage System – Overview & Contracts
+# Storage System — Overview & Contracts
 
 ## Why
 
-We redesigned storage so strategies and UIs can read fast, write safely, and scale without giant CSVs. Candles and “objects” (zones/levels/markers/flags) are written as small Parquet parts and compacted later. Reads use DuckDB over file globs for speed and SQL ergonomics.
+Fast reads, safe incremental writes, and small files during the session. We write Parquet parts and compact them later; DuckDB reads via simple globs.
 
 ## Key goals
 
-- **Append-only writes** during market hours (safe, atomic-ish).
-- **Zero downtime compaction** after close.
-- **Query by time-window** (and optionally by price range for objects).
-- **Simple contracts** so algos and UIs don’t care how data is physically laid out.
+- Append-only during market hours
+- Zero-downtime compaction after close
+- Time-window queries (and optional price-window for objects)
+- Simple contracts (algos/UI don’t care about physical layout)
 
 ## What lives where
 
 ```bash
 Flag-Zone-Bot/
-├── Other stuff...
-├── storage/
-│   ├── csv/ 
-│   │   ├── order_log.csv
-│   ├── data/ 
-│   │   ├── 2m/
-│   │   │   └── 2025-09-02.parquet # Alot of Parquet Files
-│   │   ├── 5m/
-│   │   │   └── 2025-09-02.parquet # Alot of Parquet Files
-│   │   └── 15m/
-│   │       └── 2025-09-02.parquet # Alot of Parquet Files
-│   ├── emas/ # Exponential Moving Average indicator, for differnt TimeFrames
-│   │   ├── 2M.json
-│   │   ├── 5M.json
-│   │   ├── 15M.json
-│   │   └── ema_state.json
-│   ├── flags/ # BEAR/BULL Flag indicator, for differnt TimeFrames
-│   │   ├── 2M.json
-│   │   ├── 5M.json
-│   │   └── 15M.json
-│   ├── images/ # this is where everything chart/image-wise is saved
-│   │   ├── SPY_2M_chart.png
-│   │   ├── SPY_5M_chart.png
-│   │   ├── SPY_15M_chart.png
-│   │   └── SPY_15M-zone_chart.png
-│   ├── markers/ # UI chart will read this and show on frontend
-│   │   ├── 2M.json
-│   │   ├── 5M.json
-│   │   └── 15M.json
-│   ├── objects/ 
-│   ├── duck.py
-│   ├── message_ids.json # Keeps track of messages being sent to discord
-│   ├── parquet_writer.py
-│   ├── viewport.py
-│   ├── week_ecom_calendar.json # Somewhat of a "Indicator"
-│   └── week_performances.json 
-├── Other Not important stuff...
+├─ storage/
+│  ├─ data/
+│  │  ├─ 2m/
+│  │  │  ├─ 2025-10-22/
+│  │  │  │  ├─ part-20251022_133001.290000-c24f98a7.parquet
+│  │  │  │  ├─ ... more candle parts ...
+│  │  │  └─ 2025-10-22.parquet        # compacted dayfile sits beside the folder
+│  │  ├─ 5m/                          # same pattern
+│  │  ├─ 15m/                         # same pattern; dayfiles but has global_x
+│  ├─ objects/
+│  │  ├─ current/
+│  │  │  └─ objects.parquet           # latest state of all objects
+│  │  └─ timeline/
+│  │     └─ YYYY-MM/
+│  │        └─ YYYY-MM-DD.parquet     # append-only events for that day
+│  ├─ images/, emas/, flags/          # see dedicated docs
 ```
 
 ## Write-path summary
 
-- **Candles:** each finalized candle → single-row Parquet part (atomic file create).
-- **Objects:** each object event (create/update/close) → single-row Parquet part.
-- **Compaction:** merges parts into a day/month file; optional deletion of parts.
+- **Candles:** each finalized candle -> single-row Parquet part in `.../<TF>/<YYYY-MM-DD>/part-*.parquet`.
+- **Objects:** each create/update/close -> single-row Parquet event in `objects/timeline/YYYY-MM/`.
+- **Compaction:** merges candle parts to a **dayfile** `.../<TF>/<YYYY-MM-DD>.parquet` (sits beside the dated folder). On 15m dayfiles, compaction stamps `global_x` continuously across days. Object compaction is optional/by-month later.
 
 ## Read-path summary
-- Use `viewport.load_viewport()` to materialize:
-    - a time-bounded candles frame
-    - the **last-known state** of each object overlapping the viewport (and optional price window)
+
+- Call `viewport.load_viewport(t0, t1, ...)` to get:
+  - a time-bounded candles frame
+  - the **last-known state** of each object overlapping the viewport (optionally constrained to a price band using top/bottom)
+- Live charts read **parts only** (`include_parts=True, include_days=False`) and anchor to the latest part if needed; zones/history charts read **dayfiles** (`include_days=True, include_parts=False`). When both are mixed, duplicates are dropped by `(symbol,timeframe,ts)`.
+- DuckDB queries use `read_parquet(..., union_by_name=1, hive_partitioning=1)` to tolerate schema drift and date-folder layout (lowercase tf folders).
 
 ## Time & TZ
 
-- All canonical timestamps in Parquet are stored as **ISO strings** with TZ offset when written, and compared lexicographically in DuckDB (consistent because ISO8601 sorts correctly).
-- UI may convert to America/New_York for plotting.
+- `t0/t1` bounds may be ISO with or without an offset; we normalize them to a local-naive ISO in the market timezone before querying.
+- Candles carry `ts` (int64 ms, UTC) and `ts_iso` (UTC ISO string); DuckDB compares either safely (lexical on `ts_iso`).
+- The UI may present data in the market timezone (e.g., America/Chicago) for consistency.
 
 ## Contracts (high level)
 
-- **Candles** are **append-only** and immutable post-write (compaction rewrites but values don’t change).
-- **Objects** are event-sourced; last event wins. Consumers (UI/strategy) should render the latest state where `t_end` is null or overlaps the query window.
+- **Candles** are append-only; compaction rewrites files but not values.
+- **Objects** are event-sourced; render latest snapshot rows where `status != "removed"`. For price-window queries, overlap via `top/bottom`.
 
 ## Retention
 
-- Keep compacted day files indefinitely; keep parts only for recovery/debug (optional).
+- Keep compacted dayfiles; keep parts only for recovery/debugging.
 
 ## Failure model
 
-- If a part write fails, you lose a single row—not the whole day.
-- Compaction writes to a temp file and renames it; if that fails you still have the parts.
+- If a part write fails, you lose one row, not the day.
+- Compaction writes to a temp file then renames; if it fails, the original parts remain.
 
 ## Related docs
 
@@ -90,4 +73,4 @@ Flag-Zone-Bot/
 - `docs/data/objects_schema.md`
 - `docs/api/storage-viewport.md`
 - `docs/runbooks/end-of-day-compaction.md`
-- `docs/adr/0002-parquet-append-and-duckdb-reads.md`ß
+- `docs/adr/0002-parquet-append-and-duckdb-reads.md`

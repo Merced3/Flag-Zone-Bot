@@ -1,6 +1,5 @@
 # tests/storage_unit_tests/test_compaction.py
-import importlib, json
-from pathlib import Path
+import importlib
 import pandas as pd
 
 def test_compact_day_deletes_parts_and_keeps_dayfile(tmp_storage, monkeypatch):

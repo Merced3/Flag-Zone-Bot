@@ -1,0 +1,44 @@
+Currently working on everything display-wise
+
+Everything the new storage system works, just need to get the display/frontend to read whats in the storage via the new stored procedures functionality. The unit tests will show everything storage working.
+
+NEXT THING TO WORK ON:
+[x] frontend works enough, objects display and EMA's should work but havent tested
+[x] Work on the documentation of the finished `basic` version of `webdash/parquet-live` branch:
+    [x] `webdash.md`: 
+        Rewrite to match the actual Dash app: four tabs (zones + 15M/5M/2M) rendered as live dcc.Graph
+        figures driven by storage.viewport, not image placeholders; live charts pull Parquet parts only
+        and honor LIVE_ANCHOR/LIVE_BARS; zones uses days_window (dayfiles only) with rangebreaks/day
+        stripes; initial WS “kick” (chart:<tf>) from ws_server; separate PNG/export path via chart_updater.py.
+    [x] `ws_server.md`:
+        Document POST /trigger-chart-update, POST /refresh-chart (saves PNG async), WS /ws/chart-updates, 
+        payloads (chart:<tf>), and the startup broadcast for all TFs.
+    [x] `storage-viewport.md`:
+        Add the flags include_days/include_parts, describe dedup when dayfiles overlap parts, optional 
+        global_x column in candle output, and clarify that objects come from the 15m snapshot filtered 
+        by price band via query_current_by_y_range. Mention days_window()/get_timeframe_bounds() helpers 
+        used by the charts.
+    [x] `candles_schema.md` and `storage-system.md`:
+        Update schema to match reality: candles carry ts (int64 ms) + ts_iso (UTC ISO), optional global_x
+        stamped during 15m compaction; parts live under date folders, dayfiles sit beside them; live charts
+        read parts-only while zones read dayfiles; note DuckDB union_by_name + hive partitioning.
+    [x] `ticker-and-timeframes.md`:
+        Reflect current config keys and casing. TIMEFRAMES is typically upper-case in config.json; add 
+        LIVE_BARS (per-TF window) and LIVE_ANCHOR (now|latest|date:YYYY-MM-DD) which control live chart 
+        windows.
+    [x] `release-notes.md`:
+        Add an entry for this branch (Parquet append-only writes, DuckDB viewport, live Dash overhaul with 
+        WS triggers/PNG exporter).
+    ADDITIONAL CHANGES:
+    [x] Add a runbook in `docs/runbooks/` for operating the dashboard stack (start `uvicorn web_dash.ws_server`,
+    start `python -m web_dash.dash_app`, optional `chart_updater.update_chart(..., notify=True)`, ports, basic
+    verification).
+    [x] `storage_tests.md`: 
+        Expand to cover viewport dedup (parts+days), price-band object filtering, `global_x` stamping
+        continuity on 15m compaction, and `days_window()` date selection.
+    [x] `project-structure.md`: 
+        Refresh the tree to include new files (`object_styles.json`, `theme.py`, Parquet parts/dayfiles with 
+        `ts`+`ts_iso`), and drop any outdated CSV-first wording.
+    [x] Fix the corrupted glyphs/checkmarks across several docs (`TOC.md`, `roadmap.md`, `release-notes.md`)
+    and update roadmap statuses (e.g., the “NEW UI/UX” item is now done).
+[ ] Merge these changes from `webdash/parquet-live` branch to `main/master` branch.

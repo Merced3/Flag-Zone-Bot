@@ -1,4 +1,5 @@
-# web_dash/dash_app.py
+# web_dash/dash_app.py 
+# Run Frontend: "python web_dash/dash_app.py"
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -11,13 +12,22 @@ import dash.exceptions
 
 from charts.live_chart import generate_live_chart
 from charts.zones_chart import generate_zones_chart
+from utils.json_utils import read_config
 
 import logging
 logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
 print("[dash_app] using file:", __file__)
 
-app = dash.Dash(__name__, title="SPY Bot Multi-Timeframe Viewer")
+TIMEFRAMES = read_config("TIMEFRAMES")  # e.g. ["2M","5M","15M"]
+SYMBOL = read_config("SYMBOL") # e.g. "SPY"
+
+tabs = [
+    {"label": "Zones", "value": "zones"},
+    *[{"label": tf, "value": tf} for tf in TIMEFRAMES]
+]
+
+app = dash.Dash(__name__, title=f"{SYMBOL} Bot Multi-Timeframe Viewer")
 
 def tab_block(tf_label, tf_key):
     """
@@ -28,7 +38,7 @@ def tab_block(tf_label, tf_key):
     graph_id = {"type": "graph", "tf": tf_key}
 
     # Initial figure (seed) — light & fast:
-    initial_fig = generate_zones_chart().figure if tf_key == "zones" else generate_live_chart(tf_key).figure
+    initial_fig = generate_zones_chart("15M").figure if tf_key == "zones" else generate_live_chart(tf_key).figure
 
     return dcc.Tab(
         label=tf_label, value=tf_key,
@@ -41,7 +51,7 @@ def tab_block(tf_label, tf_key):
     )
 
 app.layout = html.Div([
-    html.H1("SPY Bot: Multi-Timeframe View", style={"textAlign": "center"}),
+    html.H1(f"{SYMBOL} Bot: Multi-Timeframe View", style={"textAlign": "center"}),
     dcc.Tabs(
         id="mtf-tabs",
         value="zones",
@@ -66,13 +76,13 @@ def refresh_any(msg, selected_tab, graph_id):
     if msg:
         payload = msg.get("data") if isinstance(msg, dict) else msg
         if isinstance(payload, str) and payload == f"chart:{tf_key}":
-            return (generate_zones_chart().figure
+            return (generate_zones_chart("15m").figure
                     if tf_key == "zones"
                     else generate_live_chart(tf_key).figure)
 
     # B) Tab-activation refresh (user clicked into this TF)
     if selected_tab == tf_key:
-        return (generate_zones_chart().figure
+        return (generate_zones_chart("15m").figure
                 if tf_key == "zones"
                 else generate_live_chart(tf_key).figure)
 

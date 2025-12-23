@@ -55,20 +55,21 @@ def _enforce_schema(df: pd.DataFrame) -> pd.DataFrame:
                 out[c] = out[c].astype("string")
     return out
 
-# ───🔹 PATHS & ENSURE ────────────────────────────────────────────────────
-CUR_PATH = paths.CURRENT_OBJECTS_PATH
-TL_DIR   = paths.TIMELINE_OBJECTS_DIR
+# ───🔹 PATHS & STORAGE ───────────────────────────────────────────────────
+
+def _cur_path(): return paths.CURRENT_OBJECTS_PATH
+def _timeline_dir(): return paths.TIMELINE_OBJECTS_DIR
 
 def _ensure_dirs():
-    CUR_PATH.parent.mkdir(parents=True, exist_ok=True)
-    TL_DIR.mkdir(parents=True, exist_ok=True)
+    _cur_path().parent.mkdir(parents=True, exist_ok=True)
+    _timeline_dir().mkdir(parents=True, exist_ok=True)
 
 # ───🔹 LOADERS ───────────────────────────────────────────────────────────
 
 def load_current_objects(columns: list[str] | None = None) -> pd.DataFrame:
     _ensure_dirs()
     try:
-        df = pd.read_parquet(CUR_PATH)
+        df = pd.read_parquet(_cur_path())
         df = _enforce_schema(df)
         if columns:
             # make sure requested columns exist even if empty
@@ -85,7 +86,7 @@ def load_timeline_day(day: str) -> pd.DataFrame:
     """
     Load timeline events for YYYY-MM-DD, or empty frame if missing.
     """
-    p = paths.TIMELINE_OBJECTS_DIR / day[:7] / f"{day}.parquet"
+    p = _timeline_dir() / day[:7] / f"{day}.parquet"
     try:
         return pd.read_parquet(p)
     except FileNotFoundError:
@@ -110,6 +111,27 @@ def _replace_with_retries(src: Path, dst: Path, *, attempts: int = 8, delay: flo
     # If we get here, surface the last error (helps debug a real lock)
     raise last_err
 
+def _normalize_ts(df: pd.DataFrame) -> pd.DataFrame:
+    if "ts_iso" in df.columns:
+        ts = pd.to_datetime(df["ts_iso"], errors="coerce", utc=True)
+    else:
+        s = pd.to_numeric(df.get("ts"), errors="coerce")
+        ts = pd.to_datetime(s, unit="ms", errors="coerce", utc=True)
+    df["ts"] = ts.dt.tz_convert(None)
+    return df
+
+def read_current_objects(symbol: str | None = None, timeframe: str | None = None) -> pd.DataFrame:
+    p = _cur_path()
+    if not p.exists():
+        return pd.DataFrame()
+    df = pd.read_parquet(p)
+    df = _normalize_ts(df)
+    if symbol and "symbol" in df.columns:
+        df = df[df["symbol"] == symbol]
+    if timeframe and "timeframe" in df.columns:
+        df = df[df["timeframe"].astype(str).str.lower() == timeframe.lower()]
+    return df.sort_values("ts").reset_index(drop=True)
+
 # ───🔹 WRITERS / UPSERTS ────────────────────────────────────────────────
 
 def write_current_objects(df: pd.DataFrame) -> None:
@@ -119,7 +141,7 @@ def write_current_objects(df: pd.DataFrame) -> None:
     _ensure_dirs()
     df = _enforce_schema(df)
 
-    out = CUR_PATH
+    out = _cur_path()
     tmp = out.with_name(out.name + ".tmp")
 
     # 1) write to a temp file (closed once to_parquet returns)
@@ -127,7 +149,6 @@ def write_current_objects(df: pd.DataFrame) -> None:
     
     # 2) atomic replace with Windows-friendly retries
     _replace_with_retries(tmp, out)
-
 
 def upsert_current_objects(changes: pd.DataFrame) -> None:
     # normalize incoming
@@ -142,7 +163,8 @@ def upsert_current_objects(changes: pd.DataFrame) -> None:
     # 1) update overlap via DataFrame.update (keeps dtypes, no warnings)
     overlap = cur_idx.index.intersection(ch_idx.index)
     if len(overlap):
-        cur_idx.update(ch_idx.loc[overlap])
+        # prefer incoming non-null values without breaking nullable dtypes
+        cur_idx.loc[overlap] = ch_idx.loc[overlap].combine_first(cur_idx.loc[overlap])
 
     # 2) append new ids (dtypes already aligned)
     new_ids = ch_idx.index.difference(cur_idx.index)
@@ -178,7 +200,7 @@ def append_timeline_events(events: pd.DataFrame) -> Path:
     # Day routing
     day = ev["ts"].dt.tz_convert("UTC").dt.normalize().iloc[0]
     day_str = day.strftime("%Y-%m-%d")
-    month_dir = TL_DIR / day_str[:7]
+    month_dir = _timeline_dir() / day_str[:7]
     month_dir.mkdir(parents=True, exist_ok=True)
     out = month_dir / f"{day_str}.parquet"
 
@@ -223,6 +245,7 @@ def query_current_by_y_range(y_min: float, y_max: float,
     - Levels: y in range
     - Zones: [min(top,bottom), max(top,bottom)] overlaps range
     """
+    #print(f"[io] query_current_by_y_range() - timeframe={timeframe}: y_min={y_min}, y_max={y_max}")
     cols = ["id","type","left","y","top","bottom","status","symbol","timeframe"]
     df = load_current_objects(columns=cols)
 
@@ -253,7 +276,7 @@ def build_asof_snapshot_from_timeline(step: int,
     Reconstruct the last-known state of each object up to 'step' (inclusive)
     from daily-partitioned timeline parquet files.
     """
-    parts = sorted(TL_DIR.rglob("*.parquet"))
+    parts = sorted(_timeline_dir().rglob("*.parquet"))
     if not parts:
         return pd.DataFrame(columns=["id","type","left","y","top","bottom","status","symbol","timeframe"])
 

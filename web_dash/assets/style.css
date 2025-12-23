@@ -1,0 +1,12 @@
+/* web_dash/assets/style.css */
+
+/* Global UI polish (Dash auto-loads this) */
+html, body {
+  margin: 0;
+  background: #f7f8fa;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+}
+#zones-graph, .dash-graph {
+  /* gives charts breathing room without extra whitespace */
+  padding: 8px 12px;
+}
