@@ -1064,7 +1064,7 @@
         "num_of_trades": 0,
         "num_of_profitable_trades": 0,
         "num_of_negitive_trades": 0,
-        "description": "Day 1, data collection was good, no issues except for a websocket hickup that we recovered from, no candles affected.",
+        "description": "Day 1, data collection was good, no issues except for a websocket hickup that we recovered from, no candles affected, FINALLY MERGED NEW FRONTEND, only took 10 weeks of dev while working full time at the same time, the saving of the new obects chart (levels/zones) is showing something wrong because the zones and levels are ending at different points which is weird, the actual website looks fine too me but idk why the 15m historical (objects) chart looks different PNG wise, will fix that tomorrow, if i have time.",
         "important_message_ids": []
     }
 ]
