@@ -41,4 +41,4 @@ NEXT THING TO WORK ON:
         `ts`+`ts_iso`), and drop any outdated CSV-first wording.
     [x] Fix the corrupted glyphs/checkmarks across several docs (`TOC.md`, `roadmap.md`, `release-notes.md`)
     and update roadmap statuses (e.g., the “NEW UI/UX” item is now done).
-[ ] Merge these changes from `webdash/parquet-live` branch to `main/master` branch.
+[x] Merge these changes from `webdash/parquet-live` branch to `main/master` branch.
