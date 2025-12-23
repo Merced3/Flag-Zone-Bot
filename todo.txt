@@ -4,7 +4,7 @@ Everything the new storage system works, just need to get the display/frontend t
 
 NEXT THING TO WORK ON:
 [x] frontend works enough, objects display and EMA's should work but havent tested
-[ ] Work on the documentation of the finished `basic` version of `webdash/parquet-live` branch:
+[x] Work on the documentation of the finished `basic` version of `webdash/parquet-live` branch:
     [x] `webdash.md`: 
         Rewrite to match the actual Dash app: four tabs (zones + 15M/5M/2M) rendered as live dcc.Graph
         figures driven by storage.viewport, not image placeholders; live charts pull Parquet parts only
