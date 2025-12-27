@@ -10,3 +10,4 @@ NEXT THING TO WORK ON:
 
 I can't test anything because most of my storage folder, I need to go home and tranfer a bunch of data Manually.
 fill in cred.py as it was deleted and not tracked.
+fill in storage folder alot of folders werent tracked.
